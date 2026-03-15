@@ -1,6 +1,10 @@
-target_sources(avitab_common PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR}/Platform.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/FSImpl.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/CrashHandler.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/strtod.cpp
+# This file is part of the Avitab project. See the README and LICENSE for details.
+
+target_sources(avitab_core_lib PRIVATE
+    CrashHandler.cpp
+    CrashHandler.h
+    Platform.cpp
+    Platform.h
+    strtod.cpp
+    strtod.h
 )

@@ -1,200 +1,65 @@
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wno-conversion -Wno-unused-function -Wno-stringop-overflow -fPIC")
-if(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-string(REPLACE "-Wno-stringop-overflow" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-endif()
+# This file is part of the Avitab project. See the README and LICENSE for details.
 
-add_library(avitab_common "${CMAKE_CURRENT_LIST_DIR}/Logger.cpp")
-add_library(avitab_xplane "")
-add_library(avitab_standalone "")
-if(WIN32 AND DEFINED ENV{MSFS_SDK})
-add_library(avitab_msfs "")
-endif()
+configure_file(config.h.in "${PROJECT_BINARY_DIR}/avitab/config.h")
 
-add_definitions(-DXPLM301=1 -DXPLM300=1 -DXPLM210=1 -DXPLM200=1)
+# The Avitab sources are built into one core library for all executables,
+# simulator-specific libraries for X-Plane, Flight Simulator and the mock
+# simulator (for development and test), and UI-window libraries.
+# Each executable will link the core library, and whichever simulation
+# and UI-window libraries are prescribed.
 
-include(${CMAKE_CURRENT_LIST_DIR}/libimg/CMakeLists.txt)
-include(${CMAKE_CURRENT_LIST_DIR}/world/CMakeLists.txt)
-include(${CMAKE_CURRENT_LIST_DIR}/libnavsql/CMakeLists.txt)
-include(${CMAKE_CURRENT_LIST_DIR}/libxdata/CMakeLists.txt)
-include(${CMAKE_CURRENT_LIST_DIR}/charts/CMakeLists.txt)
-include(${CMAKE_CURRENT_LIST_DIR}/maps/CMakeLists.txt)
-include(${CMAKE_CURRENT_LIST_DIR}/environment/CMakeLists.txt)
-include(${CMAKE_CURRENT_LIST_DIR}/gui_toolkit/CMakeLists.txt)
-include(${CMAKE_CURRENT_LIST_DIR}/platform/CMakeLists.txt)
-include(${CMAKE_CURRENT_LIST_DIR}/scripting/CMakeLists.txt)
-include(${CMAKE_CURRENT_LIST_DIR}/avitab/CMakeLists.txt)
-
-include_directories(
-    "${PROJECT_SOURCE_DIR}"
-    "${PROJECT_SOURCE_DIR}/build-third/include"
-    "${PROJECT_SOURCE_DIR}/lib/"
-    "${PROJECT_SOURCE_DIR}/lib/QuickJS/"
-    "${PROJECT_SOURCE_DIR}/lib/mupdf/thirdparty/freetype/include")
-
-add_definitions(-DCURL_STATICLIB)
-
-target_link_libraries(avitab_common
-    ${PROJECT_SOURCE_DIR}/build-third/lib/libgeotiff.a
-    ${PROJECT_SOURCE_DIR}/build-third/lib/libproj.a
-    ${PROJECT_SOURCE_DIR}/build-third/lib/libtiff.a
-    ${PROJECT_SOURCE_DIR}/build-third/lib/libxtiff.a
-    ${PROJECT_SOURCE_DIR}/build-third/lib/libmupdf.a
-    ${PROJECT_SOURCE_DIR}/build-third/lib/libmupdf-third.a
-    ${PROJECT_SOURCE_DIR}/build-third/lib/libcurl.a
-    ${PROJECT_SOURCE_DIR}/build-third/lib/libmbedtls.a
-    ${PROJECT_SOURCE_DIR}/build-third/lib/libmbedx509.a
-    ${PROJECT_SOURCE_DIR}/build-third/lib/libmbedcrypto.a
-    ${PROJECT_SOURCE_DIR}/build-third/lib/libdetex.a
-    ${PROJECT_SOURCE_DIR}/build-third/lib/libquickjs.a
-    world
-    navsql
-    sqlite3
+# All of the core Avitab classes are put in here
+add_library(avitab_core_lib)
+target_include_directories(avitab_core_lib PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}"
+    "${PROJECT_BINARY_DIR}"
+    "${XPLANE_SDK}/CHeaders" # avitab core should not need to know about these
+)
+target_compile_definitions(avitab_core_lib PUBLIC # aim to remove core library dependence on X-Plane interfaces
+    XPLM400 XPLM303 XPLM301 XPLM300 XPLM210 XPLM200
+    APL=$<BOOL:${APPLE}> IBM=$<BOOL:${WIN32}> LIN=$<AND:$<BOOL:${UNIX}>,$<NOT:$<BOOL:${APPLE}>>>
+)
+target_link_libraries(avitab_core_lib PUBLIC
+    avitab_extern
 )
 
-if(WIN32)
-    target_link_libraries(avitab_common
-        ws2_32
-        bcrypt
-    )
-endif(WIN32)
-
-# X-Plane plugin
-add_library(avitab_plugin SHARED
-    ${CMAKE_CURRENT_LIST_DIR}/Plugin.cpp
+# The XPlane library provides interfacing to XPlane for both simulator and window interfaces.
+add_library(avitab_xplane_lib)
+target_include_directories(avitab_xplane_lib PUBLIC
+    "${CMAKE_CURRENT_LIST_DIR}"
+    "${PROJECT_BINARY_DIR}"
+    "${XPLANE_SDK}/CHeaders"
 )
-
-if(WIN32)
-    add_definitions(-DIBM=1)
-    target_link_libraries(avitab_plugin
-        -static
-        -static-libgcc
-        -static-libstdc++
-        avitab_xplane
-        avitab_common
-        xdata
-        ${PROJECT_SOURCE_DIR}/build-third/lib/libcurl.a
-        ${PROJECT_SOURCE_DIR}/build-third/lib/XPLM_64.lib
-        opengl32
-    )
-elseif(APPLE)
-    add_definitions(-DAPL=1)
-    add_definitions(-DGL_SILENCE_DEPRECATION)
-    include_directories("/usr/local/include")
-    link_directories("/usr/local/lib")
-    target_link_libraries(avitab_plugin
-        avitab_xplane
-        avitab_common
-        xdata
-        "-F${PROJECT_SOURCE_DIR}/build-third/lib/ -framework XPLM"
-        "-framework OpenGL"
-        curl
-    )
-elseif(UNIX)
-    add_definitions(-DLIN=1)
-    target_link_libraries(avitab_plugin
-        -static-libgcc
-        -static-libstdc++
-        -fPIC
-        avitab_xplane
-        avitab_common
-        xdata
-        GL
-    )
+target_compile_definitions(avitab_xplane_lib PUBLIC
+    XPLM400 XPLM303 XPLM301 XPLM300 XPLM210 XPLM200
+    APL=$<BOOL:${APPLE}> IBM=$<BOOL:${WIN32}> LIN=$<AND:$<BOOL:${UNIX}>,$<NOT:$<BOOL:${APPLE}>>>
+)
+if(APPLE)
+    target_compile_definitions(avitab_xplane_lib PRIVATE GL_SILENCE_DEPRECATION)
 endif()
-
-set_target_properties(avitab_plugin PROPERTIES PREFIX "")
-set_target_properties(avitab_plugin PROPERTIES OUTPUT_NAME "AviTab")
-set_target_properties(avitab_plugin PROPERTIES SUFFIX ".xpl")
-
-if(WIN32)
-install(TARGETS avitab_plugin
-    RUNTIME DESTINATION  "/Users/rme/Desktop/X-Plane 11/Resources/plugins/AviTab/win_x64/"
-)
-endif(WIN32)
-
-# Supporting tools
-include(${CMAKE_CURRENT_LIST_DIR}/tools/CMakeLists.txt)
-
-# Standalone program
-add_executable(AviTab-standalone
-    ${CMAKE_CURRENT_LIST_DIR}/StandAlone.cpp
+target_link_libraries(avitab_xplane_lib PRIVATE
+    avitab_core_lib
 )
 
-if(WIN32)
-    target_link_libraries(AviTab-standalone
-        -static
-        -static-libgcc
-        -static-libstdc++
-        avitab_standalone
-        avitab_common
-        xdata
-        ${PROJECT_SOURCE_DIR}/build-third/lib/libcurl.a
-        glfw3
-        opengl32
-        -Wl,--subsystem,windows
+if(MSFS_SDK)
+    # The MSFS library provides interfacing to MSFS for both simulator and window interfaces.
+    add_library(avitab_msfs_lib)
+    target_include_directories(avitab_msfs_lib PRIVATE
+        "${CMAKE_CURRENT_LIST_DIR}"
+        "${PROJECT_BINARY_DIR}"
+        "$ENV{MSFS_SDK}/SimConnect SDK/include"
     )
-elseif(APPLE)
-    find_package(PkgConfig REQUIRED)
-    pkg_search_module(GLFW REQUIRED glfw3)
-    include_directories(${GLFW_INCLUDE_DIRS})
-    target_link_directories(AviTab-standalone PRIVATE ${GLFW_LIBRARY_DIRS})
-
-    add_definitions(-DGL_SILENCE_DEPRECATION)
-    target_link_libraries(AviTab-standalone
-        avitab_standalone
-        avitab_common
-        xdata
-        ${GLFW_STATIC_LIBRARIES}
-        "-framework OpenGL"
-        curl
-    )
-elseif(UNIX)
-    target_link_libraries(AviTab-standalone
-        avitab_standalone
-        avitab_common
-        xdata
-        GL
-        glfw
-        pthread
-    )
-endif()
-
-if(WIN32 AND DEFINED ENV{MSFS_SDK})
-    # Microsoft Flight Simulator Add-on
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-comment")
-    add_executable(AviTab-msfs
-        ${CMAKE_CURRENT_LIST_DIR}/MsfsAddon.cpp
-    )
-
-    add_library(SimConnect STATIC IMPORTED)
+    add_library(msfs_simconnect_dll SHARED IMPORTED)
     cmake_path(SET MSFS_SDK $ENV{MSFS_SDK})
-    set_property(TARGET SimConnect PROPERTY IMPORTED_LOCATION "${MSFS_SDK}/SimConnect SDK/lib/SimConnect.dll")
-    set_property(TARGET SimConnect PROPERTY IMPORTED_IMPLIB "${MSFS_SDK}/SimConnect SDK/lib/SimConnect.lib")
-
-    target_link_libraries(AviTab-msfs
-        -static
-        -static-libgcc
-        -static-libstdc++
-        avitab_msfs
-        avitab_standalone
-        avitab_common
-        xdata
-        SimConnect
-        ${PROJECT_SOURCE_DIR}/build-third/lib/libcurl.a
-        glfw3
-        opengl32
-        -Wl,--subsystem,windows
+    set_property(TARGET msfs_simconnect_dll PROPERTY IMPORTED_LOCATION "${MSFS_SDK}/SimConnect SDK/lib/SimConnect.dll")
+    set_property(TARGET msfs_simconnect_dll PROPERTY IMPORTED_IMPLIB "${MSFS_SDK}/SimConnect SDK/lib/SimConnect.lib")
+    target_link_libraries(avitab_msfs_lib PRIVATE
+        avitab_core_lib
+        msfs_simconnect_dll
     )
-
-    add_custom_command ( TARGET AviTab-msfs POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        $<TARGET_FILE:SimConnect> $<TARGET_FILE_DIR:AviTab-msfs>
-    )
-
-    add_custom_command ( TARGET AviTab-msfs POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_CURRENT_LIST_DIR}/../res" $<TARGET_FILE_DIR:AviTab-msfs>
-    )
-
 endif()
+
+add_subdirectory(core)
+add_subdirectory(platform)
+add_subdirectory(env)
+add_subdirectory(wrapper)
