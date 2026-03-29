@@ -1,0 +1,10 @@
+/* This file is part of the Avitab project. See the README and LICENSE for details. */
+
+#define AVITAB_VERSION_MAJOR @Avitab_VERSION_MAJOR@
+#define AVITAB_VERSION_MINOR @Avitab_VERSION_MINOR@
+#define AVITAB_VERSION_PATCH @Avitab_VERSION_PATCH@
+#define AVITAB_VERSION_STR "@Avitab_VERSION_MAJOR@.@Avitab_VERSION_MINOR@.@Avitab_VERSION_PATCH@"
+#define AVITAB_NAME "Avitab"
+
+#define NAVIGRAPH_CLIENT_SECRET "@NAVIGRAPH_CLIENT_SECRET@"
+#define CHARTFOX_CLIENT_ID "@CHARTFOX_CLIENT_ID@"

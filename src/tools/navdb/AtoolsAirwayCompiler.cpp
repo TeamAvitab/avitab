@@ -1,6 +1,6 @@
 /*
  *   AviTab - Aviator's Virtual Tablet
- *   Copyright (C) 2024 Folke Will <folko@solhost.org>
+ *   Copyright (C) 2018-2025 Folke Will
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Affero General Public License as published by
@@ -18,7 +18,7 @@
 
 #include "AtoolsAirwayCompiler.h"
 #include "AtoolsNavTranslator.h"
-#include "src/Logger.h"
+#include "core/Logger.h"
 
 AtoolsDbAirwayCompiler::AtoolsDbAirwayCompiler(std::shared_ptr<sqlnav::SqlDatabase> targ, std::shared_ptr<AtoolsDbNavTranslator> o)
 :   db(targ), owner(o), nextAirwayId(1)

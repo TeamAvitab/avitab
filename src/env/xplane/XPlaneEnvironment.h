@@ -1,0 +1,130 @@
+/*
+ *   AviTab - Aviator's Virtual Tablet
+ *   Copyright (C) 2018-2025 Folke Will
+ *
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU Affero General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Affero General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Affero General Public License
+ *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+#pragma once
+
+#include <XPLM/XPLMMenus.h>
+#include <XPLM/XPLMUtilities.h>
+#include <XPLM/XPLMProcessing.h>
+#include <memory>
+#include <vector>
+#include <atomic>
+#include <map>
+#include <thread>
+//#include "core/gui_toolkit/LVGLToolkit.h"
+#include "core/env/Environment.h"
+#include "DataCache.h"
+#include "DataRefExport.h"
+
+namespace avitab {
+
+class XPlaneEnvironment: public Environment {
+public:
+    XPlaneEnvironment();
+
+    // Must be called from the environment thread - do not call from GUI thread!
+    std::shared_ptr<world::LoadManager> createParsingWorldManager() override;
+    std::shared_ptr<LVGLToolkit> createGUIToolkit() override;
+    void createMenu(const std::string &name) override;
+    void addMenuEntry(const std::string &label, MenuCallback cb) override;
+    void destroyMenu() override;
+    void createCommand(const std::string &name, const std::string &desc, CommandCallback cb) override;
+    void destroyCommands() override;
+    void onAircraftReload() override;
+
+    // Can be called from any thread
+    std::string getFontDirectory() override;
+    std::string getProgramPath() override;
+    std::string getDataRootPath() override;
+    std::string getSettingsDir() override;
+    std::string getEarthTexturePath() override;
+    std::string getAirplanePath() override;
+    std::string getFlightPlansPath() override;
+    Environment::MagVarMap getMagneticVariations(std::vector<std::pair<double, double>> locations) override;
+    std::string getMETARForAirport(const std::string &icao) override;
+    void enableAndPowerPanel() override;
+    void setIsInMenu(bool menu) override;
+    AircraftID getActiveAircraftCount() override;
+    Location getAircraftLocation(AircraftID id) override;
+    void updateMapExports(float lat, float lon, int zoom, float vrange) override;
+
+    ~XPlaneEnvironment();
+
+protected:
+    bool canUseNavDb(const std::string simCode) override;
+
+private:
+    // Exported datarefs relating to the overlayed map status
+    float getMapLatitude();
+    float getMapLongitude();
+    int getMapZoom();
+    float getMapVerticalRange();
+    float mapLatitude { 0.0f };
+    float mapLongitude { 0.0f };
+    int mapZoom { 0 };
+    float mapVerticalRange { 0.0f };
+    std::unique_ptr<DataRefExport<float>> mapLatitudeRef;
+    std::unique_ptr<DataRefExport<float>> mapLongitudeRef;
+    std::unique_ptr<DataRefExport<int>> mapZoomRef;
+    std::unique_ptr<DataRefExport<float>> mapVerticalRangeRef;
+
+private:
+    using GetMetarPtr = void(*)(const char *id, XPLMFixedString150_t *outMETAR);
+
+    struct RegisteredCommand {
+        CommandCallback callback;
+        bool inBefore;
+        void *refCon;
+    };
+
+    // Cached data
+    GetMetarPtr getMetar{};
+    DataCache dataCache;
+    std::string pluginPath, xplanePrefsDir, xplaneRootPath;
+    int xplaneVersion;
+    std::vector<Location> aircraftLocations;
+    Location nullLocation { 0, 0, 0, 0 };
+    std::string aircraftPath;
+
+    // State
+    std::mutex stateMutex;
+    std::vector<MenuCallback> menuCallbacks;
+    std::atomic<XPLMFlightLoopID> flightLoopId { nullptr };
+    std::map<XPLMCommandRef, RegisteredCommand> commandHandlers;
+    int subMenuIdx = -1;
+    XPLMMenuID subMenu = nullptr;
+    std::shared_ptr<int> panelPowered, panelEnabled;
+    std::shared_ptr<float> brightness;
+    std::unique_ptr<DataRefExport<int>> panelPoweredRef, panelEnabledRef, isInMenuRef;
+    std::unique_ptr<DataRefExport<float>> brightnessRef;
+
+    bool isInMenu = false;
+
+    std::string getXPlanePath();
+    std::string getPluginPath();
+    std::string findPreferencesDir();
+    XPLMFlightLoopID createFlightLoop();
+    float onFlightLoop(float elapsedSinceLastCall, float elapseSinceLastLoop, int count);
+    static int handleCommand(XPLMCommandRef cmd, XPLMCommandPhase phase, void *ref);
+    EnvData getData(const std::string &dataRef);
+    void reloadAircraftPath();
+
+    unsigned int otherAircraftCount;
+    void updatePlaneCount();
+};
+
+} /* namespace avitab */

@@ -1,6 +1,6 @@
 /*
  *   AviTab - Aviator's Virtual Tablet
- *   Copyright (C) 2018 Folke Will <folko@solhost.org>
+ *   Copyright (C) 2018-2025 Folke Will
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Affero General Public License as published by
@@ -15,44 +15,14 @@
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef SRC_PLATFORM_PLATFORM_H_
-#define SRC_PLATFORM_PLATFORM_H_
+#pragma once
 
 #include <string>
 #include <vector>
 #include <cstdarg>
 #include <chrono>
 #include <fstream>
-
-// OS X does not support std::filesystem before Catalina
-
-// Linux has different implementations for gcc8 and gcc9,
-// so there are conflicts when our compiler doesn't match the user's runtime
-
-// For these reasons, the GHC replacement library for std::filesystem is used,
-// but that one doesn't work properly on Windows >:(
-
-// For that reason, we're using a custom namespace that uses different
-// implementations depending on the platform...
-
-#ifndef IBM
-#include <ghc/fs_fwd.hpp>
-namespace fs {
-    using namespace ghc::filesystem;
-    using ifstream = ghc::filesystem::ifstream;
-    using ofstream = ghc::filesystem::ofstream;
-    using fstream = ghc::filesystem::fstream;
-}
-#else
-// The replacement library doesn't work properly on Windows
 #include <filesystem>
-namespace fs {
-    using namespace std::filesystem;
-    using ifstream = std::ifstream;
-    using ofstream = std::ofstream;
-    using fstream = std::fstream;
-}
-#endif
 
 namespace platform {
 
@@ -120,5 +90,3 @@ std::string getMachineID();
 void openBrowser(const std::string &url);
 
 }
-
-#endif /* SRC_PLATFORM_PLATFORM_H_ */

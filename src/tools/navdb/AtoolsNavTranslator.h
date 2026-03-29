@@ -1,6 +1,6 @@
 /*
  *   AviTab - Aviator's Virtual Tablet
- *   Copyright (C) 2024 Folke Will <folko@solhost.org>
+ *   Copyright (C) 2018-2025 Folke Will
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Affero General Public License as published by
@@ -20,7 +20,7 @@
 #include <memory>
 #include <string>
 #include <map>
-#include "src/libnavsql/SqlDatabase.h"
+#include "core/libnavsql/SqlDatabase.h"
 
 class AtoolsDbNavTranslator : public std::enable_shared_from_this<AtoolsDbNavTranslator>
 {

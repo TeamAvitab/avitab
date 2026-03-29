@@ -1,0 +1,64 @@
+{
+    "version": 4,
+    "configurePresets": [
+        {
+            "name": "common",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install",
+                "AVITAB_DOWNLOAD_DIR": "${sourceDir}/build/download",
+                "AVITAB_LIBS3RD_DIR": "${sourceDir}/build/libs3rd/${presetName}"
+            }
+        },
+        {
+            "name": "release",
+            "inherits": "common",
+            "displayName": "Release build",
+            "description": "Configure for release build using default generator and default compiler",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "debug",
+            "inherits": "common",
+            "displayName": "Debug build",
+            "description": "Configure for debug build using default generator and default compiler",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "xcode",
+            "inherits": "common",
+            "displayName": "Xcode project creation",
+            "description": "Create project file for building with Xcode IDE ",
+            "generator": "Xcode",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "release",
+            "displayName": "Release versions of all Avitab products",
+            "configurePreset": "release",
+            "configuration": "Release",
+            "targets": "install"
+        },
+        {
+            "name": "debug",
+            "displayName": "Debuggable versions of all Avitab products",
+            "configurePreset": "debug",
+            "configuration": "Debug",
+            "targets": "install"
+        }
+    ]
+}

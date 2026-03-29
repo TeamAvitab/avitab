@@ -1,6 +1,6 @@
 /*
  *   AviTab - Aviator's Virtual Tablet
- *   Copyright (C) 2018 Folke Will <folko@solhost.org>
+ *   Copyright (C) 2018-2025 Folke Will
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Affero General Public License as published by
@@ -15,9 +15,7 @@
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
-#ifndef AVITAB_CRASHHANDLER_H
-#define AVITAB_CRASHHANDLER_H
+#pragma once
 
 // Based on X-Plane's example: https://developer.x-plane.com/code-sample/crash-handling/
 
@@ -38,5 +36,3 @@ namespace crash {
         }
     };
 }
-
-#endif //AVITAB_CRASHHANDLER_H

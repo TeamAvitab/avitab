@@ -1,6 +1,6 @@
 /*
  *   AviTab - Aviator's Virtual Tablet
- *   Copyright (C) 2018 Folke Will <folko@solhost.org>
+ *   Copyright (C) 2018-2025 Folke Will
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Affero General Public License as published by
@@ -37,7 +37,7 @@
 #include <fstream>
 #include <algorithm>
 #include "Platform.h"
-#include "src/Logger.h"
+#include "core/Logger.h"
 
 /*
  * The purpose of this module is to put all platform (as in Posix or Win32)
@@ -166,8 +166,8 @@ std::vector<DirEntry> readDirectory(const std::string& utf8Path) {
         return entries; // return list of drives only, no further enumeration
     }
 #endif
-    auto path = fs::u8path(utf8Path);
-    for (auto &e: fs::directory_iterator(path)) {
+    auto path = std::filesystem::u8path(utf8Path);
+    for (auto &e: std::filesystem::directory_iterator(path)) {
         std::string name = e.path().filename().string();
 
         if (name.empty() || name[0] == '.') {
@@ -184,27 +184,27 @@ std::vector<DirEntry> readDirectory(const std::string& utf8Path) {
 }
 
 std::string realPath(const std::string& utf8Path) {
-    auto path = fs::u8path(utf8Path);
-    return fs::canonical(path).string();
+    auto path = std::filesystem::u8path(utf8Path);
+    return std::filesystem::canonical(path).string();
 }
 
 std::string parentPath(const std::string &utf8Path) {
-    auto path = fs::u8path(utf8Path);
-    auto here_clean = fs::canonical(path).string();
+    auto path = std::filesystem::u8path(utf8Path);
+    auto here_clean = std::filesystem::canonical(path).string();
 #ifdef _WIN32
     if (here_clean.back() == '\\') {    // drive root directory
         return FS_ROOT;    // notional filesystem root containing all drives
     }
-    auto parent = fs::u8path(here_clean + "\\..");
-    return fs::canonical(parent).string() + "\\";
+    auto parent = std::filesystem::u8path(here_clean + "\\..");
+    return std::filesystem::canonical(parent).string() + "\\";
 #else
-    auto parent = fs::u8path(here_clean + "/..");
-    return fs::canonical(parent).string() + "/";
+    auto parent = std::filesystem::u8path(here_clean + "/..");
+    return std::filesystem::canonical(parent).string() + "/";
 #endif
 }
 
 std::string getFileNameFromPath(const std::string& utf8Path) {
-    auto path = fs::u8path(utf8Path);
+    auto path = std::filesystem::u8path(utf8Path);
     if (path.has_filename()) {
         return path.filename().string();
     } else {
@@ -213,36 +213,36 @@ std::string getFileNameFromPath(const std::string& utf8Path) {
 }
 
 std::string getDirNameFromPath(const std::string& utf8Path) {
-    auto path = fs::u8path(utf8Path);
+    auto path = std::filesystem::u8path(utf8Path);
     return path.parent_path().string();
 }
 
 bool fileExists(const std::string& utf8Path) {
-    auto path = fs::u8path(utf8Path);
-    return fs::exists(path);
+    auto path = std::filesystem::u8path(utf8Path);
+    return std::filesystem::exists(path);
 }
 
 void mkdir(const std::string& utf8Path) {
-    auto path = fs::u8path(utf8Path);
+    auto path = std::filesystem::u8path(utf8Path);
     try {
-        fs::create_directory(path);
+        std::filesystem::create_directory(path);
     } catch (const std::exception &e) {
         LOG_ERROR("%s", e.what());
     }
 }
 
 void mkpath(const std::string& utf8Path) {
-    auto path = fs::u8path(utf8Path);
+    auto path = std::filesystem::u8path(utf8Path);
     try {
-        fs::create_directories(path);
+        std::filesystem::create_directories(path);
     } catch (const std::exception &e) {
         LOG_ERROR("%s", e.what());
     }
 }
 
 void removeFile(const std::string& utf8Path) {
-    auto path = fs::u8path(utf8Path);
-    fs::remove(path);
+    auto path = std::filesystem::u8path(utf8Path);
+    std::filesystem::remove(path);
 }
 
 std::string getLocalTime(const std::string &format) {
