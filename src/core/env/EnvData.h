@@ -23,6 +23,8 @@ struct EnvData {
     int intValue;
     float floatValue;
     double doubleValue;
+    std::vector<int> intVector;
+    std::vector<float> floatVector;
 };
 
 using AircraftID = unsigned int;
