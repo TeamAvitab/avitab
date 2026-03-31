@@ -70,6 +70,8 @@ struct AirportData {
         std::string name;
         double latitude;
         double longitude;
+        double length;
+        double width;
         SurfaceCode surfaceTypeCode;
     };
 
@@ -78,7 +80,9 @@ struct AirportData {
     int elevation = 0;
 
     // Optional
+    std::string faaCode;
     std::string icaoCode;
+    std::string localCode;
     double latitude = std::numeric_limits<double>::quiet_NaN();
     double longitude = std::numeric_limits<double>::quiet_NaN();
     std::string region;

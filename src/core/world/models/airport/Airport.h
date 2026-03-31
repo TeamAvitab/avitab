@@ -65,12 +65,19 @@ public:
     const Location &getLocationDownRight() const;
 
     // Optional
+    void setICAOCode(const std::string &icaoCode);
+    void setFAACode(const std::string &faaCode);
+    void setLocalCode(const std::string &localCode);
     void setLocation(const Location &loc);
     void setRegion(std::shared_ptr<Region> region);
     void addATCFrequency(ATCFrequency which, const Frequency &frq);
     void setCurrentMetar(const std::string &timestamp, const std::string &metar);
 
     const std::string& getName() const;
+    const std::string& getDisplayID() const;
+    const std::string& getFAACode() const;
+    const std::string& getICAOCode() const;
+    const std::string& getLocalCode() const;
     const std::vector<Frequency> &getATCFrequencies(ATCFrequency type);
     const std::string &getMetarTimestamp() const;
     const std::string &getMetarString() const;
@@ -78,16 +85,19 @@ public:
     void addRunway(std::shared_ptr<Runway> rwy);
     void forEachRunway(std::function<void(const std::shared_ptr<Runway>)> f) const;
     float getLongestRunwayLength() const;
+    void forEachHeliport(std::function<void(const std::shared_ptr<Heliport>)> f) const;
     void addRunwayEnds(std::shared_ptr<Runway> rwy1, std::shared_ptr<Runway> rwy2);
     void forEachRunwayPair(std::function<void(const std::shared_ptr<Runway>, const std::shared_ptr<Runway>)> f) const;
     const std::shared_ptr<Runway> getRunwayByName(const std::string &rw) const;
     const std::shared_ptr<Runway> getOppositeRunwayEnd(const std::shared_ptr<Runway> rw) const;
     void addHeliport(std::shared_ptr<Heliport> port);
 
+    bool hasHeliports() const;
     bool hasOnlyHeliports() const;
     bool hasOnlyWaterRunways() const;
     bool hasHardRunway() const;
     bool hasControlTower() const;
+    bool hasATCFrequencies() const;
 
     void addTerminalFix(std::shared_ptr<Fix> fix);
     std::shared_ptr<Fix> getTerminalFix(const std::string &id);
@@ -109,6 +119,7 @@ public:
 
 private:
     std::string id; // either ICAO code or X + fictional id
+    std::string displayID; // either Xplane ID or ICAO, FAA or Local code
     std::string name;
     Location location;
     Location locationUpLeft;
@@ -116,6 +127,9 @@ private:
     int elevation = 0; // feet AMSL
 
     // Optional
+    std::string faaCode;
+    std::string icaoCode;
+    std::string localCode;
     std::shared_ptr<Region> region;
     std::map<ATCFrequency, std::vector<Frequency>> atcFrequencies;
 

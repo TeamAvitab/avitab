@@ -29,6 +29,7 @@ namespace world {
 Airport::Airport(const std::string& airportId):
     id(airportId)
 {
+    displayID = id;
 }
 
 void Airport::setName(const std::string& name) {
@@ -41,6 +42,21 @@ void Airport::setElevation(int elevation) {
 
 int Airport::getElevation() const {
     return elevation;
+}
+
+void Airport::setICAOCode(const std::string& icaoCode) {
+    this->icaoCode = icaoCode;
+    this->displayID = icaoCode;
+}
+
+void Airport::setFAACode(const std::string& faaCode) {
+    this->faaCode = faaCode;
+    this->displayID = faaCode;
+}
+
+void Airport::setLocalCode(const std::string& localCode) {
+    this->localCode = localCode;
+    this->displayID = localCode;
 }
 
 void Airport::setLocation(const world::Location& loc) {
@@ -105,8 +121,24 @@ const std::string& Airport::getID() const {
     return id;
 }
 
+const std::string& Airport::getDisplayID() const {
+    return displayID;
+}
+
 const std::string& Airport::getName() const {
     return name;
+}
+
+const std::string& Airport::getFAACode() const {
+    return faaCode;
+}
+
+const std::string& Airport::getICAOCode() const {
+    return icaoCode;
+}
+
+const std::string& Airport::getLocalCode() const {
+    return localCode;
 }
 
 const std::vector<Frequency> &Airport::getATCFrequencies(ATCFrequency type) {
@@ -207,6 +239,16 @@ float Airport::getLongestRunwayLength() const {
     return longestRunwayLength;
 }
 
+void Airport::forEachHeliport(std::function<void(const std::shared_ptr<Heliport>)> f) const {
+    for (auto &port: heliports) {
+        f(port.second);
+    }
+}
+
+bool Airport::hasHeliports() const {
+    return !heliports.empty();
+}
+
 bool Airport::hasOnlyHeliports() const {
     return runways.empty() && !heliports.empty();
 }
@@ -225,6 +267,10 @@ bool Airport::hasOnlyWaterRunways() const {
 
 bool Airport::hasControlTower() const {
     return (atcFrequencies.count(ATCFrequency::TWR) >= 1);
+}
+
+bool Airport::hasATCFrequencies() const {
+    return (atcFrequencies.size() >= 1);
 }
 
 bool Airport::hasHardRunway() const {

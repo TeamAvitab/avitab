@@ -21,6 +21,7 @@
 #include <list>
 #include <memory>
 #include "core/env/GUIDriver.h"
+#include "core/env/AirportConfig.h"
 #include "core/maps/OverlayConfig.h"
 
 namespace avitab {
@@ -36,6 +37,7 @@ public:
     void setGeneralSetting(const std::string &id, const T value);
 
     std::shared_ptr<maps::OverlayConfig> getOverlayConfig();
+    std::shared_ptr<avitab::AirportConfig> getAirportConfig();
 
     struct DocumentReadingConfig {
         bool mouseWheelScrollsMultiPage = false;
@@ -51,6 +53,7 @@ public:
 private:
     void init();
     void upgrade1to2();
+    void upgrade2to3();
     void load();
     void save();
 
@@ -58,9 +61,13 @@ private:
     const std::string filePath;
     std::shared_ptr<nlohmann::json> database;
     std::shared_ptr<maps::OverlayConfig> overlayConfig;
+    std::shared_ptr<avitab::AirportConfig> airportConfig;
 
     void loadOverlayConfig();
     void saveOverlayConfig();
+
+    void loadAirportConfig();
+    void saveAirportConfig();
 
     template<typename T>
     T getSetting(const std::string &ptr, T def);

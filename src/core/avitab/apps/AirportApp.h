@@ -26,6 +26,8 @@
 #include "core/gui_toolkit/widgets/Label.h"
 #include "core/gui_toolkit/widgets/Page.h"
 #include "core/gui_toolkit/widgets/Button.h"
+#include "core/gui_toolkit/widgets/Checkbox.h"
+#include "core/gui_toolkit/widgets/Container.h"
 #include "core/gui_toolkit/widgets/PixMap.h"
 #include "core/gui_toolkit/widgets/DropDownList.h"
 #include "core/gui_toolkit/widgets/List.h"
@@ -71,23 +73,32 @@ private:
     Timer updateTimer;
     std::shared_ptr<Page> searchPage;
     std::shared_ptr<Window> searchWindow;
-    std::shared_ptr<Label> searchLabel;
+    std::shared_ptr<Container> prefContainer;
+    std::shared_ptr<Label> searchLabel, sortLabel;
+    std::shared_ptr<Checkbox> sortCheckbox, sortAscCheckbox;
     std::shared_ptr<TabGroup> tabs;
     std::shared_ptr<TextArea> searchField;
     std::shared_ptr<DropDownList> resultList;
     std::shared_ptr<Button> nextButton;
     std::shared_ptr<Keyboard> keys;
     std::shared_ptr<Button> nearestButton;
+    std::shared_ptr<avitab::AirportConfig> airportConfig;
 
     void removeTab(std::shared_ptr<Page> page);
     void resetLayout();
     void onSearchEntered(const std::string &code);
     void onAirportSelected(std::shared_ptr<world::Airport> airport);
+    void clearSearch();
+    void sortSearchResults(std::vector<std::shared_ptr<world::Airport>> &airports);
     void fillPage(std::shared_ptr<Page> page, std::shared_ptr<world::Airport> airport);
 
+    std::string getDisplayID(std::shared_ptr<world::Airport> airport);
+    std::tuple<double, double> getNavData(std::shared_ptr<world::Airport> airport);
+    std::string toAptHeader(std::shared_ptr<world::Airport> airport);
     std::string toATCInfo(std::shared_ptr<world::Airport> airport);
     std::string toATCString(const std::string &name, std::shared_ptr<world::Airport> airport, world::Airport::ATCFrequency type);
     std::string toRunwayInfo(std::shared_ptr<world::Airport> airport);
+    std::string toHeliportInfo(std::shared_ptr<world::Airport> airport);
     std::string toWeatherInfo(std::shared_ptr<world::Airport> airport);
 
     TabPage &findPage(std::shared_ptr<Page> page);
@@ -96,6 +107,8 @@ private:
     void fillChartsPage(std::shared_ptr<Page> page, std::shared_ptr<world::Airport> airport);
     void onChartsLoaded(std::shared_ptr<Page> page, const apis::ChartService::ChartList &charts);
     void onChartLoaded(std::shared_ptr<Page> page);
+    void createSettingsContainer();
+    void toggleSettings();
     void onMapPan(std::shared_ptr<Page> page, int x, int y, bool start, bool end);
     void redrawPage(std::shared_ptr<Page> page);
     bool onTimer();

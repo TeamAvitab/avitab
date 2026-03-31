@@ -165,8 +165,8 @@ void AirportParser::parseHelipad() {
     port.latitude = parser.parseDouble();
     port.longitude = parser.parseDouble();
     parser.parseDouble(); // orientation
-    parser.parseDouble(); // length
-    parser.parseDouble(); // width
+    port.length = parser.parseDouble(); // length
+    port.width = parser.parseDouble(); // width
     port.surfaceTypeCode = (AirportData::SurfaceCode)parser.parseInt();
 
     curPort.heliports.push_back(port);
@@ -185,6 +185,10 @@ void AirportParser::parseMetaData() {
         curPort.longitude = parser.parseDouble();
     } else if (key == "icao_code") {
         curPort.icaoCode = parser.parseWord();
+    } else if (key == "faa_code") {
+        curPort.faaCode = parser.parseWord();
+    } else if (key == "local_code") {
+        curPort.localCode = parser.parseWord();
     }
 }
 

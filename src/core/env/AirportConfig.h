@@ -1,6 +1,6 @@
 /*
  *   AviTab - Aviator's Virtual Tablet
- *   Copyright (C) 2018-2025 Folke Will
+ *   Copyright (C) 2018 Folke Will <folko@solhost.org>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Affero General Public License as published by
@@ -15,41 +15,18 @@
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "Heliport.h"
+#ifndef SRC_AIRPORT_CONFIG_H_
+#define SRC_AIRPORT_CONFIG_H_
 
-namespace world {
+#include <string>
 
-Heliport::Heliport(const std::string& name):
-    name(name)
-{
-}
+namespace avitab {
 
-const std::string& Heliport::getID() const {
-    return name;
-}
+struct AirportConfig {
+    bool doSort = true;
+    bool sortAscending = true;
+};
 
-void Heliport::setLocation(const world::Location& loc) {
-    location = loc;
-}
+} /* namespace avitab */
 
-void Heliport::setLength(const float& l) {
-    length = l;
-}
-
-void Heliport::setWidth(const float& w) {
-    width = w;
-}
-
-const world::Location& Heliport::getLocation() const {
-    return location;
-}
-
-float Heliport::getLength() const {
-    return length;
-}
-
-float Heliport::getWidth() const {
-    return width;
-}
-
-} /* namespace world */
+#endif /* SRC_AIRPORT_CONFIG_H_ */

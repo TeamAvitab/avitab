@@ -2,6 +2,7 @@
 
 # Temporary to satisfy cmake
 target_sources(avitab_core_lib PRIVATE
+    AirportConfig.h
     Config.cpp
     Config.h
     EnvData.h

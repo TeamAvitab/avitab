@@ -43,6 +43,20 @@ std::shared_ptr<world::Airport> XWorld::findAirportByID(const std::string& id) c
     }
 }
 
+std::shared_ptr<world::Airport> XWorld::findAirportByCode(const std::string& id) const {
+    std::string cleanId = platform::upper(id);
+    cleanId.erase(std::remove(cleanId.begin(), cleanId.end(), ' '), cleanId.end());
+    std::vector<std::string> codes;
+
+    for (auto &it: airports) {
+        codes = {it.second->getICAOCode(), it.second->getFAACode(), it.second->getLocalCode()};
+        if (std::find(codes.begin(), codes.end(), cleanId) != codes.end()) {
+            return it.second;
+        }
+    }
+    return findAirportByID(id);
+}
+
 std::vector<std::shared_ptr<world::Airport>> XWorld::findAirport(const std::string& keyWord) const {
     std::vector<std::shared_ptr<world::Airport>> res;
 
@@ -54,7 +68,12 @@ std::vector<std::shared_ptr<world::Airport>> XWorld::findAirport(const std::stri
     }
 
     for (auto &it: airports) {
-        if (platform::lower(it.second->getName()).find(key) != std::string::npos) {
+        std::ostringstream codes;
+        codes << it.second->getID() << " " << it.second->getICAOCode() << " " << it.second->getFAACode() << " " << it.second->getLocalCode() << " " << it.second->getName();
+        if (platform::lower(codes.str()).find(key) != std::string::npos) {
+            if (std::find(res.begin(), res.end(), it.second) != res.end()) {
+                continue;
+            }
             res.push_back(it.second);
             if (res.size() >= MAX_SEARCH_RESULTS) {
                 break;
