@@ -109,6 +109,10 @@ std::shared_ptr<avitab::AirportConfig> Settings::getAirportConfig() {
     return airportConfig;
 }
 
+std::shared_ptr<maps::MapConfig> Settings::getMapConfig() {
+    return mapConfig;
+}
+
 template<typename T>
 T Settings::getSetting(const std::string &ptr, T def) {
     return database->value(json::json_pointer(ptr), def);
@@ -143,6 +147,7 @@ void Settings::load() {
 
     loadOverlayConfig();
     loadAirportConfig();
+    loadMapConfig();
 }
 
 void Settings::loadOverlayConfig() {
@@ -182,6 +187,15 @@ void Settings::saveOverlayConfig() {
     setSetting("/overlay/colors/other_aircraft/below", colorIntToString(overlayConfig->colorOtherAircraftBelow));
     setSetting("/overlay/colors/other_aircraft/same", colorIntToString(overlayConfig->colorOtherAircraftSame));
     setSetting("/overlay/colors/other_aircraft/above", colorIntToString(overlayConfig->colorOtherAircraftAbove));
+}
+
+void Settings::loadMapConfig() {
+    mapConfig = std::make_shared<maps::MapConfig>();
+    mapConfig->onlineMapIndex = getSetting("/map/online_map", 0);
+}
+
+void Settings::saveMapConfig() {
+    setSetting("/map/online_map", mapConfig->onlineMapIndex);
 }
 
 void Settings::loadDocReadingConfig(const std::string appName, DocumentReadingConfig &config) {
@@ -246,6 +260,7 @@ void Settings::saveAll() {
     try {
         saveOverlayConfig();
         saveAirportConfig();
+        saveMapConfig();
         std::ofstream fout(std::filesystem::u8path(filePath));
         fout << std::setw(4) << *database;
     } catch (const std::exception &e) {

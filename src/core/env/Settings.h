@@ -38,6 +38,7 @@ public:
 
     std::shared_ptr<maps::OverlayConfig> getOverlayConfig();
     std::shared_ptr<avitab::AirportConfig> getAirportConfig();
+    std::shared_ptr<maps::MapConfig> getMapConfig();
 
     struct DocumentReadingConfig {
         bool mouseWheelScrollsMultiPage = false;
@@ -62,12 +63,15 @@ private:
     std::shared_ptr<nlohmann::json> database;
     std::shared_ptr<maps::OverlayConfig> overlayConfig;
     std::shared_ptr<avitab::AirportConfig> airportConfig;
+    std::shared_ptr<maps::MapConfig> mapConfig;
 
     void loadOverlayConfig();
     void saveOverlayConfig();
 
     void loadAirportConfig();
     void saveAirportConfig();
+    void loadMapConfig();
+    void saveMapConfig();
 
     template<typename T>
     T getSetting(const std::string &ptr, T def);
