@@ -202,7 +202,18 @@ void AirportParser::parseFrequency(int code) {
 
 void AirportParser::finishAirport() {
     if (!curPort.id.empty()) {
-        acceptor(curPort);
+        size_t pos;
+        for (auto prefix : {"[H]", "[S]"} ) {
+            pos = curPort.name.find(prefix);
+            if (pos != std::string::npos) {
+                curPort.name.erase(pos, 3);
+                break;
+            }
+        }
+        pos = curPort.name.find("[X]");
+        if (pos == std::string::npos) {
+            acceptor(curPort);
+        }
     }
     curPort = {};
 }
