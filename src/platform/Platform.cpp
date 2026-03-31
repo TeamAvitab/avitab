@@ -142,6 +142,13 @@ std::string UTF8ToACP(const std::string& utf8) {
 }
 #endif
 
+std::wstring strToWstr(const std::string& str) {
+    size_t size = std::mbstowcs(nullptr, str.c_str(), 0); // Get required size
+    std::wstring u16str(size, L'\0'); // Create wstring with required size
+    std::mbstowcs(&u16str[0], str.c_str(), str.length() + 1); // Convert
+    return u16str;
+}
+
 std::vector<DirEntry> readDirectory(const std::string& utf8Path) {
     std::vector<DirEntry> entries;
 
