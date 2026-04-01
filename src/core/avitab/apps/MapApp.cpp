@@ -891,7 +891,19 @@ bool MapApp::handleNonNumericContent(std::string coords)  {
 
     std::string region(coordsUpper.begin(), coordsUpper.begin() + it);
     std::string id(coordsUpper.begin() + it + 1, coordsUpper.end());
-    auto fix = api().getNavWorld()->findFixByRegionAndID(region, id);
+    LOG_INFO(1,"Looking for nav fix region='%s', id='%s'", region.c_str(), id.c_str());
+    std::shared_ptr<world::Fix> fix;
+    if (it == 2) {
+        // Two-letter code - try ICAO region
+        fix = api().getNavWorld()->findFixByRegionAndID(region, id);
+    } else if (it == 4) {
+        // Four-letter code - try ICAO airport/terminal
+        auto airport = api().getNavWorld()->findAirportByID(region);
+        if (airport) {
+            fix = airport->getTerminalFix(id);
+        }
+    }
+
     if (fix) {
         // Replace nav fix region,id in text box with lat,long
         auto fixLoc = fix->getLocation();
