@@ -376,6 +376,15 @@ void DocumentsApp::onMouseWheel(int dir, int x, int y) {
     }
 }
 
+void DocumentsApp::changeChartTab(bool next) {
+    int activeIndex = tabs->getActiveTab();
+    int tabCount = tabs->getTabCount();
+    if (tabCount == 0)
+        return;
+    int newIndex = (activeIndex + (next ? 1 : -1)) % tabCount;
+    tabs->setActiveTab(newIndex);
+}
+
 void DocumentsApp::showAppSettings() {
     auto ui = getUIContainer();
 

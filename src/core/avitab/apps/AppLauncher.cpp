@@ -116,6 +116,11 @@ void AppLauncher::onMouseWheel(int dir, int x, int y) {
         activeApp->onMouseWheel(dir, x, y);
     }
 }
+void AppLauncher::changeChartTab(bool next) {
+    if (activeApp) {
+        activeApp->changeChartTab(next);
+    }
+}
 
 void AppLauncher::recentre() {
     if (activeApp) {

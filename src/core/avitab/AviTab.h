@@ -104,6 +104,7 @@ private:
     void onScreenResize();
     void handleLeftClick(bool down);
     void handleWheel(bool up);
+    void changeChartTab(bool next);
 };
 
 } /* namespace avitab */

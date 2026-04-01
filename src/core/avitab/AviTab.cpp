@@ -68,6 +68,8 @@ void AviTab::startApp() {
     env->createCommand("AviTab/click_left", "Left click", [this] (CommandState s) { handleLeftClick(s != CommandState::END); });
     env->createCommand("AviTab/wheel_up", "Wheel up", [this] (CommandState s) { if (s == CommandState::START) handleWheel(true); });
     env->createCommand("AviTab/wheel_down", "Wheel down", [this] (CommandState s) { if (s == CommandState::START) handleWheel(false); });
+    env->createCommand("AviTab/chart_tab_next", "Chart tab next", [this] (CommandState s) { if (s == CommandState::START) changeChartTab(true); });
+    env->createCommand("AviTab/chart_tab_prev", "Chart tab previous", [this] (CommandState s) { if (s == CommandState::START) changeChartTab(false); });
 
     env->addMenuEntry("Toggle Tablet", [this] { toggleTablet(); });
     env->addMenuEntry("Reset Position", [this] { resetWindowPosition(); });
@@ -515,6 +517,14 @@ void AviTab::handleWheel(bool up) {
     guiLib->executeLater([this, up] () {
         if (appLauncher) {
             appLauncher->onMouseWheel(up ? 1 : -1, 0, 0);
+        }
+    });
+}
+
+void AviTab::changeChartTab(bool next) {
+    guiLib->executeLater([this, next] () {
+        if (appLauncher) {
+            appLauncher->changeChartTab(next);
         }
     });
 }

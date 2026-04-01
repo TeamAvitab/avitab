@@ -44,6 +44,7 @@ class AirportApp: public App {
 public:
     AirportApp(FuncsPtr appFuncs);
     void onMouseWheel(int dir, int x, int y) override;
+    void changeChartTab(bool next) override;
 private:
     struct TabPage {
         std::shared_ptr<Page> page;

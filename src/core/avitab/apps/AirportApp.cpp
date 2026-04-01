@@ -630,6 +630,15 @@ void AirportApp::onMouseWheel(int dir, int x, int y) {
     onTimer();
 }
 
+void AirportApp::changeChartTab(bool next) {
+    int activeIndex = tabs->getActiveTab();
+    int tabCount = tabs->getTabCount();
+    if (tabCount == 0)
+        return;
+    int newIndex = (activeIndex + (next ? 1 : -1)) % tabCount;
+    tabs->setActiveTab(newIndex);
+}
+
 bool AirportApp::onTimer() {
     for (auto &tab: pages) {
         if (tab.map) {

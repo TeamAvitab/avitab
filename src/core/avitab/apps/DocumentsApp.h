@@ -42,6 +42,7 @@ class DocumentsApp: public App {
 public:
     DocumentsApp(FuncsPtr appFuncs, const std::string &title, const std::string &group, const std::string &fileRegex);
     void onMouseWheel(int dir, int x, int y) override;
+    void changeChartTab(bool next) override;
 protected:
     void Run(const std::string &dir);
     void ChangeBrowseDirectory(const std::string &dir);

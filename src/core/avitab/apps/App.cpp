@@ -63,6 +63,9 @@ void App::onPlaneLoad() {
 void App::onMouseWheel(int dir, int x, int y) {
 }
 
+void App::changeChartTab(bool next) {
+}
+
 void App::recentre() {
 }
 

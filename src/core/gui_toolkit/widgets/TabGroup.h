@@ -33,6 +33,7 @@ public:
     void delTab(WidgetPtr tab);
     void setActiveTab(size_t i);
     size_t getActiveTab();
+    size_t getTabCount();
     void removeTab(size_t i);
     void clear();
 private:
