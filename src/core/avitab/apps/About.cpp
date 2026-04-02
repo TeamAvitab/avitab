@@ -28,15 +28,15 @@ About::About(FuncsPtr appFuncs):
     window->setOnClose([this] () { exit(); });
 
     std::string aboutText =
-            "AviTab " AVITAB_VERSION_STR ", copyright 2018-2025 by Folke Will\n"
-            "Licensed under the AGPL license, see LICENSE for details\n"
+            "AviTab " AVITAB_VERSION_STR " [" AVITAB_COMMIT_ID "] from TeamAvitab.\n"
+            "Copyright 2018-2025 Folke Will, and other contributors.\n"
+            "Licensed under the AGPL license, see LICENSE for details.\n"
             "\n"
-            "Uses the mupdf library, copyright 2006-2017 by Artifex Software, Inc.\n"
-            "Uses the littlevgl embedded GUI library, copyright 2018 by Gábor Kiss-Vámosi\n"
-            "Uses the nlohmann JSON library, copyright 2013-2018 by Niels Lohmann\n"
-            "Uses the curl transfer library, copyright 1996-2018 by Daniel Stenberg\n"
-            "Uses the detex library, copyright 2015 by Harm Hanemaaijer\n"
-            "Uses the STB public domain libraries by Sean Barrett\n"
+            "Avitab uses and acknowledges the copyright and licensing of the following\n"
+            "Open Source or public domain libraries (see LICENSING.md for details):\n"
+            "Brotli, bzip2, Curl, Detex, {fmt}, FreeType, GLFW, Gumbo, HarfBuzz, jbig2dec, JPEG,\n"
+            "JSON for C++, Little CMS, LERC, LIBGEOTIFF, libpng, libssh2, LunaSVG, LittlevGL,\n"
+            "Mbed TLS, MuPDF, OpenJPEG, PROJ, SQLite, stb, TIFF, zlib, Zstandard\n"
             "\n"
             "Icon if_applications-internet_118835 copyright by Tango\n"
             "Icon if_Airport_22906 copyright by Icons-Land\n"

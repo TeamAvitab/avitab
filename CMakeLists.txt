@@ -87,6 +87,20 @@ if(DEFINED ENV{AVITAB_APIKEY_CHARTFOX})
     message(STATUS "Chartfox API key has been defined.")
 endif()
 
+# Get the git commit ID for build identification
+find_package(Git)
+if(GIT_EXECUTABLE)
+    execute_process(
+        COMMAND "${GIT_EXECUTABLE}" rev-parse HEAD
+        WORKING_DIRECTORY "${Avitab_SOURCE_DIR}"
+        OUTPUT_VARIABLE gitsha1
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    string(SUBSTRING ${gitsha1} 0 7 AVITAB_COMMIT_ID)
+else()
+    set(AVITAB_COMMIT_ID UNKNOWN)
+endif()
+
 # Host platform definitions applying to everything declared after here
 if(WIN32) # targetting Windows systems
     add_compile_definitions(AVITAB_WINDOWS _USE_MATH_DEFINES)
