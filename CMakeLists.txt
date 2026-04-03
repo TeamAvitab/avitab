@@ -82,9 +82,11 @@ endif()
 # Check for Navigraph and Chartfox API keys
 if(DEFINED ENV{AVITAB_APIKEY_NAVIGRAPH})
     set(NAVIGRAPH_CLIENT_SECRET $ENV{AVITAB_APIKEY_NAVIGRAPH})
+    message(STATUS "Navigraph API key has been defined.")
 endif()
 if(DEFINED ENV{AVITAB_APIKEY_CHARTFOX})
     set(CHARTFOX_CLIENT_ID $ENV{AVITAB_APIKEY_CHARTFOX})
+    message(STATUS "Chartfox API key has been defined.")
 endif()
 
 # Host platform definitions applying to everything declared after here
