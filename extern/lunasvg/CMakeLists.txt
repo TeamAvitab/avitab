@@ -4,7 +4,7 @@
 
 add_subdirectory("${AVITAB_lunasvg_SOURCE_DIR}" "${AVITAB_lunasvg_BINARY_DIR}" EXCLUDE_FROM_ALL)
 
-# Cache settings to be used when BUILD_AVITAB_THIRDPARTY is OFF
+# Cache settings to be used when AVITAB_FORCE_BUILD_THIRDPARTY is OFF
 set(AVITAB_lunasvg_PKGLIBS lunasvg plutovg CACHE INTERNAL "")
 if(MSVC)
     set(AVITAB_lunasvg_LOCATION "${AVITAB_LIBS3RD_DIR}/lunasvg.lib" CACHE INTERNAL "")

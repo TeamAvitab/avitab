@@ -6,7 +6,7 @@ set(FMT_INSTALL OFF)
 
 add_subdirectory("${AVITAB_fmt_SOURCE_DIR}" "${AVITAB_fmt_BINARY_DIR}" EXCLUDE_FROM_ALL)
 
-# Cache settings to be used when BUILD_AVITAB_THIRDPARTY is OFF
+# Cache settings to be used when AVITAB_FORCE_BUILD_THIRDPARTY is OFF
 set(AVITAB_fmt_PKGLIBS fmt CACHE INTERNAL "")
 if(MSVC)
     set(AVITAB_fmt_LOCATION "${AVITAB_LIBS3RD_DIR}/fmt.lib" CACHE INTERNAL "")

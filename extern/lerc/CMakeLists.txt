@@ -11,6 +11,6 @@ else()
     set(LERC_LIBRARY "${AVITAB_LIBS3RD_DIR}/liblerc.a" CACHE INTERNAL "")
 endif()
 
-# Cache settings to be used when BUILD_AVITAB_THIRDPARTY is OFF
+# Cache settings to be used when AVITAB_FORCE_BUILD_THIRDPARTY is OFF
 set(AVITAB_lerc_PKGLIBS lerc CACHE INTERNAL "")
 set(AVITAB_lerc_LOCATION "${LERC_LIBRARY}" CACHE INTERNAL "")

@@ -36,7 +36,7 @@ target_link_libraries(libcurl_static
     INTERFACE mbedtls
 )
 
-# Cache settings to be used when BUILD_AVITAB_THIRDPARTY is OFF
+# Cache settings to be used when AVITAB_FORCE_BUILD_THIRDPARTY is OFF
 set(AVITAB_curl_PKGLIBS curl CACHE INTERNAL "")
 if(MSVC)
     set(AVITAB_curl_LOCATION "${AVITAB_LIBS3RD_DIR}/curl.lib" CACHE INTERNAL "")

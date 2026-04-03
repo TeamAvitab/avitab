@@ -15,7 +15,7 @@ add_subdirectory("${AVITAB_freetype_SOURCE_DIR}" "${AVITAB_freetype_BINARY_DIR}"
 
 target_link_libraries(freetype PRIVATE png bzip2)
 
-# Cache settings to be used when BUILD_AVITAB_THIRDPARTY is OFF
+# Cache settings to be used when AVITAB_FORCE_BUILD_THIRDPARTY is OFF
 set(AVITAB_freetype_PKGLIBS freetype CACHE INTERNAL "")
 if(MSVC)
     set(AVITAB_freetype_LOCATION "${AVITAB_LIBS3RD_DIR}/freetype.lib" CACHE INTERNAL "")

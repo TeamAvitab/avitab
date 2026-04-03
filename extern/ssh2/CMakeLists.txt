@@ -17,6 +17,6 @@ else()
     set(LIBSSH2_LIBRARY "${AVITAB_LIBS3RD_DIR}/libssh2.a" CACHE INTERNAL "")
 endif()
 
-# Cache settings to be used when BUILD_AVITAB_THIRDPARTY is OFF
+# Cache settings to be used when AVITAB_FORCE_BUILD_THIRDPARTY is OFF
 set(AVITAB_ssh2_PKGLIBS ssh2 CACHE INTERNAL "")
 set(AVITAB_ssh2_LOCATION "${LIBSSH2_LIBRARY}" CACHE INTERNAL "")

@@ -44,7 +44,7 @@ target_link_libraries(jbig2dec
     PRIVATE png_static
 )
 
-# Cache settings to be used when BUILD_AVITAB_THIRDPARTY is OFF
+# Cache settings to be used when AVITAB_FORCE_BUILD_THIRDPARTY is OFF
 set(AVITAB_jbig2_PKGLIBS jbig2dec CACHE INTERNAL "")
 if(MSVC)
     set(AVITAB_jbig2dec_LOCATION "${AVITAB_LIBS3RD_DIR}/jbig2dec.lib" CACHE INTERNAL "")

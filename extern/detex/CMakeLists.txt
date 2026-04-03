@@ -50,7 +50,7 @@ target_include_directories(detex
     PUBLIC "${AVITAB_detex_SOURCE_DIR}"
 )
 
-# Cache settings to be used when BUILD_AVITAB_THIRDPARTY is OFF
+# Cache settings to be used when AVITAB_FORCE_BUILD_THIRDPARTY is OFF
 set(AVITAB_detex_PKGLIBS detex CACHE INTERNAL "")
 if(MSVC)
     set(AVITAB_detex_LOCATION "${AVITAB_LIBS3RD_DIR}/detex.lib" CACHE INTERNAL "")

@@ -20,6 +20,6 @@ else()
     set(ZSTD_LIBRARY "${AVITAB_LIBS3RD_DIR}/libzstd.a" CACHE INTERNAL "")
 endif()
 
-# Cache settings to be used when BUILD_AVITAB_THIRDPARTY is OFF
+# Cache settings to be used when AVITAB_FORCE_BUILD_THIRDPARTY is OFF
 set(AVITAB_zstd_PKGLIBS zstd CACHE INTERNAL "")
 set(AVITAB_zstd_LOCATION "${ZSTD_LIBRARY}" CACHE INTERNAL "")

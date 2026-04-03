@@ -16,7 +16,7 @@ find_package(Threads REQUIRED)
 include(Prefixer)
 add_library(xsdk STATIC ${xsdk_SOURCES} "${CMAKE_CURRENT_LIST_DIR}/phony.c")
 
-# Cache settings to be used when BUILD_AVITAB_THIRDPARTY is OFF
+# Cache settings to be used when AVITAB_FORCE_BUILD_THIRDPARTY is OFF
 set(AVITAB_xsdk_PKGLIBS xsdk CACHE INTERNAL "")
 if(MSVC)
     set(AVITAB_xsdk_LOCATION "${AVITAB_LIBS3RD_DIR}/xsdk.lib" CACHE INTERNAL "")

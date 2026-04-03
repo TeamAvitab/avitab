@@ -39,7 +39,7 @@ else()
     set(TIFF_LIBRARY "${AVITAB_LIBS3RD_DIR}/libtiff.a" CACHE INTERNAL "")
 endif()
 
-# Cache settings to be used when BUILD_AVITAB_THIRDPARTY is OFF
+# Cache settings to be used when AVITAB_FORCE_BUILD_THIRDPARTY is OFF
 set(AVITAB_tiff_PKGLIBS tiff CACHE INTERNAL "")
 set(AVITAB_tiff_LOCATION ${TIFF_LIBRARY} CACHE INTERNAL "")
 set(AVITAB_tiff_INCDIRS "${AVITAB_tiff_BINARY_DIR}/libtiff" "${AVITAB_tiff_SOURCE_DIR}/libtiff" "${AVITAB_tiff_SOURCE_DIR}/contrib" CACHE INTERNAL "")

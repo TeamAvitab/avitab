@@ -19,7 +19,7 @@ unset(BUILD_CODEC CACHE)
 unset(LIBRARY_OUTPUT_PATH CACHE)
 unset(EXECUTABLE_OUTPUT_PATH CACHE)
 
-# Cache settings to be used when BUILD_AVITAB_THIRDPARTY is OFF
+# Cache settings to be used when AVITAB_FORCE_BUILD_THIRDPARTY is OFF
 set(AVITAB_openjpeg_PKGLIBS openjp2 CACHE INTERNAL "")
 if(MSVC)
     set(AVITAB_openjp2_LOCATION "${AVITAB_LIBS3RD_DIR}/openjp2.lib" CACHE INTERNAL "")

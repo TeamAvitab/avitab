@@ -9,9 +9,8 @@ set(GLFW_INSTALL OFF)
 
 add_subdirectory("${AVITAB_glfw_SOURCE_DIR}" "${AVITAB_glfw_BINARY_DIR}" EXCLUDE_FROM_ALL)
 add_library(glfw3 ALIAS glfw)
-target_link_libraries(glfw INTERFACE ${CMAKE_DL_LIBS})
 
-# Cache settings to be used when BUILD_AVITAB_THIRDPARTY is OFF
+# Cache settings to be used when AVITAB_FORCE_BUILD_THIRDPARTY is OFF
 set(AVITAB_glfw_PKGLIBS glfw3 CACHE INTERNAL "")
 if(MSVC)
     set(AVITAB_glfw3_LOCATION "${AVITAB_LIBS3RD_DIR}/glfw3.lib" CACHE INTERNAL "")
@@ -19,4 +18,3 @@ else()
     set(AVITAB_glfw3_LOCATION "${AVITAB_LIBS3RD_DIR}/libglfw3.a" CACHE INTERNAL "")
 endif()
 set(AVITAB_glfw3_INCDIRS "${AVITAB_glfw_SOURCE_DIR}/include" CACHE INTERNAL "")
-set(AVITAB_glfw3_LINKLIBS ${CMAKE_DL_LIBS} CACHE INTERNAL "")

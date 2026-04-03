@@ -39,7 +39,7 @@ target_link_libraries(mupdf
     PRIVATE gumbo
 )
 
-# Cache settings to be used when BUILD_AVITAB_THIRDPARTY is OFF
+# Cache settings to be used when AVITAB_FORCE_BUILD_THIRDPARTY is OFF
 set(AVITAB_mupdf_PKGLIBS mupdf CACHE INTERNAL "")
 if(MSVC)
     set(AVITAB_mupdf_LOCATION "${AVITAB_LIBS3RD_DIR}/mupdf.lib" CACHE INTERNAL "")

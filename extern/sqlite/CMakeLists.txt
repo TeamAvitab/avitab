@@ -32,7 +32,7 @@ target_include_directories(sqlite3
     PUBLIC "${AVITAB_sqlite_SOURCE_DIR}"
 )
 
-# Cache settings to be used when BUILD_AVITAB_THIRDPARTY is OFF
+# Cache settings to be used when AVITAB_FORCE_BUILD_THIRDPARTY is OFF
 set(AVITAB_sqlite_PKGLIBS sqlite3 CACHE INTERNAL "")
 if(MSVC)
     set(AVITAB_sqlite3_LOCATION "${AVITAB_LIBS3RD_DIR}/sqlite3.lib" CACHE INTERNAL "")

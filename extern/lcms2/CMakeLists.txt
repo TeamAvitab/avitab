@@ -48,7 +48,7 @@ target_include_directories(lcms2
     PUBLIC "${AVITAB_lcms2_SOURCE_DIR}/include"
 )
 
-# Cache settings to be used when BUILD_AVITAB_THIRDPARTY is OFF
+# Cache settings to be used when AVITAB_FORCE_BUILD_THIRDPARTY is OFF
 set(AVITAB_lcms2_PKGLIBS lcms2 CACHE INTERNAL "")
 if(MSVC)
     set(AVITAB_lcms2_LOCATION "${AVITAB_LIBS3RD_DIR}/lcms2.lib" CACHE INTERNAL "")

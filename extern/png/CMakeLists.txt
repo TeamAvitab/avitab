@@ -30,6 +30,6 @@ else()
     set(PNG_LIBRARY "${AVITAB_LIBS3RD_DIR}/libpng.a" CACHE INTERNAL "")
 endif()
 
-# Cache settings to be used when BUILD_AVITAB_THIRDPARTY is OFF
+# Cache settings to be used when AVITAB_FORCE_BUILD_THIRDPARTY is OFF
 set(AVITAB_png_PKGLIBS png CACHE INTERNAL "")
 set(AVITAB_png_LOCATION "${PNG_LIBRARY}" CACHE INTERNAL "")

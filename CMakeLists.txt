@@ -1,7 +1,7 @@
 # This file is part of the Avitab project. See the README and LICENSE for details.
 
-# Works with 3.23 and tested through 3.29
-cmake_minimum_required(VERSION 3.23...3.29)
+# Should work with 3.23 and tested through 3.31
+cmake_minimum_required(VERSION 3.23...3.31)
 
 # Stuff that might affect the way the project command works
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE INTERNAL "Minimum macOS version" FORCE)
@@ -29,7 +29,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON) # Nicely support folders in IDEs
 find_package(Threads)
 
 # Project options
-option(BUILD_AVITAB_THIRDPARTY
+option(AVITAB_FORCE_BUILD_THIRDPARTY
     "If set then the 3rd-party libraries will always be built. If unset the libraries will only be built if they are missing." OFF
 )
 
@@ -65,8 +65,6 @@ endif()
 add_subdirectory(docs)
 
 # External (third-party) source packages are downloaded and configured here.
-# Create a single interface library for Avitab which references the packages required.
-add_library(avitab_extern INTERFACE)
 add_subdirectory(extern)
 
 # Check for MSFS SDK and set variables if defined

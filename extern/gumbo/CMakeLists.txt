@@ -38,7 +38,7 @@ if(MSVC)
     target_include_directories(gumbo PRIVATE "${AVITAB_gumbo_SOURCE_DIR}/visualc/include")
 endif()
 
-# Cache settings to be used when BUILD_AVITAB_THIRDPARTY is OFF
+# Cache settings to be used when AVITAB_FORCE_BUILD_THIRDPARTY is OFF
 set(AVITAB_gumbo_PKGLIBS gumbo CACHE INTERNAL "")
 if(MSVC)
     set(AVITAB_gumbo_LOCATION "${AVITAB_LIBS3RD_DIR}/gumbo.lib" CACHE INTERNAL "")

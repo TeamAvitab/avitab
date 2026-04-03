@@ -49,6 +49,6 @@ else()
     set(JPEG_LIBRARY "${AVITAB_LIBS3RD_DIR}/libjpeg.a" CACHE INTERNAL "")
 endif()
 
-# Cache settings to be used when BUILD_AVITAB_THIRDPARTY is OFF
+# Cache settings to be used when AVITAB_FORCE_BUILD_THIRDPARTY is OFF
 set(AVITAB_jpeg_PKGLIBS jpeg CACHE INTERNAL "")
 set(AVITAB_jpeg_LOCATION "${JPEG_LIBRARY}" CACHE INTERNAL "")

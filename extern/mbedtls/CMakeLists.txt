@@ -30,7 +30,7 @@ else()
     set(P256M_LIBRARY "${AVITAB_LIBS3RD_DIR}/libp256m.a" CACHE INTERNAL "")
 endif()
 
-# Cache settings to be used when BUILD_AVITAB_THIRDPARTY is OFF
+# Cache settings to be used when AVITAB_FORCE_BUILD_THIRDPARTY is OFF
 set(AVITAB_mbedtls_PKGLIBS mbedtls mbedx509 mbedcrypto everest p256m CACHE INTERNAL "")
 set(AVITAB_mbedtls_LOCATION "${MBEDTLS_LIBRARY}" CACHE INTERNAL "")
 set(AVITAB_mbedx509_LOCATION "${MBEDX509_LIBRARY}" CACHE INTERNAL "")

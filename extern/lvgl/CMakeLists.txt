@@ -110,7 +110,7 @@ target_include_directories(lvgl
     PRIVATE "${AVITAB_lvgl_SOURCE_DIR}/lvgl"
 )
 
-# Cache settings to be used when BUILD_AVITAB_THIRDPARTY is OFF
+# Cache settings to be used when AVITAB_FORCE_BUILD_THIRDPARTY is OFF
 set(AVITAB_lvgl_PKGLIBS lvgl CACHE INTERNAL "")
 if(MSVC)
     set(AVITAB_lvgl_LOCATION "${AVITAB_LIBS3RD_DIR}/lvgl.lib" CACHE INTERNAL "")
