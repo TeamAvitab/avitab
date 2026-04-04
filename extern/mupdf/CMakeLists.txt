@@ -30,7 +30,7 @@ target_link_libraries(mupdf
     PRIVATE zlibs
     PRIVATE brotlidec
     PRIVATE brotlienc
-    PRIVATE lcms2
+    PRIVATE lcms2mt
     PRIVATE jbig2dec
     PRIVATE jpeg
     PRIVATE openjp2
@@ -47,4 +47,4 @@ else()
     set(AVITAB_mupdf_LOCATION "${AVITAB_LIBS3RD_DIR}/libmupdf.a" CACHE INTERNAL "")
 endif()
 set(AVITAB_mupdf_INCDIRS "${AVITAB_mupdf_SOURCE_DIR}/include" CACHE INTERNAL "")
-set(AVITAB_mupdf_LINKLIBS zlibs brotlidec brotlienc brotlicommon lcms2 jbig2dec jpeg openjp2 freetype harfbuzz gumbo CACHE INTERNAL "")
+set(AVITAB_mupdf_LINKLIBS zlibs brotlidec brotlienc brotlicommon lcms2mt jbig2dec jpeg openjp2 freetype harfbuzz gumbo CACHE INTERNAL "")

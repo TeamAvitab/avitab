@@ -31,7 +31,7 @@ PrepareExternPackages(
     lerc        "https://github.com/Esri/lerc/archive/refs/tags/v4.0.0.tar.gz"
     zstd        "https://github.com/facebook/zstd/archive/refs/tags/v1.5.7.tar.gz"
     gumbo       "https://github.com/google/gumbo-parser/archive/refs/tags/v0.10.1.tar.gz"
-    lcms2       "https://github.com/mm2/Little-CMS/releases/download/lcms2.17/lcms2-2.17.tar.gz"
+    lcms2mt     "https://github.com/ArtifexSoftware/thirdparty-lcms2/archive/f75fad7.zip"
     jpeg        "https://www.ijg.org/files/jpegsrc.v9f.tar.gz"
     openjpeg    "https://github.com/uclouvain/openjpeg/archive/refs/tags/v2.5.3.tar.gz"
     glfw        "https://github.com/glfw/glfw/archive/refs/tags/3.4.tar.gz"
@@ -57,8 +57,8 @@ PrepareExternPackages(
     freetype    "https://download.savannah.gnu.org/releases/freetype/freetype-2.13.3.tar.gz"
     # harfbuzz uses freetype, but will use Avitab's freetype if it is a build target, so is processed afterwards
     harfbuzz    "https://github.com/harfbuzz/harfbuzz/archive/refs/tags/11.2.1.tar.gz"
-    # mupdf uses zlib, brotli, lcms2, jbig2, jpeg, openjpeg, freetype, harfbuzz, gumbo
-    mupdf       "https://github.com/ArtifexSoftware/mupdf/archive/refs/tags/1.26.3.tar.gz"
+    # mupdf uses zlib, brotli, lcms2mt, jbig2, jpeg, openjpeg, freetype, harfbuzz, gumbo
+    mupdf       "https://github.com/ArtifexSoftware/mupdf/archive/refs/tags/1.26.12.tar.gz"
 )
 
 # We don't want any of the packages to build shared libs, examples or testing.
