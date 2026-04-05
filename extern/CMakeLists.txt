@@ -38,35 +38,47 @@ PrepareExternPackages(
     lvgl        "https://github.com/lvgl/lvgl/archive/refs/tags/v6.1.2.tar.gz"
 
     # Remaining packages have dependencies, so order matters.
+
     # jbig2 appears to use zlib
     jbig2       "https://github.com/ArtifexSoftware/jbig2dec/archive/refs/tags/0.20.tar.gz"
-    # proj uses sqlite (apparently?).
-    proj        "https://github.com/OSGeo/proj.4/archive/refs/tags/5.2.0.tar.gz"
+
     # png requires zlib
     png         "https://github.com/pnggroup/libpng/archive/refs/tags/v1.6.50.tar.gz"
-    # tiff uses zlib, jpeg, lerc, zstd
-    # (tiff could use deflate, jbig, liblzma, wbep, but these are not currently provided or configured)
-    tiff        "https://gitlab.com/libtiff/libtiff/-/archive/v4.7.0/libtiff-v4.7.0.tar.gz"
-    # geotiff uses tiff, proj.
-    geotiff     "https://github.com/OSGeo/libgeotiff/archive/refs/tags/1.4.3.tar.gz"
+
     # ssh2 is configured to use mbedtls
     ssh2        "https://github.com/libssh2/libssh2/releases/download/libssh2-1.11.1/libssh2-1.11.1.tar.gz"
+
     # curl uses zlib, zstd, brotli, ssh2, mbedtls
     curl        "https://curl.se/download/curl-8.15.0.tar.gz"
+
+    # tiff uses zlib, jpeg, lerc, zstd
+    # (tiff could use deflate, jbig, liblzma, wbep, but these are not currently provided or configured)
+    tiff        "https://gitlab.com/libtiff/libtiff/-/archive/v4.7.1/libtiff-v4.7.1.tar.gz"
+
+    # proj uses tiff (newer versions use curl and sqlite!)
+    proj        "https://github.com/OSGeo/proj.4/archive/refs/tags/5.2.0.tar.gz"
+
+    # geotiff uses tiff, proj.
+    geotiff     "https://github.com/OSGeo/libgeotiff/archive/refs/tags/1.4.3.tar.gz"
+
     # freetype uses zlib, bzip2, brotli, png, and harfbuzz (circular-dependency).
     freetype    "https://download.savannah.gnu.org/releases/freetype/freetype-2.13.3.tar.gz"
+
     # harfbuzz uses freetype, but will use Avitab's freetype if it is a build target, so is processed afterwards
     harfbuzz    "https://github.com/harfbuzz/harfbuzz/archive/refs/tags/11.2.1.tar.gz"
+
     # mupdf uses zlib, brotli, lcms2mt, jbig2, jpeg, openjpeg, freetype, harfbuzz, gumbo
     mupdf       "https://github.com/ArtifexSoftware/mupdf/archive/refs/tags/1.26.12.tar.gz"
 )
 
 # We don't want any of the packages to build shared libs, examples or testing.
 # These variables are common to more than one external library, so we set them once here.
+set(BUILD_TESTING_saved ${BUILD_TESTING}) # keep for later restore
 set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
 set(BUILD_EXAMPLES OFF CACHE INTERNAL "")
+set(BUILD_DOC OFF CACHE INTERNAL "")
+set(BUILD_MAN OFF CACHE INTERNAL "")
 set(SKIP_INSTALL_ALL ON CACHE INTERNAL "")
-set(BUILD_TESTING_saved ${BUILD_TESTING}) # keep for later restore
 set(BUILD_TESTING OFF CACHE BOOL "Include tests in build" FORCE)
 
 # Configure the external packages. If any of them need building then they will all

@@ -7,7 +7,7 @@ set(SAVED_CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH})
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 set(GEOTIFF_CSV_DATA_DIR "${AVITAB_geotiff_SOURCE_DIR}/libgeotiff/csv")
 set(WITH_UTILITIES FALSE CACHE BOOL "Choose if GeoTIFF utilities should be built")
-unset(TIFF_FOUND CACHE)
+#unset(TIFF_FOUND CACHE)
 set(HAVE_TIFFOPEN TRUE)
 set(HAVE_TIFFMERGEFIELDINFO TRUE)
 
@@ -15,7 +15,7 @@ add_subdirectory("${AVITAB_geotiff_SOURCE_DIR}/libgeotiff" "${AVITAB_geotiff_BIN
 
 add_library(geotiff ALIAS geotiff_library)
 
-unset(TIFF_FOUND CACHE)
+#unset(TIFF_FOUND CACHE)
 set(CMAKE_MODULE_PATH ${SAVED_CMAKE_MODULE_PATH})
 unset(SAVED_CMAKE_MODULE_PATH)
 

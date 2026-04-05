@@ -5,10 +5,14 @@
 # we can't be bothered to add speculatively. potentially there might be a need for
 # these that will be discovered one day. at which point the problem can be resolved.
 
+set(tiff-static ON CACHE INTERNAL "")
 set(tiff-tools OFF CACHE INTERNAL "")
 set(tiff-tests OFF CACHE INTERNAL "")
 set(tiff-contrib OFF CACHE INTERNAL "")
 set(tiff-docs OFF CACHE INTERNAL "")
+set(tiff-deprecated OFF CACHE INTERNAL "")
+set(tiff-install OFF CACHE INTERNAL "")
+
 set(libdeflate OFF CACHE INTERNAL "")
 set(pixarlog OFF CACHE INTERNAL "")
 set(jbig OFF CACHE INTERNAL "")
@@ -20,16 +24,11 @@ add_subdirectory("${AVITAB_tiff_SOURCE_DIR}" "${AVITAB_tiff_BINARY_DIR}" EXCLUDE
 
 target_link_libraries(tiff INTERFACE lerc jpeg zlibs zstd)
 
-unset(tiff-tools CACHE)
-unset(tiff-tests CACHE)
-unset(tiff-contrib CACHE)
-unset(tiff-docs CACHE)
 unset(libdeflate CACHE)
 unset(pixarlog CACHE)
 unset(jbig CACHE)
 unset(lzma CACHE)
 unset(webp CACHE)
-
 
 # This is to influence findPackage into detecting Avitab's version of Tiff
 set(TIFF_INCLUDE_DIR "${AVITAB_tiff_SOURCE_DIR}/libtiff" CACHE INTERNAL "")
