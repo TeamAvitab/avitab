@@ -211,10 +211,12 @@ endfunction()
 function(ImportThirdPartyLibrary name)
     set(implib ${name}_imp)
     if(TARGET ${name}_install)
-        # The third-party installed library is a build target.
-        # Declare the 'import' library as an interface target and hook in the installed library.
-        add_library(${implib} INTERFACE)
-        target_link_libraries(${implib} INTERFACE "${AVITAB_${name}_LOCATION}")
+        # The third-party installed library is configured as a build target.
+        # Declare the 'import' library as if it were pre-built, and manually declare a dependency
+        # to ensure that it is available by the time it is needed.
+        add_library(${implib} STATIC IMPORTED GLOBAL)
+        set_target_properties(${implib} PROPERTIES IMPORTED_LOCATION "${AVITAB_${name}_LOCATION}")
+        add_dependencies(${implib} ${name}_install)
     else()
         # The third-party library is not part of this build tree. So we treat it as a pre-built import.
         if("${AVITAB_${name}_LOCATION}" STREQUAL "")
