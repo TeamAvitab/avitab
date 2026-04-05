@@ -41,6 +41,22 @@ target_link_libraries(avitab_xplane_lib PRIVATE
     avitab_core_lib
 )
 
+# The glfw window library provides a desktop GUI window interface for the Avitab standalone.
+add_library(avitab_glfw_lib)
+target_include_directories(avitab_glfw_lib PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}"
+    "${PROJECT_BINARY_DIR}"
+)
+if(APPLE)
+    target_compile_definitions(avitab_glfw_lib PRIVATE
+        GL_SILENCE_DEPRECATION
+    )
+endif()
+target_link_libraries(avitab_glfw_lib PRIVATE
+    avitab_core_lib
+    glfw3_imp
+)
+
 if(MSFS_SDK)
     # The MSFS library provides interfacing to MSFS for both simulator and window interfaces.
     add_library(avitab_msfs_lib)
