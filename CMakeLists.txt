@@ -1,7 +1,7 @@
 # This file is part of the Avitab project. See the README and LICENSE for details.
 
-# Should work with 3.23 and tested through 3.31
-cmake_minimum_required(VERSION 3.23...3.31)
+# Should work with 3.23 and tested through 4.3
+cmake_minimum_required(VERSION 3.23...4.3)
 
 # Stuff that might affect the way the project command works
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE INTERNAL "Minimum macOS version" FORCE)
@@ -12,8 +12,8 @@ set(CMAKE_FRAMEWORK FALSE CACHE INTERNAL "")
 
 # Project name and a few useful settings. Other commands can pick up the results
 project(Avitab
-    VERSION 0.8.0
-    DESCRIPTION "AviTab add-on for X-Plane and Microsoft Flight Simulator"
+    VERSION 1.0.0
+    DESCRIPTION "AviTab plugin for X-Plane"
     LANGUAGES C CXX
 )
 
