@@ -45,7 +45,7 @@ void Environment::loadNavWorldInBackground() {
 }
 
 void Environment::loadConfig() {
-    config = std::make_unique<Config>(getProgramPath() + "/config.json");
+    config = std::make_unique<Config>(getProgramPath() + "/config.json", R"({ "AviTab": { "logToStdOut": false, "loadNavData": true } })");
 }
 
 std::shared_ptr<Config> Environment::getConfig() {

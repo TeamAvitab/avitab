@@ -95,6 +95,8 @@ private:
     std::shared_ptr<apis::ChartService> chartService;
     bool resetWindowRect = false;
 
+    void finishInstall();
+
     void createPanel();
     void createLayout();
     void showAppLauncher();

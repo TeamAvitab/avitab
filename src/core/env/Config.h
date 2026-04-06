@@ -25,7 +25,7 @@ namespace avitab {
 
 class Config {
 public:
-    Config(const std::string &configFile);
+    Config(const std::string &configFile, const std::string &createDefault);
 
     std::string getString(const std::string &pointer);
     bool getBool(const std::string &pointer);

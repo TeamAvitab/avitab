@@ -17,6 +17,8 @@
  */
 #include <climits>
 #include <future>
+#include <filesystem>
+#include "platform/Platform.h"
 #include "AviTab.h"
 #include "core/libimg/TTFStamper.h"
 #include "core/Logger.h"
@@ -25,6 +27,7 @@
 #include "core/avitab/apps/AppLauncher.h"
 #include "avitab/config.h"
 
+static const char *defaultMapConfigJson();
 namespace avitab {
 
 AviTab::AviTab(std::shared_ptr<Environment> environment):
@@ -43,6 +46,8 @@ AviTab::AviTab(std::shared_ptr<Environment> environment):
 void AviTab::startApp() {
     // runs in environment thread, called by PluginEnable
     logger::verbose("Starting AviTab %s", AVITAB_VERSION_STR);
+
+    finishInstall();
 
     env->createMenu("AviTab");
     env->createCommand("AviTab/toggle_tablet", "Toggle Tablet", [this] (CommandState s) { if (s == CommandState::START) toggleTablet(); });
@@ -215,10 +220,25 @@ void AviTab::panDown() {
     });
 }
 
+void AviTab::finishInstall() {
+    // create any user-modifiable files, only if they do not already exist
+    try {
+        std::string mapConfigDir(getDataPath() + "online-maps");
+        if (!platform::fileExists(mapConfigDir)) {
+            platform::mkdir(mapConfigDir);
+        }
+        std::string mapConfigPath(mapConfigDir + "/mapconfig.json");
+        (void)std::make_unique<Config>(mapConfigPath, defaultMapConfigJson());
+    } catch (const std::exception &e) {
+        // report to the log, but not totally fatal
+        logger::error("Unable to create default mapconfig.json");
+    }
+}
+
 void AviTab::createPanel() {
     auto cfgFile = getAirplanePath() + "/AviTab.json";
     try {
-        Config cfg(cfgFile);
+        Config cfg(cfgFile, "");
         int left = cfg.getInt("/panel/left");
         int bottom = cfg.getInt("/panel/bottom");
         int width = cfg.getInt("/panel/width");
@@ -535,3 +555,41 @@ AviTab::~AviTab() {
 }
 
 } /* namespace avitab */
+
+static const char *defaultMapConfigJson() {
+    return R"x(
+[
+    {
+        "name": "OpenTopoMap",
+        "servers": [
+            "a.tile.opentopomap.org",
+            "b.tile.opentopomap.org",
+            "c.tile.opentopomap.org"
+        ],
+        "protocol": "https",
+        "copyright": "Map Data (c) OpenStreetMap, SRTM - Map Style (c) OpenTopoMap (CC-BY-SA)",
+        "url": "{z}/{x}/{y}.png",
+        "min_zoom_level": 1,
+        "max_zoom_level": 17,
+        "tile_width_px": 256,
+        "tile_height_px": 256,
+        "enabled": true
+    },
+    {
+        "name": "OpenStreetMap",
+        "servers": [
+            "tile.openstreetmap.org"
+        ],
+        "protocol": "https",
+        "copyright": "Map tiles (c) OpenStreetMap (ODbL)",
+        "url": "{z}/{x}/{y}.png",
+        "min_zoom_level": 1,
+        "max_zoom_level": 17,
+        "tile_width_px": 256,
+        "tile_height_px": 256,
+        "enabled": false,
+        "comment": "https://wiki.openstreetmap.org/wiki/Raster_tile_providers"
+    }
+]
+)x";
+}

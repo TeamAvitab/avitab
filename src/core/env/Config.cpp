@@ -25,19 +25,34 @@ using json = nlohmann::json;
 
 namespace avitab {
 
-Config::Config(const std::string& configFile) {
+inline static std::shared_ptr<nlohmann::json> ReadConfig(const std::string& configFile) {
+    // will raise an exception if file does not exist, or error when reading
     std::ifstream configStream(std::filesystem::u8path(configFile));
-
     if (!configStream) {
         throw std::runtime_error(std::string("Couldn't read config file ") + configFile);
     }
+    auto cfg = std::make_shared<json>();
+    configStream >> *cfg;
+    return cfg;
+}
 
+Config::Config(const std::string& configFile, const std::string &createDefault) {
     try {
-        config = std::make_shared<json>();
-        configStream >> *config;
+        config = ReadConfig(configFile);
+        return;
     } catch (const std::exception &e) {
-        throw std::runtime_error(std::string("Couldn't read config file: ") + e.what());
+        if (createDefault.size()) {
+            // Probably this is the first time that Avitab has been run after a clean install.
+            // The installation packages no longer include files that might be updated by
+            // the user, because we don't want subsequent installations to overwrite these.
+            // Avitab will attempt to create the default file if missing and try again.
+            std::ofstream configStream(std::filesystem::u8path(configFile));
+            configStream << createDefault;
+        }
     }
+
+    // Second attempt. If it fails just propagate the exception, no recovery possible.
+    config = ReadConfig(configFile);
 }
 
 std::string Config::getString(const std::string& pointer) {
