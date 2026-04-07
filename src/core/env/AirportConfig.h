@@ -1,6 +1,6 @@
 /*
  *   AviTab - Aviator's Virtual Tablet
- *   Copyright (C) 2018 Folke Will <folko@solhost.org>
+ *   Copyright (C) 2018-2025 Folke Will
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Affero General Public License as published by
@@ -15,8 +15,7 @@
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef SRC_AIRPORT_CONFIG_H_
-#define SRC_AIRPORT_CONFIG_H_
+#pragma once
 
 #include <string>
 
@@ -28,5 +27,3 @@ struct AirportConfig {
 };
 
 } /* namespace avitab */
-
-#endif /* SRC_AIRPORT_CONFIG_H_ */
