@@ -18,13 +18,17 @@ Avitab's support for PDF and other documents is implemented by the MuPDF library
 
 [sfrsfrsfr](https://github.com/sfrsfrsfr) submitted a number of enhancements to the previous project archive which have been integrated into the new Avitab project:
 
-- Use TCAS datarefs for other aircraft. This resolves an unrecorded issue where other aircraft were not displayed when connected to VATSIM (and probably other) multi-player systems. [See the PR](https://github.com/fpw/avitab/pull/218)
+- Use TCAS datarefs for other aircraft. This resolves an unrecorded issue where other aircraft were not displayed when connected to VATSIM (and probably other multi-player systems). [See the PR](https://github.com/fpw/avitab/pull/218)
 
 - A `Nearest` button is added to the Airports app. [See the PR](https://github.com/fpw/avitab/pull/220)
 
 - Additional runway surface types are now supported when loading the NAV data. [See the PR](https://github.com/fpw/avitab/pull/222)
 
-- The toolbar clock can be clicked to cycle through modes: wall-clock, sim-time, stopwatch. [See the PR](https://github.com/fpw/avitab/pull/223)
+- The header clock can be clicked to cycle through four modes: real world clock, sim zulu time, sim local time, stopwatch. [See the PR](https://github.com/fpw/avitab/pull/223).
+    - Real world clock is the local time on your PC. It is annotated `{hh:mm}`
+    - Simulation zulu time is annotated with a `z` suffix.
+    - Simulation local time has no further annotation.
+    - The stopwatch is annotated with a `+` prefix. It is now reset by long-clicking for at least 2 seconds. A shorter click will cycle to the next clock mode while the stopwatch continues counting.
 
 - Improvements to the airport search: FAA and local names are now also searched, and display: elevation, distance and direction shown. [See the PR](https://github.com/fpw/avitab/pull/225)
 
@@ -40,7 +44,7 @@ Avitab's support for PDF and other documents is implemented by the MuPDF library
 
 - Add bindable X-Plane commands to switch tabs in Charts app. [See the changes](https://github.com/TeamAvitab/avitab/commit/1b9f277)
 
-The Avitab installable package no longer contains files that contain user preferences. This is intended to make updating an existing installation easier (simply copy the new files onto the existing installation), and less destructive (when preferences are reset).
+The Avitab installable package no longer contains files that contain user preferences. This is intended to make updating an existing installation easier (simply copy the new files onto the existing installation), and less annoying (when preferences are unintentionally reset).
 
 Many thanks to all our contributors.
 
