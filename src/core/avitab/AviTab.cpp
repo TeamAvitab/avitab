@@ -463,6 +463,14 @@ float AviTab::getLastFrameTime() {
     return env->getLastFrameTime();
 }
 
+unsigned int AviTab::getZuluTimeSeconds() {
+    return env->getZuluTimeSeconds();
+}
+
+unsigned int AviTab::getLocalTimeSeconds() {
+    return env->getLocalTimeSeconds();
+}
+
 std::shared_ptr<Settings> AviTab::getSettings() {
     return env->getSettings();
 }

@@ -48,9 +48,19 @@ private:
 
     static constexpr int TIMER_PERIOD_MS = 100;
     static constexpr int TIMER_TICKS_PER_SEC = 1000 / TIMER_PERIOD_MS;
-    Timer tickTimer;
-    unsigned int timerCount = 0;
-    bool stopwatchMode = false;
+    Timer tickTimer; // managed by lvgl
+    int clickTimer;
+    int clockUpdateAlarm = 0; // counts down, triggers GUI update at <= 0
+    static constexpr unsigned int CLOCK_WRAP_SECONDS = 60 * 60 * 24;
+    unsigned int elapsedTimerStartS = 2 * CLOCK_WRAP_SECONDS;
+    enum clockMode {
+        REAL_WORLD_TIME_LOCAL,
+        SIM_TIME_ZULU,
+        SIM_TIME_LOCAL,
+        ELAPSED_TIMER,
+        NUM_CLOCK_MODES
+    };
+    int curClockMode = REAL_WORLD_TIME_LOCAL;
 
     bool showFps = true;
     std::array<float, 30> fpsRingBuffer{};
@@ -64,6 +74,7 @@ private:
 
     void onClockClick(int x, int y, bool pr, bool rel);
     bool onTick();
+    unsigned int getElapsedTime();
     void updateClock();
     void updateFPS();
     void pushFPSValue(float fps);

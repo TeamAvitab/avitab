@@ -62,6 +62,8 @@ public:
     AircraftID getActiveAircraftCount() override;
     Location getAircraftLocation(AircraftID id) override;
     void updateMapExports(float lat, float lon, int zoom, float vrange) override;
+    unsigned int getZuluTimeSeconds() override;
+    unsigned int getLocalTimeSeconds() override;
 
     ~XPlaneEnvironment();
 
@@ -74,10 +76,6 @@ private:
     float getMapLongitude();
     int getMapZoom();
     float getMapVerticalRange();
-    float mapLatitude { 0.0f };
-    float mapLongitude { 0.0f };
-    int mapZoom { 0 };
-    float mapVerticalRange { 0.0f };
     std::unique_ptr<DataRefExport<float>> mapLatitudeRef;
     std::unique_ptr<DataRefExport<float>> mapLongitudeRef;
     std::unique_ptr<DataRefExport<int>> mapZoomRef;
@@ -97,12 +95,22 @@ private:
     DataCache dataCache;
     std::string pluginPath, xplanePrefsDir, xplaneRootPath;
     int xplaneVersion;
-    std::vector<Location> aircraftLocations;
     Location nullLocation { 0, 0, 0, 0 };
-    std::string aircraftPath;
 
-    // State
+private:
+    // State updated/accessed by multiple threads, mutex protected
     std::mutex stateMutex;
+    std::string aircraftPath;
+    std::vector<Location> aircraftLocations;
+    unsigned int otherAircraftCount;
+    float mapLatitude { 0.0f };
+    float mapLongitude { 0.0f };
+    int mapZoom { 0 };
+    float mapVerticalRange { 0.0f };
+    unsigned int zuluTimeSecs;
+    unsigned int localTimeSecs;
+
+private:
     std::vector<MenuCallback> menuCallbacks;
     std::atomic<XPLMFlightLoopID> flightLoopId { nullptr };
     std::map<XPLMCommandRef, RegisteredCommand> commandHandlers;
@@ -124,7 +132,6 @@ private:
     EnvData getData(const std::string &dataRef);
     void reloadAircraftPath();
 
-    unsigned int otherAircraftCount;
     // ============================================================
     // New TCAS AI/multiplayer interface
     // int integer If TCAS is not overriden by plugin, returns the number of planes in X-Plane, which might be under plugin control or X-Plane control. If TCAS is overriden, returns how many targets are actually being written to with the override. These are not necessarily consecutive entries in the TCAS arrays.

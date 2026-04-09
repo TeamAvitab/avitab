@@ -292,6 +292,8 @@ float XPlaneEnvironment::onFlightLoop(float elapsedSinceLastCall, float elapseSi
     {
         std::lock_guard<std::mutex> lock(stateMutex);
         aircraftLocations = activeAircraftLocations;
+        zuluTimeSecs = static_cast<unsigned int>(dataCache.getData("sim/time/zulu_time_sec").floatValue);
+        localTimeSecs = static_cast<unsigned int>(dataCache.getData("sim/time/local_time_sec").floatValue);
     }
 
     setLastFrameTime(dataCache.getData("sim/operation/misc/frame_rate_period").floatValue);
@@ -434,6 +436,16 @@ void XPlaneEnvironment::updateMapExports(float lat, float lon, int zoom, float v
     mapLongitude = lon;
     mapZoom = zoom;
     mapVerticalRange = vrange;
+}
+
+unsigned int XPlaneEnvironment::getZuluTimeSeconds() {
+    std::lock_guard<std::mutex> lock(stateMutex);
+    return zuluTimeSecs;
+}
+
+unsigned int XPlaneEnvironment::getLocalTimeSeconds() {
+    std::lock_guard<std::mutex> lock(stateMutex);
+    return localTimeSecs;
 }
 
 float XPlaneEnvironment::getMapLatitude() {

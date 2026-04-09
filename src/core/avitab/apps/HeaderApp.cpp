@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <sstream>
+#include <ctime>
 #include "HeaderApp.h"
 #include "platform/Platform.h"
 #include "core/Logger.h"
@@ -106,34 +107,74 @@ void HeaderApp::onBrightnessChange(int brightness) {
     api().setBrightness(brightness / 100.0f);
 }
 
-void HeaderApp::onClockClick(int x, int y, bool pr, bool rel) {
-    if (pr) {
-        stopwatchMode = !stopwatchMode;
-        timerCount = 0;
-        updateClock();
+void HeaderApp::onClockClick(int x, int y, bool press, bool release) {
+    if (press) {
+        clickTimer = 0;
+    } else if (release) {
+        // if the clock is in elapsed timer mode and the click was held for
+        // more than 2 seconds then the elapsed timer is restarted.
+        if ((curClockMode == ELAPSED_TIMER) && (clickTimer > (2 * TIMER_TICKS_PER_SEC))) {
+            elapsedTimerStartS = api().getZuluTimeSeconds();
+        } else {
+            curClockMode = (curClockMode + 1) % NUM_CLOCK_MODES;
+        }
+        clockUpdateAlarm = 0;
     }
 }
 
 bool HeaderApp::onTick() {
-    updateClock();
+    ++clickTimer;
+    if (--clockUpdateAlarm <= 0) {
+        updateClock();
+    }
     updateFPS();
     return true;
 }
 
+unsigned int HeaderApp::getElapsedTime() {
+    return (api().getZuluTimeSeconds() + CLOCK_WRAP_SECONDS - elapsedTimerStartS) % CLOCK_WRAP_SECONDS;
+}
+
 void HeaderApp::updateClock() {
-    if ((timerCount % TIMER_TICKS_PER_SEC) == 0) {
-        std::ostringstream t;
-        if (stopwatchMode) {
-            unsigned int mins = (timerCount / TIMER_TICKS_PER_SEC) / 60;
-            unsigned int secs = (timerCount / TIMER_TICKS_PER_SEC) % 60;
-            t << std::setfill('0') << std::setw(2) << mins << ":" << std::setw(2) << secs;
-        } else {
-            t << platform::getLocalTime("%H:%M");
+    unsigned int tMajor = 0, tMinor = 0;
+    char prefix = 0, suffix = 0;
+
+    if (curClockMode == REAL_WORLD_TIME_LOCAL) {
+        // display hours and minutes, update required at/just after next minute increment
+        time_t now = time(nullptr);
+        tm *local = localtime(&now);
+        tMajor = local->tm_hour;
+        tMinor = local->tm_min;
+        prefix = '{'; suffix = '}';
+        clockUpdateAlarm = ((60 - local->tm_sec) + 1) * TIMER_TICKS_PER_SEC;
+    } else if (curClockMode == ELAPSED_TIMER) {
+        if (elapsedTimerStartS >= CLOCK_WRAP_SECONDS) { // run once to initialise
+            elapsedTimerStartS = api().getZuluTimeSeconds();
         }
-        clockLabel->setText(t.str());
-        clockLabel->alignRightInParent(HOR_PADDING);
+        // display minutes and seconds, update required in 1 second
+        unsigned int elapsedTime = getElapsedTime();
+        tMajor = (elapsedTime / 60) % 60;
+        tMinor = elapsedTime % 60;
+        prefix = '+';
+        clockUpdateAlarm = TIMER_TICKS_PER_SEC;
+    } else { // either one of the 2 simulation time modes
+        // display hours and minutes, update required at/just after next minute increment
+        unsigned int simTime = (curClockMode == SIM_TIME_LOCAL) ? api().getLocalTimeSeconds() : api().getZuluTimeSeconds();
+        tMajor = (simTime / (60 * 60)) % 24;
+        tMinor = (simTime / 60) % 60;
+        if (curClockMode == SIM_TIME_ZULU) suffix = 'z';
+        clockUpdateAlarm = ((simTime % 60) + 1) * TIMER_TICKS_PER_SEC;
     }
-    timerCount++;
+
+    std::string s;
+    if (prefix) s.push_back(prefix);
+    s.push_back('0' + (tMajor / 10)); s.push_back('0' + (tMajor % 10));
+    s.push_back(':');
+    s.push_back('0' + (tMinor / 10)); s.push_back('0' + (tMinor % 10));
+    if (suffix) s.push_back(suffix);
+
+    clockLabel->setText(s);
+    clockLabel->alignRightInParent(HOR_PADDING);
 }
 
 void HeaderApp::updateFPS() {

@@ -64,6 +64,8 @@ public:
     virtual unsigned int getActiveAircraftCount() = 0;
     virtual Location getAircraftLocation(AircraftID id) = 0;
     virtual float getLastFrameTime() = 0;
+    virtual unsigned int getZuluTimeSeconds() = 0;
+    virtual unsigned int getLocalTimeSeconds() = 0;
     virtual std::shared_ptr<Settings> getSettings() = 0;
     virtual void setRoute(std::shared_ptr<world::Route> route) = 0;
     virtual std::shared_ptr<world::Route> getRoute() = 0;
