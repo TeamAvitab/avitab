@@ -393,23 +393,26 @@ std::string XPlaneEnvironment::getMETARForAirport(const std::string &icao) {
 }
 
 std::string XPlaneEnvironment::getNearestAirportId() {
-    std::string res;
+    std::promise<std::string> dataPromise;
+    auto futureData = dataPromise.get_future();
 
-    std::lock_guard<std::mutex> lock(stateMutex);
-    if (aircraftLocations.size() > 0) {
-        Location loc = aircraftLocations[0];
-        float lat = static_cast<float>(loc.latitude);
-        float lon = static_cast<float>(loc.longitude);
-        char outID[32] = "";
+    runInEnvironment([this, &dataPromise] () {
+        std::lock_guard<std::mutex> lock(stateMutex);
+        float lat = 0.0, lon = 0.0;
+        char nearestID[32] = {};
+        if (aircraftLocations.size() > 0) {
+            lat = aircraftLocations[0].latitude;
+            lon = aircraftLocations[0].longitude;
+        }
         XPLMNavRef navRef = XPLMFindNavAid(nullptr, nullptr, &lat, &lon, nullptr, xplm_Nav_Airport);
         if (navRef != XPLM_NAV_NOT_FOUND) {
-            XPLMGetNavAidInfo(navRef, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, outID, nullptr, nullptr);
-            if (strlen(outID)) {
-                res = std::string(outID, strlen(outID));
-            }
+            XPLMGetNavAidInfo(navRef, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nearestID, nullptr, nullptr);
         }
-    }
-    return res;
+        dataPromise.set_value(std::string(nearestID));
+    });
+
+    auto nearestId = futureData.get();
+    return nearestId;
 }
 
 void XPlaneEnvironment::enableAndPowerPanel() {
