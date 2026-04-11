@@ -1,6 +1,6 @@
-# Avitab Installation
+# Installation of the Avitab plugin for X-Plane
 
-After downloading the Avitab package and unpacking, you should find these installation instructions in a file at the top-level alongside a directory `Avitab`.
+After downloading the Avitab package and extracting, you should find these installation instructions in a file at the top-level alongside a directory `Avitab`.
 
 To install the Avitab plug-in for X-Plane, first locate your X-Plane installation. The top-level directory (which contains the X-Plane executable) will contain a sub-directory `Resources` and inside this is a sub-directory `plugins`. Open this directory in your file explorer.
 

@@ -28,7 +28,7 @@ Avitab's support for PDF and other documents is implemented by the MuPDF library
     - Real world clock is the local time on your PC. It is annotated `{hh:mm}`
     - Simulation zulu time is annotated with a `z` suffix.
     - Simulation local time has no further annotation.
-    - The stopwatch is annotated with a `+` prefix. It is now reset by long-clicking for at least 2 seconds. A shorter click will cycle to the next clock mode while the stopwatch continues counting.
+    - The stopwatch is annotated with a `+` prefix. It is reset by long-clicking for at least 2 seconds. A short-click will cycle to the next clock mode and the stopwatch will continue counting in the background.
 
 - Improvements to the airport search: FAA and local names are now also searched, and display: elevation, distance and direction shown. [See the PR](https://github.com/fpw/avitab/pull/225)
 
@@ -44,7 +44,7 @@ Avitab's support for PDF and other documents is implemented by the MuPDF library
 
 - Add bindable X-Plane commands to switch tabs in Charts app. [See the changes](https://github.com/TeamAvitab/avitab/commit/1b9f277)
 
-The Avitab installable package no longer contains files that contain user preferences. This is intended to make updating an existing installation easier (simply copy the new files onto the existing installation), and less annoying (when preferences are unintentionally reset).
+The Avitab installable package no longer includes files that contain user preferences. This is intended to make updating an existing installation easier (simply copy the new files onto the existing installation), and less annoying (when preferences are unintentionally reset). Default versions of these files are created only if they do not exist.
 
 Many thanks to all our contributors.
 
