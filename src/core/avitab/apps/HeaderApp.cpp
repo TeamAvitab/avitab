@@ -109,6 +109,7 @@ void HeaderApp::onBrightnessChange(int brightness) {
 
 void HeaderApp::onClockClick(int x, int y, bool press, bool release) {
     if (press) {
+        clickActive = true;
         clickTimer = 0;
     } else if (release) {
         // if the clock is in elapsed timer mode and the click was held for
@@ -118,6 +119,7 @@ void HeaderApp::onClockClick(int x, int y, bool press, bool release) {
         } else {
             curClockMode = (curClockMode + 1) % NUM_CLOCK_MODES;
         }
+        clickActive = false;
         clockUpdateAlarm = 0;
     }
 }
@@ -150,6 +152,9 @@ void HeaderApp::updateClock() {
     } else if (curClockMode == ELAPSED_TIMER) {
         if (elapsedTimerStartS >= CLOCK_WRAP_SECONDS) { // run once to initialise
             elapsedTimerStartS = api().getZuluTimeSeconds();
+        }
+        if (clickActive && (clickTimer > (2 * TIMER_TICKS_PER_SEC))) {
+            elapsedTimerStartS = api().getZuluTimeSeconds(); // will zero the timer after click held for 2 seconds
         }
         // display minutes and seconds, update required in 1 second
         unsigned int elapsedTime = getElapsedTime();
