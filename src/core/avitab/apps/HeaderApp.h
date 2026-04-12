@@ -50,6 +50,7 @@ private:
     static constexpr int TIMER_TICKS_PER_SEC = 1000 / TIMER_PERIOD_MS;
     Timer tickTimer; // managed by lvgl
     int clickTimer;
+    bool clickActive = false;
     int clockUpdateAlarm = 0; // counts down, triggers GUI update at <= 0
     static constexpr unsigned int CLOCK_WRAP_SECONDS = 60 * 60 * 24;
     unsigned int elapsedTimerStartS = 2 * CLOCK_WRAP_SECONDS;
