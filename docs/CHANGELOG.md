@@ -44,9 +44,19 @@ Avitab's support for PDF and other documents is implemented by the MuPDF library
 
 - Add bindable X-Plane commands to switch tabs in Charts app. [See the changes](https://github.com/TeamAvitab/avitab/commit/1b9f277)
 
-The Avitab installable package no longer includes files that contain user preferences. This is intended to make updating an existing installation easier (simply copy the new files onto the existing installation), and less annoying (when preferences are unintentionally reset). Default versions of these files are created only if they do not exist.
+The Avitab installable package no longer includes files that contain user settings. This is intended to make updating an existing installation easier (simply copy (merge) the new files onto the existing installation), and less annoying (when settings are unintentionally reset). Default versions of these settings files are created only if they do not exist.
+
+The Avitab installable package no longer includes information about integrating Avitab into aircraft cockpit models. This information can now be found in the [Avitb wiki](https://github.com/TeamAvitab/avitab/wiki/X%E2%80%90Plane-Aircraft-Integration).
 
 Many thanks to all our contributors.
+
+### Feature Removal Notices
+
+We plan to remove support for the X-Plane map source from the Maps app. Removing this feature will allow us to drop the use of an obsolete third-party library and bring the rest of the Avitab codebase into the modern era.
+
+We plan to remove the route generation feature from the Routes app. Avitab's generation of routes is not reliable, and we doubt anyone is using this. Navigraph's free [SimBrief](https://www.simbrief.com/home/) is a much better way to create route plans and these can then be exported as X-Plane FMS files and imported into Avitab for overlay in the Maps app. Removing this feature will simplify the planned migration to a SQLite-based navigation database, part of the longer-term development roadmap.
+
+Since we are almost certain that neither of these features will be missed, we will probably remove them before the next release. Please let us know if either of these are features that you absolutely rely on.
 
 ### Disclaimer
 
