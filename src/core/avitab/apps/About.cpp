@@ -1,6 +1,6 @@
 /*
  *   AviTab - Aviator's Virtual Tablet
- *   Copyright (C) 2018-2025 Folke Will
+ *   Copyright (C) 2018-2026 Folke Will and Avitab Contributors
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Affero General Public License as published by
@@ -28,8 +28,8 @@ About::About(FuncsPtr appFuncs):
     window->setOnClose([this] () { exit(); });
 
     std::string aboutText =
-            "AviTab " AVITAB_VERSION_STR " [" AVITAB_COMMIT_ID "] from TeamAvitab.\n"
-            "Copyright 2018-2025 Folke Will, and other contributors.\n"
+            "AviTab v" AVITAB_VERSION_STR " [build " AVITAB_COMMIT_ID "] from TeamAvitab.\n"
+            "Copyright 2018-2026 Folke Will and Avitab Contributors.\n"
             "Licensed under the AGPL license, see LICENSE for details.\n"
             "\n"
             "Avitab uses, and acknowledges the copyright and licensing of, the following\n"

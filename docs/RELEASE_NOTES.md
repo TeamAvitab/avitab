@@ -1,4 +1,4 @@
-# Avitab Changelog
+# Avitab Release Notes
 
 ## Avitab v1.0.0 (April 2026)
 
@@ -8,11 +8,11 @@ This is the first update to Avitab overseen by [TeamAvitab](https://github.com/T
 
 This release has been given the label v1.0.0 to mark the handover, and to indicate that no major new features are considered necessary for basic usability. (In practice, Avitab has been in this state for many previous releases, but the major version never got the bump it perhaps should have had.)
 
-Much of the work done since TeamAvitab adopted the project has been under-the-hood, updating the project structure and build scripts, and incorporating up-to-date versions of many of the third-party libraries.
+Much of the work done since TeamAvitab adopted the project has been under-the-hood, updating the project structure and build scripts, and incorporating up-to-date versions of many of the third-party libraries. A number of contributions to Avitab since the 0.7.1 release have also been adopted.
 
 ### Bug fixes
 
-Avitab's support for PDF and other documents is implemented by the MuPDF library, and this has now been updated to a much more recent version which resolves simulation crashes that had been [reported](https://github.com/fpw/avitab/issues/232) in Avitab v0.7.1. Thanks to [tzimpel](https://github.com/tzimpel) for his work in identifying the cause and prototyping a solution.
+Avitab's support for PDF and other documents is implemented by the MuPDF library, and this has now been updated to a newer version which resolves simulation crashes that had been [reported](https://github.com/fpw/avitab/issues/232) in Avitab v0.7.1. Thanks to [tzimpel](https://github.com/tzimpel) for his work in identifying the cause and prototyping a solution.
 
 ### Enhancements
 
@@ -28,9 +28,9 @@ Avitab's support for PDF and other documents is implemented by the MuPDF library
     - Real world clock is the local time on your PC. It is annotated `{hh:mm}`
     - Simulation zulu time is annotated with a `z` suffix.
     - Simulation local time has no further annotation.
-    - The stopwatch is annotated with a `+` prefix. It is reset by long-clicking for at least 2 seconds. A short-click will cycle to the next clock mode and the stopwatch will continue counting in the background.
+    - The stopwatch is annotated with a `+` prefix. Click-and-hold to reset. A short-click will cycle to the next clock mode and the stopwatch will continue counting in the background.
 
-- Improvements to the airport search: FAA and local names are now also searched, and display: elevation, distance and direction shown. [See the PR](https://github.com/fpw/avitab/pull/225)
+- Airport search will match FAA and local names as well as ICAO codes. Airport summary information also shows the elevation, distance and direction. [See the PR](https://github.com/fpw/avitab/pull/225)
 
 - Closed airports are no longer loaded into the NAV database, and obsolete prefixes are now removed. [See the PR](https://github.com/fpw/avitab/pull/226)
 
@@ -44,11 +44,13 @@ Avitab's support for PDF and other documents is implemented by the MuPDF library
 
 - Add bindable X-Plane commands to switch tabs in Charts app. [See the changes](https://github.com/TeamAvitab/avitab/commit/1b9f277)
 
+Many thanks to all our contributors.
+
+### Installable Package Updates
+
 The Avitab installable package no longer includes files that contain user settings. This is intended to make updating an existing installation easier (simply copy (merge) the new files onto the existing installation), and less annoying (when settings are unintentionally reset). Default versions of these settings files are created only if they do not exist.
 
 The Avitab installable package no longer includes information about integrating Avitab into aircraft cockpit models. This information can now be found in the [Avitb wiki](https://github.com/TeamAvitab/avitab/wiki/X%E2%80%90Plane-Aircraft-Integration).
-
-Many thanks to all our contributors.
 
 ### Feature Removal Notices
 
