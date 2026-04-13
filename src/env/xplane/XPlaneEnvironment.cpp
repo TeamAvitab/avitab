@@ -22,6 +22,7 @@
 #include <XPLM/XPLMWeather.h>
 #include <stdexcept>
 #include <chrono>
+#include <cmath>
 #include <iomanip>
 #include <sstream>
 #include "XPlaneEnvironment.h"
@@ -410,17 +411,43 @@ int XPlaneEnvironment::getWeatherAtLocation(const world::Location &loc, const fl
         logger::verbose("Time to get Weather: %d millis",
             std::chrono::duration_cast<std::chrono::milliseconds>(duration).count());
         str << "Wind ";
-         if ((winfo.wind_spd_alt * world::MS_TO_KT) < 3) {
+         if ((winfo.wind_spd_alt * world::MS_TO_KT) <= 3) {
             str << "calm,";
         } else {
             str << (float)(winfo.wind_dir_alt) << " °T " << (float)(winfo.wind_spd_alt * world::MS_TO_KT) << " kt,";
         }
         str << " Visibility ";
-        if ((winfo.visibility / 1000 * world::KM_TO_NM) > 10) {
+        if ((winfo.visibility / 1000 * world::KM_TO_NM) >= 10) {
             str << "10+ nm,";
         } else {
             str << (float)((winfo.visibility / 1000) * world::KM_TO_NM) << " nm,";
         }
+        if (winfo.precip_rate_alt > 0) {
+            //str << " precip_rate " << std::fixed << std::setprecision(2) << (float)(winfo.precip_rate_alt);
+            str << " rain,";
+        }
+        int numOfCloudLayers = sizeof(winfo.cloud_layers) / sizeof(XPLMWeatherInfoClouds_t);
+        str << " Clouds ";
+        bool clearSkies = true;
+        for (int i = 0; i < numOfCloudLayers; i++) {
+            XPLMWeatherInfoClouds_t clouds;
+            clouds = winfo.cloud_layers[i];
+            if (clouds.coverage > 0) {
+                clearSkies = false;
+                str << cloudCoverageToText(clouds.coverage) << " at ";
+                str << std::fixed << std::setprecision(0);
+                if (clouds.alt_base < 10000) {
+                    str << (float)(std::round(clouds.alt_base * world::M_TO_FT / 100) * 100);
+                } else {
+                    str << (float)(std::round(clouds.alt_base * world::M_TO_FT / 1000) * 1000);
+                }
+                str << " ft, ";
+            }
+        }
+        if (clearSkies) {
+            str << "none, ";
+        }
+        str << std::fixed << std::setprecision(0);
         str << " Temp./Dew " << (float)(winfo.temperature_alt) << "/" << (float)(winfo.dewpoint_alt) << " °C,";
         str << " QNH " << (float)(winfo.pressure_alt / 100);
     }
@@ -523,6 +550,17 @@ void XPlaneEnvironment::reloadAircraftPath() {
 
 void XPlaneEnvironment::onAircraftReload() {
     reloadAircraftPath();
+}
+
+std::string XPlaneEnvironment::cloudCoverageToText(const float coverage) {
+    if (coverage <= 0.05) {
+        return "clear";
+    } else if (coverage <= 0.25) {
+        return "few";
+    } else if (coverage <= 0.5) {
+        return "scattered";
+    }
+    return "overcast";
 }
 
 void XPlaneEnvironment::updatePlaneCount() {

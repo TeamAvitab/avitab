@@ -136,6 +136,8 @@ private:
     EnvData getData(const std::string &dataRef);
     void reloadAircraftPath();
 
+    std::string cloudCoverageToText(float coverage);
+
     // ============================================================
     // New TCAS AI/multiplayer interface
     // int integer If TCAS is not overriden by plugin, returns the number of planes in X-Plane, which might be under plugin control or X-Plane control. If TCAS is overriden, returns how many targets are actually being written to with the override. These are not necessarily consecutive entries in the TCAS arrays.
