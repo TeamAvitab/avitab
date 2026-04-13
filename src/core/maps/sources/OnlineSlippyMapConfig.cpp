@@ -1,6 +1,6 @@
 /*
  *   AviTab - Aviator's Virtual Tablet
- *   Copyright (C) 2018-2025 Folke Will
+ *   Copyright (C) 2018-2026 Folke Will and Avitab Contributors
  *   Copyright (C) 2023 Vangelis Tasoulas <cyberang3l@gmail.com>
  *
  *   This program is free software: you can redistribute it and/or modify
