@@ -416,6 +416,9 @@ std::string AviTab::getNearestAirportId() {
     return env->getNearestAirportId();
 }
 
+int AviTab::getWeatherAtLocation(const world::Location &loc, const float &altitude, std::shared_ptr<std::string>& weather) {
+    return env->getWeatherAtLocation(loc, altitude, weather);
+}
 
 void AviTab::reloadMetar() {
     logger::info("Reloading METAR...");

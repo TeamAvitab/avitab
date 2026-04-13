@@ -339,7 +339,22 @@ std::string AirportApp::toWeatherInfo(std::shared_ptr<world::Airport> airport) {
     if (id.empty()) {
         id = airport->getID();
     }
-    return api().getMETARForAirport(id);
+    std::shared_ptr<std::string> metar = nullptr;
+    int detailed;
+    std::string winfo;
+
+    detailed = api().getWeatherAtLocation(airport->getLocation(), airport->getElevation() / world::M_TO_FT, metar);
+    winfo = "Weather:\n";
+    winfo.append(metar->data());
+    if (detailed) {
+        metar->assign(api().getMETARForAirport(airport->getID()));
+        if (! metar->empty()) {
+            winfo = "METAR:\n";
+            winfo.append(metar->data());
+        }
+    }
+    winfo.append("\n");
+    return winfo;
 }
 
 AirportApp::TabPage &AirportApp::findPage(std::shared_ptr<Page> page) {
