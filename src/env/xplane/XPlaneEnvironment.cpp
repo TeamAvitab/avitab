@@ -559,6 +559,8 @@ std::string XPlaneEnvironment::cloudCoverageToText(const float coverage) {
         return "few";
     } else if (coverage <= 0.5) {
         return "scattered";
+    } else if (coverage <= 0.75) {
+        return "broken";
     }
     return "overcast";
 }
