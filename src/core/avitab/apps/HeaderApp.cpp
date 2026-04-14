@@ -41,6 +41,7 @@ HeaderApp::HeaderApp(FuncsPtr appFuncs):
     settingsButton->setCallback([this] (const Button &) { toggleSettings(); });
     settingsButton->alignLeftInParent(HOR_PADDING);
 
+    curClockMode = savedSettings->getGeneralSetting<int>("clock_mode") % NUM_CLOCK_MODES;
     showFps = savedSettings->getGeneralSetting<bool>("show_fps");
     fpsLabel = std::make_shared<Label>(container, "-- FPS");
     fpsLabel->alignRightOf(settingsButton);
@@ -118,6 +119,7 @@ void HeaderApp::onClockClick(int x, int y, bool press, bool release) {
             elapsedTimerStartS = api().getZuluTimeSeconds();
         } else {
             curClockMode = (curClockMode + 1) % NUM_CLOCK_MODES;
+            savedSettings->setGeneralSetting<int>("clock_mode", curClockMode);
         }
         clickActive = false;
         clockUpdateAlarm = 0;

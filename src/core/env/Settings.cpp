@@ -27,7 +27,7 @@ using json = nlohmann::json;
 
 namespace avitab {
 
-static const int PREFS_VERSION = 3;
+static const int PREFS_VERSION = 4;
 
 Settings::Settings(const std::string &settingsFile)
 :   filePath(settingsFile)
@@ -61,6 +61,10 @@ Settings::Settings(const std::string &settingsFile)
         upgrade2to3();
         ++loadedPrefsVersion;
     }
+    if (loadedPrefsVersion == 3) {
+        upgrade3to4();
+        ++loadedPrefsVersion;
+    }
 
     (*database)["general"]["prefs_version"] = PREFS_VERSION;
 }
@@ -88,6 +92,11 @@ int Settings::getGeneralSetting(const std::string &id) {
 
 template<>
 void Settings::setGeneralSetting(const std::string &id, const bool value) {
+    setSetting("/general/" + id, value);
+}
+
+template<>
+void Settings::setGeneralSetting(const std::string &id, const int value) {
     setSetting("/general/" + id, value);
 }
 
@@ -129,7 +138,8 @@ void Settings::init() {
                                  { "show_calibration_msg_on_load", true },
                                  { "show_overlays_in_airport_app", false },
                                  { "show_overlays_in_charts_app", false },
-                                 { "show_fps", true } } },
+                                 { "show_fps", true },
+                                 { "clock_mode", 0 } } },
                   { "overlay", { { "my_aircraft", true } } } };
 }
 
@@ -254,6 +264,10 @@ void Settings::upgrade1to2() {
 void Settings::upgrade2to3() {
     (*database)["airports"]["sort"] = true;
     (*database)["airports"]["sort_ascending"] = true;
+}
+
+void Settings::upgrade3to4() {
+    (*database)["general"]["clock_mode"] = 0;
 }
 
 void Settings::saveAll() {
