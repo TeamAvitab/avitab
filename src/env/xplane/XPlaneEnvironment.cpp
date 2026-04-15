@@ -423,7 +423,6 @@ int XPlaneEnvironment::getWeatherAtLocation(const world::Location &loc, const fl
             str << (float)((winfo.visibility / 1000) * world::KM_TO_NM) << " nm,";
         }
         if (winfo.precip_rate_alt > 0) {
-            //str << " precip_rate " << std::fixed << std::setprecision(2) << (float)(winfo.precip_rate_alt);
             str << " rain,";
         }
         int numOfCloudLayers = sizeof(winfo.cloud_layers) / sizeof(XPLMWeatherInfoClouds_t);
@@ -435,7 +434,6 @@ int XPlaneEnvironment::getWeatherAtLocation(const world::Location &loc, const fl
             if (clouds.coverage > 0) {
                 clearSkies = false;
                 str << cloudCoverageToText(clouds.coverage) << " at ";
-                str << std::fixed << std::setprecision(0);
                 if (clouds.alt_base < 10000) {
                     str << (float)(std::round(clouds.alt_base * world::M_TO_FT / 100) * 100);
                 } else {
@@ -447,7 +445,6 @@ int XPlaneEnvironment::getWeatherAtLocation(const world::Location &loc, const fl
         if (clearSkies) {
             str << "none, ";
         }
-        str << std::fixed << std::setprecision(0);
         str << " Temp./Dew " << (float)(winfo.temperature_alt) << "/" << (float)(winfo.dewpoint_alt) << " °C,";
         str << " QNH " << (float)(winfo.pressure_alt / 100);
     }
