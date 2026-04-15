@@ -55,7 +55,6 @@ private:
     void init();
     void upgrade1to2();
     void upgrade2to3();
-    void upgrade3to4();
     void load();
     void save();
 

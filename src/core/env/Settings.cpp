@@ -27,7 +27,7 @@ using json = nlohmann::json;
 
 namespace avitab {
 
-static const int PREFS_VERSION = 4;
+static const int PREFS_VERSION = 3;
 
 Settings::Settings(const std::string &settingsFile)
 :   filePath(settingsFile)
@@ -59,10 +59,6 @@ Settings::Settings(const std::string &settingsFile)
     }
     if (loadedPrefsVersion == 2) {
         upgrade2to3();
-        ++loadedPrefsVersion;
-    }
-    if (loadedPrefsVersion == 3) {
-        upgrade3to4();
         ++loadedPrefsVersion;
     }
 
@@ -264,10 +260,6 @@ void Settings::upgrade1to2() {
 void Settings::upgrade2to3() {
     (*database)["airports"]["sort"] = true;
     (*database)["airports"]["sort_ascending"] = true;
-}
-
-void Settings::upgrade3to4() {
-    (*database)["general"]["clock_mode"] = 0;
 }
 
 void Settings::saveAll() {
