@@ -134,8 +134,7 @@ void Settings::init() {
                                  { "show_calibration_msg_on_load", true },
                                  { "show_overlays_in_airport_app", false },
                                  { "show_overlays_in_charts_app", false },
-                                 { "show_fps", true },
-                                 { "clock_mode", 0 } } },
+                                 { "show_fps", true } } },
                   { "overlay", { { "my_aircraft", true } } } };
 }
 
