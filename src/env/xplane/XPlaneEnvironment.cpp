@@ -431,7 +431,11 @@ int XPlaneEnvironment::getWeatherAtLocation(const world::Location &loc, const fl
         for (int i = 0; i < numOfCloudLayers; i++) {
             XPLMWeatherInfoClouds_t clouds;
             clouds = winfo.cloud_layers[i];
-            if (clouds.coverage > 0) {
+            logger::verbose("Cloud Coverage %d: %.3f", i, clouds.coverage);
+            logger::verbose("        base %f; top %f",
+                 std::round(clouds.alt_base * world::M_TO_FT),
+                 std::round(clouds.alt_top * world::M_TO_FT));
+            if (std::round(clouds.coverage * 100) > SKY_CLEAR) {
                 clearSkies = false;
                 str << cloudCoverageToText(clouds.coverage) << " at ";
                 if (clouds.alt_base < 10000) {
@@ -550,16 +554,18 @@ void XPlaneEnvironment::onAircraftReload() {
 }
 
 std::string XPlaneEnvironment::cloudCoverageToText(const float coverage) {
-    if (coverage <= 0.05) {
-        return "clear";
-    } else if (coverage <= 0.25) {
-        return "few";
-    } else if (coverage <= 0.5) {
-        return "scattered";
-    } else if (coverage <= 0.75) {
-        return "broken";
+    int c =  std::round(coverage * 100);
+    std::string cloudLayer = "overcast";
+    if (c <= SKY_CLEAR) {
+        cloudLayer = "clear";
+    } else if (c <= SKY_FEW) {
+        cloudLayer = "few";
+    } else if (c <= SKY_SCATTERED) {
+        cloudLayer = "scattered";
+    } else if (c <= SKY_BROKEN) {
+        cloudLayer = "broken";
     }
-    return "overcast";
+    return cloudLayer;
 }
 
 void XPlaneEnvironment::updatePlaneCount() {

@@ -136,6 +136,13 @@ private:
     EnvData getData(const std::string &dataRef);
     void reloadAircraftPath();
 
+    enum cloudCoverage {
+        SKY_CLEAR     = 5,
+        SKY_FEW       = 25,
+        SKY_SCATTERED = 60,
+        SKY_BROKEN    = 80,
+        SKY_OVERCAST  = 100,
+    };
     std::string cloudCoverageToText(float coverage);
 
     // ============================================================
