@@ -386,7 +386,7 @@ std::string XPlaneEnvironment::getMETARForAirport(const std::string &icao) {
     return metar;
 }
 
-int XPlaneEnvironment::getWeatherAtLocation(const world::Location &loc, const float &altitude, std::shared_ptr<std::string> &weather) {
+int XPlaneEnvironment::getWeatherAtLocation(const world::Location &loc, const float &altitude, std::string& weather) {
     int detailed;
     XPLMWeatherInfo_t winfo;
     winfo.structSize = sizeof(XPLMWeatherInfo_t);
@@ -448,7 +448,7 @@ int XPlaneEnvironment::getWeatherAtLocation(const world::Location &loc, const fl
         str << " Temp./Dew " << (float)(winfo.temperature_alt) << "/" << (float)(winfo.dewpoint_alt) << " °C,";
         str << " QNH " << (float)(winfo.pressure_alt / 100);
     }
-    weather = std::make_shared<std::string>(str.str());
+    weather = str.str();
     return detailed;
 }
 

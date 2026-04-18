@@ -57,7 +57,7 @@ public:
     std::string getFlightPlansPath() override;
     Environment::MagVarMap getMagneticVariations(std::vector<std::pair<double, double>> locations) override;
     std::string getMETARForAirport(const std::string &icao) override;
-    int getWeatherAtLocation(const world::Location &loc, const float &altitude, std::shared_ptr<std::string> &weather) override;
+    int getWeatherAtLocation(const world::Location &loc, const float &altitude, std::string& weather) override;
     std::string getNearestAirportId() override;
     void enableAndPowerPanel() override;
     void setIsInMenu(bool menu) override;
