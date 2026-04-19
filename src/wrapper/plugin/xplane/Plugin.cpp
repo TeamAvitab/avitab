@@ -31,7 +31,7 @@ std::unique_ptr<avitab::AviTab> aviTab;
 
 PLUGIN_API int XPluginStart(char *outName, char *outSignature, char *outDescription) {
     strncpy(outName, "AviTab", 255);
-    strncpy(outSignature, "org.teamavitab.avitab", 255);
+    strncpy(outSignature, "org.solhost.folko.avitab", 255);
 
     crash::registerHandler([] () { return XPLMGetMyID(); });
 

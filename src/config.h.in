@@ -1,10 +1,11 @@
 /* This file is part of the Avitab project. See the README and LICENSE for details. */
 
+#define AVITAB_NAME "Avitab"
+
 #define AVITAB_VERSION_MAJOR @Avitab_VERSION_MAJOR@
 #define AVITAB_VERSION_MINOR @Avitab_VERSION_MINOR@
 #define AVITAB_VERSION_PATCH @Avitab_VERSION_PATCH@
-#define AVITAB_VERSION_STR "@Avitab_VERSION_MAJOR@.@Avitab_VERSION_MINOR@.@Avitab_VERSION_PATCH@"
-#define AVITAB_NAME "Avitab"
+#define AVITAB_VERSION_STR "@Avitab_VERSION_MAJOR@.@Avitab_VERSION_MINOR@.@Avitab_VERSION_PATCH@@Avitab_VERSION_QUALIFIER@"
 
 #define AVITAB_COMMIT_ID "@AVITAB_COMMIT_ID@"
 
