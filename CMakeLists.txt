@@ -12,7 +12,7 @@ set(CMAKE_FRAMEWORK FALSE CACHE INTERNAL "")
 
 # Project name and a few useful settings. Other commands can pick up the results
 project(Avitab
-    VERSION 1.0.1
+    VERSION 1.1.0.0
     DESCRIPTION "AviTab plugin for X-Plane"
     LANGUAGES C CXX
 )
@@ -87,7 +87,7 @@ if(DEFINED ENV{AVITAB_APIKEY_CHARTFOX})
     message(STATUS "Chartfox API key has been defined.")
 endif()
 
-# Get the git commit ID for build identification
+# Get the git commit ID and tweak version for build identification
 find_package(Git)
 if(GIT_EXECUTABLE)
     execute_process(
@@ -100,6 +100,10 @@ if(GIT_EXECUTABLE)
 else()
     set(AVITAB_COMMIT_ID UNKNOWN)
 endif()
+if(NOT "${Avitab_VERSION_TWEAK}" STREQUAL "")
+    set(Avitab_VERSION_QUALIFIER "-dev")
+endif()
+
 
 # Host platform definitions applying to everything declared after here
 if(WIN32) # targetting Windows systems

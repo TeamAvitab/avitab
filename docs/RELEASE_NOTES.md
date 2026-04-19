@@ -1,5 +1,9 @@
 # Avitab Release Notes
 
+## Avitab v1.1.0 (unreleased)
+
+This is an unreleased (development) build.
+
 ## Avitab v1.0.1 (April 2026)
 
 This is a bugfix release to resolve [interoperability issues with some 3rd-party aircraft and other plugins](https://github.com/TeamAvitab/avitab/issues/47).
