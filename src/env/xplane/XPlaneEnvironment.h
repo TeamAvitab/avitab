@@ -20,6 +20,7 @@
 #include <XPLM/XPLMMenus.h>
 #include <XPLM/XPLMUtilities.h>
 #include <XPLM/XPLMProcessing.h>
+#include <XPLM/XPLMWeather.h>
 #include <memory>
 #include <vector>
 #include <atomic>
@@ -56,6 +57,7 @@ public:
     std::string getFlightPlansPath() override;
     Environment::MagVarMap getMagneticVariations(std::vector<std::pair<double, double>> locations) override;
     std::string getMETARForAirport(const std::string &icao) override;
+    int getWeatherAtLocation(const world::Location &loc, const float &altitude, std::string& weather) override;
     std::string getNearestAirportId() override;
     void enableAndPowerPanel() override;
     void setIsInMenu(bool menu) override;
@@ -83,6 +85,7 @@ private:
 
 private:
     using GetMetarPtr = void(*)(const char *id, XPLMFixedString150_t *outMETAR);
+    using GetWeatherPtr = int(*)(double latitude, double longitude, double altitude, XPLMWeatherInfo_t *weather);
 
     struct RegisteredCommand {
         CommandCallback callback;
@@ -92,6 +95,7 @@ private:
 
     // Cached data
     GetMetarPtr getMetar{};
+    GetWeatherPtr getWeatherAtLoc{};
     DataCache dataCache;
     std::string pluginPath, xplanePrefsDir, xplaneRootPath;
     int xplaneVersion;
@@ -131,6 +135,15 @@ private:
     static int handleCommand(XPLMCommandRef cmd, XPLMCommandPhase phase, void *ref);
     EnvData getData(const std::string &dataRef);
     void reloadAircraftPath();
+
+    enum cloudCoverage {
+        SKY_CLEAR     = 5,
+        SKY_FEW       = 25,
+        SKY_SCATTERED = 60,
+        SKY_BROKEN    = 80,
+        SKY_OVERCAST  = 100,
+    };
+    std::string cloudCoverageToText(float coverage);
 
     // ============================================================
     // New TCAS AI/multiplayer interface

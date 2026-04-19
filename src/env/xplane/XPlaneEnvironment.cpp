@@ -22,6 +22,8 @@
 #include <XPLM/XPLMWeather.h>
 #include <stdexcept>
 #include <chrono>
+#include <cmath>
+#include <iomanip>
 #include <sstream>
 #include "XPlaneEnvironment.h"
 #include "XPlaneGUIDriver.h"
@@ -47,8 +49,10 @@ XPlaneEnvironment::XPlaneEnvironment() {
     XPLMGetVersions(&xplaneVersion, &xplmVersion, &hostId);
     if (xplmVersion >= 400) {
         getMetar = (GetMetarPtr) XPLMFindSymbol("XPLMGetMETARForAirport");
+        getWeatherAtLoc = (GetWeatherPtr) XPLMFindSymbol("XPLMGetWeatherAtLocation");
     } else {
         getMetar = nullptr;
+        getWeatherAtLoc = nullptr;
     }
 
     updatePlaneCount();
@@ -379,17 +383,77 @@ std::string XPlaneEnvironment::getMETARForAirport(const std::string &icao) {
         metar = airport->getMetarString();
     }
 
-    if (metar.empty()) {
-        return "No weather information available";
-    }
+    return metar;
+}
+
+int XPlaneEnvironment::getWeatherAtLocation(const world::Location &loc, const float &altitude, std::string& weather) {
+    int detailed;
+    XPLMWeatherInfo_t winfo;
+    winfo.structSize = sizeof(XPLMWeatherInfo_t);
 
     std::stringstream str;
-    str << "Weather";
-    if (!timestamp.empty()) {
-        str << ", updated " << timestamp;
+    str << std::fixed << std::setprecision(0);
+
+    if (getWeatherAtLoc) {
+        std::promise<std::pair<int, XPLMWeatherInfo_t>> dataPromise;
+        auto futureData = dataPromise.get_future();
+
+        auto startAt = std::chrono::steady_clock::now();
+        runInEnvironment([this, &loc, &altitude, &dataPromise] () {
+            int d;
+            XPLMWeatherInfo_t w;
+            w.structSize = sizeof(XPLMWeatherInfo_t);
+            d = getWeatherAtLoc(loc.latitude, loc.longitude, altitude, &w);
+            dataPromise.set_value(std::make_pair(d, w));
+        });
+        std::tie(detailed, winfo) = futureData.get();
+        auto duration = std::chrono::steady_clock::now() - startAt;
+        logger::verbose("Time to get Weather: %d millis",
+            std::chrono::duration_cast<std::chrono::milliseconds>(duration).count());
+        str << "Wind ";
+         if ((winfo.wind_spd_alt * world::MS_TO_KT) <= 3) {
+            str << "calm,";
+        } else {
+            str << (float)(winfo.wind_dir_alt) << " °T " << (float)(winfo.wind_spd_alt * world::MS_TO_KT) << " kt,";
+        }
+        str << " Visibility ";
+        if ((winfo.visibility / 1000 * world::KM_TO_NM) >= 10) {
+            str << "10+ nm,";
+        } else {
+            str << (float)((winfo.visibility / 1000) * world::KM_TO_NM) << " nm,";
+        }
+        if (winfo.precip_rate_alt > 0) {
+            str << " rain,";
+        }
+        int numOfCloudLayers = sizeof(winfo.cloud_layers) / sizeof(XPLMWeatherInfoClouds_t);
+        str << " Clouds ";
+        bool clearSkies = true;
+        for (int i = 0; i < numOfCloudLayers; i++) {
+            XPLMWeatherInfoClouds_t clouds;
+            clouds = winfo.cloud_layers[i];
+            logger::verbose("Cloud Coverage %d: %.3f", i, clouds.coverage);
+            logger::verbose("        base %f; top %f",
+                 std::round(clouds.alt_base * world::M_TO_FT),
+                 std::round(clouds.alt_top * world::M_TO_FT));
+            if (std::round(clouds.coverage * 100) > SKY_CLEAR) {
+                clearSkies = false;
+                str << cloudCoverageToText(clouds.coverage) << " at ";
+                if (clouds.alt_base < 10000) {
+                    str << (float)(std::round(clouds.alt_base * world::M_TO_FT / 100) * 100);
+                } else {
+                    str << (float)(std::round(clouds.alt_base * world::M_TO_FT / 1000) * 1000);
+                }
+                str << " ft, ";
+            }
+        }
+        if (clearSkies) {
+            str << "none, ";
+        }
+        str << " Temp./Dew " << (float)(winfo.temperature_alt) << "/" << (float)(winfo.dewpoint_alt) << " °C,";
+        str << " QNH " << (float)(winfo.pressure_alt / 100);
     }
-    str << ":\n" << metar << "\n";
-    return str.str();
+    weather = str.str();
+    return detailed;
 }
 
 std::string XPlaneEnvironment::getNearestAirportId() {
@@ -487,6 +551,21 @@ void XPlaneEnvironment::reloadAircraftPath() {
 
 void XPlaneEnvironment::onAircraftReload() {
     reloadAircraftPath();
+}
+
+std::string XPlaneEnvironment::cloudCoverageToText(const float coverage) {
+    int c =  std::round(coverage * 100);
+    std::string cloudLayer = "overcast";
+    if (c <= SKY_CLEAR) {
+        cloudLayer = "clear";
+    } else if (c <= SKY_FEW) {
+        cloudLayer = "few";
+    } else if (c <= SKY_SCATTERED) {
+        cloudLayer = "scattered";
+    } else if (c <= SKY_BROKEN) {
+        cloudLayer = "broken";
+    }
+    return cloudLayer;
 }
 
 void XPlaneEnvironment::updatePlaneCount() {
