@@ -92,6 +92,11 @@ void Settings::setGeneralSetting(const std::string &id, const bool value) {
 }
 
 template<>
+void Settings::setGeneralSetting(const std::string &id, const int value) {
+    setSetting("/general/" + id, value);
+}
+
+template<>
 void Settings::setGeneralSetting(const std::string &id, const std::string value) {
     setSetting("/general/" + id, value);
 }
