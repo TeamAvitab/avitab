@@ -68,7 +68,6 @@ public:
     void resume() override;
 private:
     enum class MapSource {
-        XPLANE,
         MERCATOR,
         GEOTIFF,
         EPSG3857,
@@ -95,7 +94,7 @@ private:
     std::shared_ptr<Button> trackButton;
     std::shared_ptr<Button> rotateButton;
     std::shared_ptr<Container> settingsContainer, chooserContainer, overlaysContainer;
-    std::shared_ptr<Button> mercatorButton, xplaneButton, geoTiffButton, epsgButton, naviLowButton, naviHighButton, naviVFRButton, naviWorldButton, onlineMapsButton;
+    std::shared_ptr<Button> mercatorButton, geoTiffButton, epsgButton, naviLowButton, naviHighButton, naviVFRButton, naviWorldButton, onlineMapsButton;
     std::shared_ptr<Label> overlayLabel;
     std::shared_ptr<Checkbox> myAircraftCheckbox, otherAircraftCheckbox, routeCheckbox;
     std::shared_ptr<Checkbox> airportCheckbox, heliseaportCheckbox, airstripCheckbox;
