@@ -25,7 +25,6 @@
 #include "core/maps/sources/OnlineSlippySource.h"
 #include "core/maps/sources/GeoTIFFSource.h"
 #include "core/maps/sources/LocalFileSource.h"
-#include "core/maps/sources/XPlaneSource.h"
 #include "core/maps/sources/EPSGSource.h"
 
 namespace avitab {
@@ -108,20 +107,11 @@ void MapApp::createSettingsLayout() {
     geoTiffLabel->alignRightOf(geoTiffButton, 10);
     geoTiffLabel->setManaged();
 
-    xplaneButton = std::make_shared<Button>(settingsContainer, "X-Plane");
-    xplaneButton->setCallback([this] (const Button &) { setMapSource(MapSource::XPLANE); });
-    xplaneButton->setFit(false, true);
-    xplaneButton->setDimensions(onlineMapsButton->getWidth(), onlineMapsButton->getHeight());
-    xplaneButton->alignBelow(geoTiffButton, 10);
-    auto xplaneLabel = std::make_shared<Label>(settingsContainer, "Uses X-Plane earth textures as map.");
-    xplaneLabel->alignRightOf(xplaneButton, 10);
-    xplaneLabel->setManaged();
-
     mercatorButton = std::make_shared<Button>(settingsContainer, "Mercator");
     mercatorButton->setCallback([this] (const Button &) { setMapSource(MapSource::MERCATOR); });
     mercatorButton->setFit(false, true);
     mercatorButton->setDimensions(onlineMapsButton->getWidth(), onlineMapsButton->getHeight());
-    mercatorButton->alignBelow(xplaneButton, 10);
+    mercatorButton->alignBelow(geoTiffButton, 10);
     auto mercatorLabel = std::make_shared<Label>(settingsContainer, "Uses any PDF or image as Mercator map.");
     mercatorLabel->alignRightOf(mercatorButton, 10);
     mercatorLabel->setManaged();
@@ -131,10 +121,6 @@ void MapApp::setMapSource(MapSource style, bool init) {
     std::shared_ptr<img::TileSource> newSource;
 
     switch (style) {
-    case MapSource::XPLANE:
-        newSource = std::make_shared<maps::XPlaneSource>(api().getEarthTexturePath());
-        setTileSource(newSource);
-        break;
     case MapSource::GEOTIFF:
         selectGeoTIFF();
         break;

@@ -21,7 +21,6 @@ PrepareExternPackages(
     fmt         "https://github.com/fmtlib/fmt/releases/download/10.2.1/fmt-10.2.1.zip"
     json        "https://github.com/nlohmann/json/archive/refs/tags/v3.12.0.tar.gz"
     mbedtls     "https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.4/mbedtls-3.6.4.tar.bz2"
-    detex       "https://github.com/hglm/detex/archive/refs/tags/v0.1.2alpha2.tar.gz"
     stb         "https://github.com/nothings/stb/archive/449758b.tar.gz"
     sqlite      "https://www.sqlite.org/2025/sqlite-amalgamation-3500300.zip"
     lunasvg     "https://github.com/sammycage/lunasvg/archive/refs/tags/v3.4.0.zip"
@@ -136,7 +135,7 @@ endif()
 target_link_libraries(avitab_extern INTERFACE
     Threads::Threads
     nlohmann_json_imp curl_imp mupdf_imp lvgl_imp sqlite3_imp
-    freetype_imp mbedtls_imp detex_imp stb_imp geotiff_imp zstd_imp
+    freetype_imp mbedtls_imp stb_imp geotiff_imp zstd_imp
     ${sys_libraries}
 )
 

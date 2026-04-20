@@ -23,6 +23,4 @@ target_sources(avitab_core_lib PRIVATE
     OnlineSlippyMapConfig.h
     OnlineSlippySource.cpp
     OnlineSlippySource.h
-    XPlaneSource.cpp
-    XPlaneSource.h
 )
