@@ -401,7 +401,10 @@ void MapApp::selectNavigraph(maps::NavigraphMapType type) {
         zoom = map->getZoomLevel();
     }
 
-    auto source = std::make_shared<maps::NavigraphSource>(api().getChartService()->getNavigraph(), false, type);
+    // reading and then writing immediately back ensures the setting is stored in the prefs file
+    bool globalNightMode = api().getSettings()->getGeneralSetting<bool>("night_mode");
+    api().getSettings()->setGeneralSetting<bool>("night_mode", globalNightMode);
+    auto source = std::make_shared<maps::NavigraphSource>(api().getChartService()->getNavigraph(), !globalNightMode, type);
     setTileSource(source);
 
     if (reCenter) {
