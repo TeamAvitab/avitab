@@ -1,5 +1,14 @@
 # Avitab Release Notes
 
+## Avitab v1.0.2 (April 2026)
+
+This is a bugfix/enhancement release to [prefer Navigraph daytime-mode maps](https://github.com/TeamAvitab/avitab/issues/12).
+More users have indicated a preference for daytime maps, so this is now the default.
+Users who prefer the night-time maps can edit the Avitab.prf file and change the `night_mode` setting to `true`.
+(The preferences file should only be modified when X-Plane is not running, and it will be required to run Avitab and select a Navigraph map source at least once before the new setting will appear in the file.)
+
+A more consistent approach to day/night mode is part of the Avitab roadmap, so this solution is deliberately low-end.
+
 ## Avitab v1.0.1 (April 2026)
 
 This is a bugfix release to resolve [interoperability issues with some 3rd-party aircraft and other plugins](https://github.com/TeamAvitab/avitab/issues/47).

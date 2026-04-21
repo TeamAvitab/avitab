@@ -12,7 +12,7 @@ set(CMAKE_FRAMEWORK FALSE CACHE INTERNAL "")
 
 # Project name and a few useful settings. Other commands can pick up the results
 project(Avitab
-    VERSION 1.0.1
+    VERSION 1.0.2
     DESCRIPTION "AviTab plugin for X-Plane"
     LANGUAGES C CXX
 )
