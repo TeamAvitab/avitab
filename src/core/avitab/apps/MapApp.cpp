@@ -118,8 +118,6 @@ void MapApp::createSettingsLayout() {
 }
 
 void MapApp::setMapSource(MapSource style, bool init) {
-    std::shared_ptr<img::TileSource> newSource;
-
     switch (style) {
     case MapSource::GEOTIFF:
         selectGeoTIFF();
@@ -143,18 +141,13 @@ void MapApp::setMapSource(MapSource style, bool init) {
         selectNavigraph(maps::NavigraphMapType::WORLD);
         break;
     case MapSource::ONLINE_TILES:
-        if (init) {
-            selectOnlineMaps(false);
-        } else {
-            selectOnlineMaps();
-        }
+        selectOnlineMaps(!init);
         break;
     }
     // Update the current active map after the switch statement;
     // If we reached at this point, the new map style has been applied successfully
     // (i.e., no exceptions were thrown when trying to apply the map)
     currentActiveMapSource = style;
-
     settingsContainer->setVisible(false);
 }
 
@@ -241,34 +234,7 @@ void MapApp::selectEPSG() {
     chooserContainer->setVisible(true);
 }
 
-void MapApp::selectOnlineMaps(bool interactive, const std::shared_ptr<maps::OnlineSlippySource> fallback) {
-    auto showOnlineMapsError([this, fallback](std::vector<std::string> errorMsgs) {
-        // Lambda function to show an error in the online maps window
-        // when we have trouble loading the user-defined online map
-        // configuration. JSON configs are very delicate (an extra comma
-        // can cause trouble), so it will be annoying if the user configured
-        // some maps, but can't see anything when starting AviTab. At least
-        // an error message briefing the user and advising them to look at
-        // the AviTab logs for more information improves the user experience
-        containerWithClickableList = std::make_unique<ContainerWithClickableCustomList>(
-                &api(), "Error loading online maps");
-        containerWithClickableList->setListItems(errorMsgs);
-        containerWithClickableList->setSelectCallback([](int selectedItem) {});
-        containerWithClickableList->setCancelCallback([this] () {
-            api().executeLater([this] () {
-                containerWithClickableList.reset();
-                chooserContainer->setVisible(false);
-            });
-        });
-        containerWithClickableList->show(chooserContainer);
-        chooserContainer->setVisible(true);
-
-        // If there is an issue reading the mapconfig.json,
-        // user the fallback map
-        setTileSource(fallback);
-        currentActiveOnlineMap = fallback->name;
-    });
-
+void MapApp::selectOnlineMaps(bool interactive) {
     slippyMaps.clear();
     std::vector<std::string> slippyMapNames;
 
@@ -279,7 +245,7 @@ void MapApp::selectOnlineMaps(bool interactive, const std::shared_ptr<maps::Onli
     if (!mapConfigFstream) {
         logger::error("No mapconfig.json file found in '%s'",
                 mapConfigPath.c_str());
-        showOnlineMapsError(std::vector<std::string>{
+        reportErrorAndSelectOnlineFallback(std::vector<std::string>{
                 "cannot load mapconfig.json from path:",
                 mapConfigPath});
         return;
@@ -300,13 +266,13 @@ void MapApp::selectOnlineMaps(bool interactive, const std::shared_ptr<maps::Onli
         }
     } catch (const nlohmann::json::exception &e) {
         logger::error("Failed to parse '%s': %s", mapConfigPath.c_str(), e.what());
-        showOnlineMapsError(std::vector<std::string>{
+        reportErrorAndSelectOnlineFallback(std::vector<std::string>{
                 "Failed to parse mapconfig.json",
                 "Please check the AviTab logs for more details"});
         return;
     } catch (const std::runtime_error &e) {
         logger::error("Failed to parse '%s': %s", mapConfigPath.c_str(), e.what());
-        showOnlineMapsError(std::vector<std::string>{
+        reportErrorAndSelectOnlineFallback(std::vector<std::string>{
                 "Failed to parse mapconfig.json:",
                 e.what(),
                 "Please check the AviTab logs for more details"});
@@ -318,13 +284,12 @@ void MapApp::selectOnlineMaps(bool interactive, const std::shared_ptr<maps::Onli
     // point the user to documentation
     if (slippyMapNames.size() == 0) {
         logger::warn("No enabled online maps found in %s", mapConfigPath.c_str());
-        showOnlineMapsError(std::vector<std::string>{
+        reportErrorAndSelectOnlineFallback(std::vector<std::string>{
                 "No enabled online maps found in mapconfig.json",
                 "Please read the docs to learn how you can add your own",
                 "maps from an online source"});
         return;
     }
-
 
     if (interactive) {
         // List the user-defined online maps and let the user pick
@@ -374,6 +339,40 @@ void MapApp::selectOnlineMaps(bool interactive, const std::shared_ptr<maps::Onli
         setTileSource(tileSource);
         currentActiveOnlineMap = conf.name;
     }
+}
+
+void MapApp::reportErrorAndSelectOnlineFallback(std::vector<std::string> errorMsgs) {
+    // Show an error in the online maps window if there was trouble loading the user-defined
+    // online map configuration. JSON configs are very delicate (an extra comma can cause trouble),
+    // so it will be annoying if the user configured some maps, but can't see anything when
+    // starting AviTab. At least an error message briefing the user and advising them to look at
+    // the AviTab logs for more information improves the user experience
+
+    containerWithClickableList = std::make_unique<ContainerWithClickableCustomList>(
+            &api(), "Error loading online maps");
+    containerWithClickableList->setListItems(errorMsgs);
+    containerWithClickableList->setSelectCallback([](int selectedItem) {});
+    containerWithClickableList->setCancelCallback([this] () {
+        api().executeLater([this] () {
+            containerWithClickableList.reset();
+            chooserContainer->setVisible(false);
+        });
+    });
+    containerWithClickableList->show(chooserContainer);
+    chooserContainer->setVisible(true);
+
+    // Finally set the hard-coded fallback tile source.
+    std::vector<std::string> tileServers = { "a.tile.opentopomap.org", "b.tile.opentopomap.org", "c.tile.opentopomap.org" };
+    auto fallback = std::make_shared<maps::OnlineSlippySource>(
+        tileServers,
+        "{z}/{x}/{y}.png",
+        1, 16,
+        256, 256,
+        "Map Data (c) OpenStreetMap, SRTM - Map Style (c) OpenTopoMap (CC-BY-SA)",
+        "OpenTopoMap",
+        "https");
+    setTileSource(fallback);
+    currentActiveOnlineMap = fallback->name;
 }
 
 void MapApp::selectNavigraph(maps::NavigraphMapType type) {

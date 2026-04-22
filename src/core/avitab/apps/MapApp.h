@@ -40,24 +40,6 @@
 
 namespace avitab {
 
-const struct maps::OnlineSlippyMapConfig fallbackOnlineMap = {
-    .name = "OpenTopoMap",
-    .copyright = "Map Data (c) OpenStreetMap, SRTM - Map Style (c) OpenTopoMap (CC-BY-SA)",
-    .servers = std::vector<std::string>
-    {
-        "a.tile.opentopomap.org",
-        "b.tile.opentopomap.org",
-        "c.tile.opentopomap.org",
-    },
-    .protocol = "https",
-    .url = "{z}/{x}/{y}.png",
-    .minZoomLevel = 1,
-    .maxZoomLevel = 16,
-    .tileWidthPx = 256,
-    .tileHeightPx = 256,
-    .enabled = true,
-};
-
 class MapApp: public App {
 public:
     MapApp(FuncsPtr funcs);
@@ -127,17 +109,9 @@ private:
     void selectGeoTIFF();
     void selectMercator();
     void selectEPSG();
-    void selectOnlineMaps(bool interactive = true, const std::shared_ptr<maps::OnlineSlippySource> fallback =
-            std::make_shared<maps::OnlineSlippySource>(
-                fallbackOnlineMap.servers,
-                fallbackOnlineMap.url,
-                fallbackOnlineMap.minZoomLevel,
-                fallbackOnlineMap.maxZoomLevel,
-                fallbackOnlineMap.tileWidthPx,
-                fallbackOnlineMap.tileHeightPx,
-                fallbackOnlineMap.copyright,
-                fallbackOnlineMap.name,
-                fallbackOnlineMap.protocol));
+    void selectOnlineMaps(bool interactive);
+    void reportErrorAndSelectOnlineFallback(std::vector<std::string> errorMsgs);
+
     void selectNavigraph(maps::NavigraphMapType type);
     void selectUserFixesFile();
 
