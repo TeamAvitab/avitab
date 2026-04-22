@@ -25,11 +25,13 @@ using json = nlohmann::json;
 
 namespace avitab {
 
+class missing_file : public std::exception { };
+
 inline static std::shared_ptr<nlohmann::json> ReadConfig(const std::string& configFile) {
-    // will raise an exception if file does not exist, or error when reading
+    // will raise an exception if file does not exist, or if there is a json format error when reading
     std::ifstream configStream(std::filesystem::u8path(configFile));
     if (!configStream) {
-        throw std::runtime_error(std::string("Couldn't read config file ") + configFile);
+        throw missing_file();
     }
     auto cfg = std::make_shared<json>();
     configStream >> *cfg;
@@ -37,18 +39,18 @@ inline static std::shared_ptr<nlohmann::json> ReadConfig(const std::string& conf
 }
 
 Config::Config(const std::string& configFile, const std::string &createDefault) {
+    assert(createDefault.size());
     try {
+        // First attempt to read a json config from the file.
         config = ReadConfig(configFile);
         return;
-    } catch (const std::exception &e) {
-        if (createDefault.size()) {
-            // Probably this is the first time that Avitab has been run after a clean install.
-            // The installation packages no longer include files that might be updated by
-            // the user, because we don't want subsequent installations to overwrite these.
-            // Avitab will attempt to create the default file if missing and try again.
-            std::ofstream configStream(std::filesystem::u8path(configFile));
-            configStream << createDefault;
-        }
+    } catch (const missing_file &e) {
+        // Probably this is the first time that Avitab has been run after a clean install.
+        // The installation packages no longer include files that might be updated by
+        // the user, because we don't want subsequent installations to overwrite these.
+        // Avitab will attempt to create the default file if missing and try again.
+        std::ofstream configStream(std::filesystem::u8path(configFile));
+        configStream << createDefault;
     }
 
     // Second attempt. If it fails just propagate the exception, no recovery possible.
