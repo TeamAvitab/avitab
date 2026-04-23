@@ -28,7 +28,7 @@ namespace avitab {
 class missing_file : public std::exception { };
 
 inline static std::shared_ptr<nlohmann::json> ReadConfig(const std::string& configFile) {
-    // will raise an exception if file does not exist, or if there is a json format error when reading
+    // Raises an exception if file does not exist, or if there is a json format error when reading
     std::ifstream configStream(std::filesystem::u8path(configFile));
     if (!configStream) {
         throw missing_file();
@@ -38,22 +38,26 @@ inline static std::shared_ptr<nlohmann::json> ReadConfig(const std::string& conf
     return cfg;
 }
 
+Config::Config(const std::string& configFile) {
+    // No recovery from any exceptions raised, just let them propogate.
+    config = ReadConfig(configFile);
+}
+
 Config::Config(const std::string& configFile, const std::string &createDefault) {
-    assert(createDefault.size());
     try {
         // First attempt to read a json config from the file.
         config = ReadConfig(configFile);
-        return;
+        return; // no exceptions - all done.
     } catch (const missing_file &e) {
         // Probably this is the first time that Avitab has been run after a clean install.
         // The installation packages no longer include files that might be updated by
         // the user, because we don't want subsequent installations to overwrite these.
-        // Avitab will attempt to create the default file if missing and try again.
+        // Attempt to create the default file if missing and try again.
         std::ofstream configStream(std::filesystem::u8path(configFile));
         configStream << createDefault;
     }
 
-    // Second attempt. If it fails just propagate the exception, no recovery possible.
+    // Second attempt. If it fails just propagate the exception, no further recovery possible.
     config = ReadConfig(configFile);
 }
 

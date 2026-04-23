@@ -238,7 +238,7 @@ void AviTab::finishInstall() {
 void AviTab::createPanel() {
     auto cfgFile = getAirplanePath() + "/AviTab.json";
     try {
-        Config cfg(cfgFile, "");
+        Config cfg(cfgFile);
         int left = cfg.getInt("/panel/left");
         int bottom = cfg.getInt("/panel/bottom");
         int width = cfg.getInt("/panel/width");
