@@ -21,7 +21,7 @@
 #include "MapApp.h"
 #include "core/Logger.h"
 #include "platform/Platform.h"
-#include "platform/strtod.h"
+#include "platform/cstrtod.h"
 #include "core/maps/sources/OnlineSlippySource.h"
 #include "core/maps/sources/GeoTIFFSource.h"
 #include "core/maps/sources/LocalFileSource.h"
@@ -764,7 +764,7 @@ double MapApp::getCoordinate(const std::string &input) {
 
     if (coordStr.find(" ") == std::string::npos) {
         // Parse decimal format
-        return platform::locale_independent_strtod(coordStr.c_str(), NULL);
+        return locale_independent_strtod(coordStr.c_str(), NULL);
     } else {
         // Parse DMS format with space separator between D M and M S.
         // Also handles D M only with no seconds field.

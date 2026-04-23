@@ -71,6 +71,7 @@ if(MSFS_SDK)
     set_property(TARGET msfs_simconnect_dll PROPERTY IMPORTED_IMPLIB "${MSFS_SDK}/SimConnect SDK/lib/SimConnect.lib")
     target_link_libraries(avitab_msfs_lib PRIVATE
         avitab_core_lib
+        glfw3_imp
         msfs_simconnect_dll
     )
 endif()

@@ -22,9 +22,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <locale.h>
-#include "strtod.h"
-extern  int     errno;
-namespace platform {
+#include "cstrtod.h"
 
 #ifndef __STDC__
 # ifdef __GNUC__
@@ -257,5 +255,3 @@ done:
     }
     return fraction;
 }
-
-} /* namespace platform */

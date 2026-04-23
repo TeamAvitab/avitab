@@ -19,10 +19,14 @@
 #include <XPLM/XPLMDisplay.h>
 #include <XPLM/XPLMUtilities.h>
 #ifdef __APPLE__
-#include <OpenGL/gl.h>
+# include <OpenGL/gl.h>
 #else
-#include <GL/gl.h>
-#include <GL/glext.h>
+# include <GL/gl.h>
+# ifndef _MSC_VER
+#  include <GL/glext.h>
+# else
+#  define GL_BGRA 0x80E1 // this is the only extension actually needed
+# endif
 #endif
 #include <stdexcept>
 #include "XPlaneGUIDriver.h"
@@ -32,7 +36,7 @@
 namespace avitab {
 
 XPlaneGUIDriver::XPlaneGUIDriver():
-    brightness(std::make_shared<float>(1)),
+    brightness(std::make_shared<float>(1.0f)),
     isVrEnabled("sim/graphics/VR/enabled", false),
     clickX("sim/graphics/view/click_3d_x_pixels", -1),
     clickY("sim/graphics/view/click_3d_y_pixels", -1)

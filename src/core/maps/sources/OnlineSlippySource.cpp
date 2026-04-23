@@ -69,7 +69,7 @@ int OnlineSlippySource::getMaxZoomLevel() {
 
 int OnlineSlippySource::getInitialZoomLevel() {
     const int desiredZoomLevel = 12;
-    if (desiredZoomLevel >= minZoom and desiredZoomLevel <= maxZoom) {
+    if ((desiredZoomLevel >= minZoom) && (desiredZoomLevel <= maxZoom)) {
         return desiredZoomLevel;
     }
     return abs(int(maxZoom - minZoom) / 2);

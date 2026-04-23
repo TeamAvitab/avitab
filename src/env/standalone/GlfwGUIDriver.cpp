@@ -21,10 +21,14 @@
 #include "core/Logger.h"
 
 #ifdef __APPLE__
-#include <OpenGL/gl.h>
+# include <OpenGL/gl.h>
 #else
-#include <GL/gl.h>
-#include <GL/glext.h>
+# include <GL/gl.h>
+# ifndef _MSC_VER
+#  include <GL/glext.h>
+# else
+#  define GL_BGRA 0x80E1 // this is the only extension actually needed
+# endif
 #endif
 
 namespace avitab {
