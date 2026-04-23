@@ -5,6 +5,6 @@ target_sources(avitab_core_lib PRIVATE
     CrashHandler.h
     Platform.cpp
     Platform.h
-    strtod.cpp
-    strtod.h
+    cstrtod.c
+    cstrtod.h
 )

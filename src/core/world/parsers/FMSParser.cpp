@@ -19,7 +19,7 @@
 #include "core/Logger.h"
 #include <iostream>
 #include <cmath>
-#include "platform/strtod.h"
+#include "platform/cstrtod.h"
 
 namespace world {
 

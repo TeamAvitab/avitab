@@ -20,7 +20,9 @@
 #ifndef _POSIX_SOURCE
 #define _POSIX_SOURCE
 #endif
+#ifndef _MSC_VER
 #include <unistd.h>
+#endif
 #ifndef _WIN32
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -114,7 +116,11 @@ void AuthServer::loop() {
             logger::verbose("Accepting auth client");
             int clientSock = accept(srvSock, (sockaddr *) &clientAddr, &clientLen);
             handleClient(clientSock);
+#ifdef _MSC_VER
+            shutdown(clientSock, SD_BOTH);
+#else
             shutdown(clientSock, SHUT_RDWR);
+#endif
             close(clientSock);
         }
     }

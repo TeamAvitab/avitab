@@ -59,7 +59,7 @@ XPlaneEnvironment::XPlaneEnvironment() {
 
     panelEnabled = std::make_shared<int>(0);
     panelPowered = std::make_shared<int>(0);
-    brightness = std::make_shared<float>(1);
+    brightness = std::make_shared<float>(1.0f);
 
     reloadAircraftPath();
 

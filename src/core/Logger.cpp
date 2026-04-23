@@ -20,12 +20,20 @@
 #include <iostream>
 #include <sstream>
 #include <cstring>
-#include <libgen.h>
+#include <filesystem>
 #include <mutex>
 
 #include "Logger.h"
 #include "platform/Platform.h"
 #include "avitab/config.h"
+
+static const char *srcname(const char *path) {
+    const char *pc = path + strlen(path) - 1;
+    while ((pc >= path) && (*pc != '/') && (*pc != '\\')) {
+        --pc;
+    }
+    return pc + 1;
+}
 
 namespace {
 
@@ -94,49 +102,42 @@ void logger::error(const std::string format, ...) {
 
 void logger::log_info(bool enable, const char *file, const char *function, const int line, const char *format, ... ) {
     if (enable) {
-        char fileNonConst[MAX_LOG_SIZE];
         char message[MAX_LOG_SIZE];
         va_list ap;
-        strncpy(fileNonConst, file, sizeof(fileNonConst) - 1);
         va_start(ap, format);
         vsnprintf(message, sizeof(message), format, ap);
-        logger::info("%s::%s():%d %s", basename(fileNonConst), function, line, message);
+        logger::info("%s::%s():%d %s", srcname(file), function, line, message);
         va_end(ap);
     }
 }
 
 void logger::log_verbose(bool enable, const char *file, const char *function, const int line, const char *format, ... ) {
     if (enable) {
-        char fileNonConst[MAX_LOG_SIZE];
         char message[MAX_LOG_SIZE];
         va_list ap;
-        strncpy(fileNonConst, file, sizeof(fileNonConst) - 1);
         va_start(ap, format);
         vsnprintf(message, sizeof(message), format, ap);
-        logger::verbose("%s::%s():%d %s", basename(fileNonConst), function, line, message);
+        logger::verbose("%s::%s():%d %s", srcname(file), function, line,
+                        message);
         va_end(ap);
     }
 }
 
 void logger::log_warn(const char *file, const char *function, const int line, const char *format, ... ) {
-    char fileNonConst[MAX_LOG_SIZE];
     char message[MAX_LOG_SIZE];
     va_list ap;
-    strncpy(fileNonConst, file, sizeof(fileNonConst) - 1);
     va_start(ap, format);
     vsnprintf(message, sizeof(message), format, ap);
-    logger::warn("%s::%s():%d %s", basename(fileNonConst), function, line, message);
+    logger::warn("%s::%s():%d %s", srcname(file), function, line, message);
     va_end(ap);
 }
 
 void logger::log_error(const char *file, const char *function, const int line, const char *format, ... ) {
-    char fileNonConst[MAX_LOG_SIZE];
     char message[MAX_LOG_SIZE];
     va_list ap;
-    strncpy(fileNonConst, file, sizeof(fileNonConst) - 1);
     va_start(ap, format);
     vsnprintf(message, sizeof(message), format, ap);
-    logger::error("%s::%s():%d %s", basename(fileNonConst), function, line, message);
+    logger::error("%s::%s():%d %s", srcname(file), function, line, message);
     va_end(ap);
 }
 

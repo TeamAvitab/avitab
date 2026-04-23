@@ -17,8 +17,12 @@
  */
 #pragma once
 
-namespace platform {
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
 double locale_independent_strtod(const char *string, char** endPtr);
 
-} /* namespace platform */
+#if defined(__cplusplus)
+} // extern "C"
+#endif

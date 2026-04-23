@@ -20,7 +20,7 @@
 #include <stdexcept>
 #include <limits>
 #include "core/Logger.h"
-#include "platform/strtod.h"
+#include "platform/cstrtod.h"
 
 namespace world {
 
@@ -145,7 +145,7 @@ double BaseParser::parseDouble() {
     lineStream >> doubleStr;
 
     try {
-        return platform::locale_independent_strtod(doubleStr.c_str(), NULL);
+        return locale_independent_strtod(doubleStr.c_str(), NULL);
     } catch (...) {
         return std::numeric_limits<double>::quiet_NaN();
     }
@@ -165,7 +165,7 @@ void BaseParser::skipWhiteSpace() {
         if (!(lineStream >> c)) {
             return;
         }
-    } while (std::isspace(c));
+    } while ((c > 0) && (c <= ' ') && std::isspace(c));
     lineStream.putback(c);
 }
 

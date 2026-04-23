@@ -27,11 +27,9 @@
 #include <locale>
 #include <codecvt>
 #include <ctime>
-#include <dirent.h>
 #include <sys/stat.h>
 #include <cstdlib>
 #include <climits>
-#include <libgen.h>
 #include <algorithm>
 #include <regex>
 #include <fstream>
