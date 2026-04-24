@@ -29,7 +29,7 @@
 #include "XPlaneGUIDriver.h"
 #include "core/Logger.h"
 #include "platform/Platform.h"
-#include "env/xplane/libxdata/XData.h"
+#include "libxdata/XData.h"
 #include "avitab/config.h"
 
 namespace avitab {

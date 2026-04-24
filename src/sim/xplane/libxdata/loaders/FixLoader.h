@@ -17,40 +17,24 @@
  */
 #pragma once
 
-#include <string>
 #include <memory>
-#include <vector>
 #include "core/world/LoadManager.h"
-#include "env/xplane/libxdata/XWorld.h"
-#include "env/xplane/libxdata/loaders/AirportLoader.h"
+#include "../XWorld.h"
+#include "../parsers/objects/FixData.h"
 
 namespace xdata {
 
-class XData : public world::LoadManager {
+class FixLoader {
 public:
-    XData(const std::string &dataRootPath);
-    virtual ~XData() = default;
-    std::shared_ptr<world::World> getWorld() override;
-    void discoverSceneries() override;
-    void load() override;
-    void reloadMetar() override;
+    FixLoader(std::shared_ptr<world::LoadManager> mgr);
+    void load(const std::string &file);
 private:
-    std::string xplaneRoot;
-    std::string navDataPath;
-    std::shared_ptr<xdata::XWorld> xworld;
-    std::vector<std::string> customSceneries;
-    std::string userFixesFilename;
+    std::shared_ptr<world::LoadManager> const loadMgr;
+    std::shared_ptr<XWorld> world;
 
-    std::string determineNavDataPath();
-
-    void loadAirports();
-    void loadFixes();
-    void loadNavaids();
-    void loadAirways();
-    void loadProcedures();
-    void loadMetar();
-    void loadCustomScenery(const AirportLoader& loader);
-
+    void onFixLoaded(const FixData &fix);
+    void loadEnrouteFix(const FixData &fix);
+    void loadTerminalFix(const FixData &fix);
 };
 
 } /* namespace xdata */

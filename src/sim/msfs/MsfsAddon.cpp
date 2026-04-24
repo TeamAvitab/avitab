@@ -18,7 +18,7 @@
 #include <memory>
 #include <thread>
 #include <iostream>
-#include "env/standalone/StandAloneEnvironment.h"
+#include "MsfsAddonEnvironment.h"
 #include "core/avitab/AviTab.h"
 #include "core/Logger.h"
 #include "platform/CrashHandler.h"
@@ -28,13 +28,8 @@ int main() {
 
     try {
         // Using the heap so we can debug destructors with log messages
-        auto env = std::make_shared<avitab::StandAloneEnvironment>();
-        try {
-            env->loadConfig();
-        } catch (const std::exception &e) {
-            std::cerr << "Exception: " << e.what() << std::endl;
-            exit(1);
-        }
+        auto env = std::make_shared<avitab::MsfsAddonEnvironment>();
+        env->loadConfig();
         logger::setStdOut(env->getConfig()->getBool("/AviTab/logToStdOut"));
         logger::init(env->getProgramPath());
         logger::verbose("Main thread has id %d", std::this_thread::get_id());

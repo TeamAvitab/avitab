@@ -16,7 +16,7 @@
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "FixLoader.h"
-#include "env/xplane/libxdata/parsers/FixParser.h"
+#include "../parsers/FixParser.h"
 #include "core/Logger.h"
 
 namespace xdata {

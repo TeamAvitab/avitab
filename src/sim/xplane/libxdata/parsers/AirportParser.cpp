@@ -16,7 +16,7 @@
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "AirportParser.h"
-#include "env/xplane/libxdata/parsers/objects/AirportData.h"
+#include "objects/AirportData.h"
 #include "core/world/models/airport/Runway.h"
 #include <iostream>
 

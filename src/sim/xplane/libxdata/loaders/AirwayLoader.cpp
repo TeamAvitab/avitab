@@ -16,7 +16,7 @@
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "AirwayLoader.h"
-#include "env/xplane/libxdata/parsers/AirwayParser.h"
+#include "../parsers/AirwayParser.h"
 #include "core/Logger.h"
 
 namespace xdata {

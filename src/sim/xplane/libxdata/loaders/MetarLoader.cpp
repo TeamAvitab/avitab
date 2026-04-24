@@ -16,7 +16,7 @@
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "MetarLoader.h"
-#include "env/xplane/libxdata/parsers/MetarParser.h"
+#include "../parsers/MetarParser.h"
 #include "core/Logger.h"
 
 namespace xdata {

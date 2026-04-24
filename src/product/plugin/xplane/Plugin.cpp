@@ -20,7 +20,7 @@
 #include <XPLM/XPLMDefs.h>
 #include <XPLM/XPLMPlugin.h>
 #include <memory>
-#include "env/xplane/XPlaneEnvironment.h"
+#include "sim/xplane/XPlaneEnvironment.h"
 #include "core/avitab/AviTab.h"
 #include "core/Logger.h"
 #include "platform/CrashHandler.h"

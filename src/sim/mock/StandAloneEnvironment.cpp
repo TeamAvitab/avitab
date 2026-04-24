@@ -20,7 +20,7 @@
 #include "StandAloneEnvironment.h"
 #include "core/Logger.h"
 #include "platform/Platform.h"
-#include "env/xplane/libxdata/XData.h"
+#include "sim/xplane/libxdata/XData.h"
 
 namespace avitab {
 

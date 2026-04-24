@@ -16,7 +16,7 @@
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "NavaidLoader.h"
-#include "env/xplane/libxdata/parsers/NavaidParser.h"
+#include "../parsers/NavaidParser.h"
 #include "core/world/models/navaids/Fix.h"
 #include "core/Logger.h"
 

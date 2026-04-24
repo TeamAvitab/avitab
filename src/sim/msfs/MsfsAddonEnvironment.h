@@ -17,7 +17,7 @@
  */
 #pragma once
 
-#include "env/standalone/StandAloneEnvironment.h"
+#include "sim/mock/StandAloneEnvironment.h"
 #include <winsock2.h>
 #include <windows.h>
 #include "SimConnect.h"
