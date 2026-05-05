@@ -27,7 +27,7 @@ OverlayedFix::OverlayedFix(IOverlayHelper *h, const world::Fix *f):
     fix(f)
 {
     auto &loc = fix->getLocation();
-    overlayHelper->positionToPixel(loc.latitude, loc.longitude, posX, posY);
+    overlayHelper->locationToPixel(loc, posX, posY);
 }
 
 std::string OverlayedFix::getID() const {

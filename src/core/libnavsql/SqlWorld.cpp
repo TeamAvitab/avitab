@@ -67,10 +67,10 @@ int SqlWorld::maxDensity(const world::Location &bottomLeft, const world::Locatio
     auto loadMgr = loadManager.lock();
 
     // nodes are grouped by integer lat/lon 'squares'.
-    int latl = std::max((int)std::floor(bottomLeft.latitude), -90);
-    int lath = std::min((int)std::ceil(topRight.latitude), 89);
-    int lonl = (int)std::floor(bottomLeft.longitude);
-    int lonh = (int)std::ceil(topRight.longitude);
+    int latl = std::max((int)std::floor(bottomLeft.latDegrees()), -90);
+    int lath = std::min((int)std::ceil(topRight.latDegrees()), 89);
+    int lonl = (int)std::floor(bottomLeft.lonDegrees());
+    int lonh = (int)std::ceil(topRight.lonDegrees());
 
     // the area might span the -180/+180 meridian. if so do 2 searches
     if (lonl <= lonh) {
@@ -82,9 +82,9 @@ int SqlWorld::maxDensity(const world::Location &bottomLeft, const world::Locatio
 
     // pretend that each grid area has 'max' nodes in it, and report the total number of visible nodes that
     // would be seen if this was the case.
-    float mapArea = (topRight.longitude > bottomLeft.longitude)
-                    ? (topRight.latitude - bottomLeft.latitude) * (topRight.longitude - bottomLeft.longitude)
-                    : (topRight.latitude - bottomLeft.latitude) * (360 + topRight.longitude - bottomLeft.longitude);
+    float mapArea = (topRight.lonDegrees() > bottomLeft.lonDegrees())
+                    ? (topRight.latDegrees() - bottomLeft.latDegrees()) * (topRight.lonDegrees() - bottomLeft.lonDegrees())
+                    : (topRight.latDegrees() - bottomLeft.latDegrees()) * (360 + topRight.lonDegrees() - bottomLeft.lonDegrees());
     return (int)(mapArea * d);
 }
 
@@ -100,10 +100,10 @@ void SqlWorld::visitNodes(const world::Location &bottomLeft, const world::Locati
     std::lock_guard<std::mutex> guard(navStateGuard);
 
     // nodes are grouped by integer lat/lon 'squares'.
-    int latl = std::max((int)std::floor(bottomLeft.latitude), -90);
-    int lath = std::min((int)std::ceil(topRight.latitude), 89);
-    int lonl = (int)std::floor(bottomLeft.longitude);
-    int lonh = (int)std::ceil(topRight.longitude);
+    int latl = std::max((int)std::floor(bottomLeft.latDegrees()), -90);
+    int lath = std::min((int)std::ceil(topRight.latDegrees()), 89);
+    int lonl = (int)std::floor(bottomLeft.lonDegrees());
+    int lonh = (int)std::ceil(topRight.lonDegrees());
 
     // the area might span the -180/180 meridian. bias it here, normalise again in iteration
     if (lonh < lonl) { lonh += 360; }
@@ -142,7 +142,7 @@ void SqlWorld::visitNodes(const world::Location &bottomLeft, const world::Locati
             auto nit = areaNodes.find(area);
             if (nit == areaNodes.end()) continue;
             for (auto node: nit->second) {
-                if (!node->getLocation().isInArea(bottomLeft, topRight)) continue;
+                if (!node->getLocation().isContainedWithin(bottomLeft, topRight)) continue;
                 bool accept = false;
                 if (node->isAirport()) {
                     if (std::dynamic_pointer_cast<world::Airport>(node)->hasControlTower()) {
@@ -256,14 +256,14 @@ void SqlWorld::backgroundLoader()
 void SqlWorld::addAirport(std::shared_ptr<world::Airport> a)
 {
     auto &loc = a->getLocation();
-    addNodeToArea(std::floor(loc.longitude), std::floor(loc.latitude), a);
+    addNodeToArea(std::floor(loc.lonDegrees()), std::floor(loc.latDegrees()), a);
 }
 
 void SqlWorld::addFix(std::shared_ptr<world::Fix> f)
 {
     f->setGlobal(true);
     auto &loc = f->getLocation();
-    addNodeToArea(std::floor(loc.longitude), std::floor(loc.latitude), f);
+    addNodeToArea(std::floor(loc.lonDegrees()), std::floor(loc.latDegrees()), f);
 }
 
 std::shared_ptr<world::RouteFinder> SqlWorld::getRouteFinder()

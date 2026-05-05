@@ -329,9 +329,9 @@ void DocumentsApp::onRotate() {
 bool DocumentsApp::onTimer() {
     auto tab = getActiveDocPage();
     if (tab && tab->map) {
-        std::vector<avitab::Location> locs;
+        std::vector<world::Position> locs;
         for (AircraftID i = 0; i < api().getActiveAircraftCount(); ++i) {
-            locs.push_back(api().getAircraftLocation(i));
+            locs.push_back(api().getAircraftPosition(i));
         }
         tab->map->setPlaneLocations(locs);
         tab->map->doWork();

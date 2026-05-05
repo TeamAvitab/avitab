@@ -50,8 +50,8 @@ public:
 
     bool supportsWorldCoords() override;
     std::string getCalibrationReport() override;
-    img::Point<double> worldToXY(double lon, double lat, int zoom) override;
-    img::Point<double> xyToWorld(double x, double y, int zoom) override;
+    img::Point<double> worldToXY(const world::Location &loc, int zoom) override;
+    world::Location xyToWorld(double x, double y, int zoom) override;
 
     void setNightMode(bool night);
     void rotate() override;

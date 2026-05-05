@@ -42,7 +42,7 @@ public:
     void eventLoop();
 
     AircraftID getActiveAircraftCount() override;
-    Location getAircraftLocation(AircraftID id) override;
+    world::Position getAircraftPosition(AircraftID id) override;
 
 private:
     void resetLocations();
@@ -59,8 +59,8 @@ private:
     ULONGLONG               nextSimUpdate;
 
     std::mutex              stateMutex;
-    Location                userLocation;
-    std::vector<Location>   otherLocations;
+    world::Position                userLocation;
+    std::vector<world::Position>   otherLocations;
 
 private:
     enum {

@@ -45,10 +45,10 @@ public:
     bool mouse(int px, int py, bool down);
     void pan(int dx, int dy, int relx = -1, int rely = -1);
 
-    void centerOnWorldPos(double latitude, double longitude);
+    void centerOnLocation(const world::Location &loc); // was centerOnWorldPos
     void centerOnPlane();
-    void setPlaneLocations(std::vector<avitab::Location> &locs);
-    void getCenterLocation(double &latitude, double &longitude);
+    void setPlaneLocations(std::vector<world::Position> &locs);
+    world::Location getCenterLocation();
     float getVerticalRange() const;
 
     void updateImage();
@@ -57,9 +57,9 @@ public:
 
     bool isCalibrated() const;
     void beginCalibration();
-    void setCalibrationPoint1(double lat, double lon);
-    void setCalibrationPoint2(double lat, double lon);
-    void setCalibrationPoint3(double lat, double lon);
+    void setCalibrationPoint1(const world::Location &loc);
+    void setCalibrationPoint2(const world::Location &loc);
+    void setCalibrationPoint3(const world::Location &loc);
     void setCalibrationAngle(double angle);
     int getCalibrationStep() const;
     std::string getCalibrationReport() const;
@@ -76,8 +76,8 @@ public:
     std::shared_ptr<img::Image> getMapImage() override;
     bool isAreaVisible(int xmin, int ymin, int xmax, int ymax) const override;
     void fastPolarToCartesian(float radius, int angleDegrees, double& x, double& y) const override;
-    void positionToPixel(double lat, double lon, int &px, int &py) const override;
-    void positionToPixel(double lat, double lon, int &px, int &py, int zoomLevel) const override;
+    void locationToPixel(const world::Location&, int &px, int &py) const override;
+    void locationToPixel(const world::Location&, int &px, int &py, int zoomLevel) const override;
 
 private:
     // Highlighted nodes
@@ -92,12 +92,11 @@ private:
     img::TTFStamper copyrightStamp;
 
     // current map display attributes, updated on each frame
-    double topLeftLon, bottomRightLon;
-    double bottomRightLat {0.0f}, topLeftLat {0.0f};
-    double minLat, minLon, maxLat, maxLon;
-    int maxNodeDensity;
+    world::Location swCorner, neCorner;
     double mapWidthNM;
     double mapScaleNMperPixel;
+
+    int maxNodeDensity;
 
     int lastClickX, lastClickY;
 
@@ -113,7 +112,7 @@ private:
     float cosTable[360];
 
     std::shared_ptr<world::World> navWorld;
-    std::vector<avitab::Location> planeLocations;
+    std::vector<world::Position> planeLocations;
     img::Image planeIcon;
     enum RelativeHeight { below, same, above, total };
     uint32_t otherAircraftColors[RelativeHeight::total];
@@ -133,7 +132,7 @@ private:
     bool isOverlayConfigured(const world::NavNode *) const;
 
     void updateMapAttributes();
-    void pixelToPosition(int px, int py, double &lat, double &lon) const;
+    world::Location pixelToLocation(int px, int py) const;
     float cosDegrees(int angleDegrees) const;
     float sinDegrees(int angleDegrees) const;
     void polarToCartesian(float radius, float angleRadians, double& x, double& y);

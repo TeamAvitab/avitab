@@ -74,7 +74,7 @@ public:
     void setIsInMenu(bool inMenu) override;
     std::shared_ptr<apis::ChartService> getChartService() override;
     AircraftID getActiveAircraftCount() override;
-    Location getAircraftLocation(AircraftID id) override;
+    world::Position getAircraftPosition(AircraftID id) override;
     float getLastFrameTime() override;
     std::shared_ptr<Settings> getSettings() override;
     std::shared_ptr<world::Route> getRoute() override;

@@ -43,8 +43,8 @@ void OverlayedNDB::createNDBIcon() {
         int r = (ring + 1) * 14;
         for (int angleDegrees = 0; angleDegrees < 360; angleDegrees += angleStep[ring]) {
             LOG_INFO(0, "ring = %d, radius = %d, angle = %d", ring, r, angleDegrees);
-            int dx = r * cos(angleDegrees * M_PI / 180.0);
-            int dy = r * sin(angleDegrees * M_PI / 180.0);
+            int dx = r * cos(angleDegrees * world::DEG_TO_RAD);
+            int dy = r * sin(angleDegrees * world::DEG_TO_RAD);
             ndbIcon.fillCircle(bgSize + dx, bgSize + dy, 4, img::COLOR_ICAO_MAGENTA);
         }
     }

@@ -5,8 +5,6 @@ target_sources(avitab_core_lib PRIVATE
     Airway.h
     Frequency.cpp
     Frequency.h
-    Location.cpp
-    Location.h
     Region.cpp
     Region.h
 )

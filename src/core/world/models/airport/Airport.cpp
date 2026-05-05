@@ -20,6 +20,7 @@
 #include <cmath>
 #include <stdexcept>
 #include <sstream>
+#include <cassert>
 #include "Airport.h"
 #include "models/navaids/Fix.h"
 #include "Logger.h"
@@ -60,9 +61,9 @@ void Airport::setLocalCode(const std::string& localCode) {
 }
 
 void Airport::setLocation(const world::Location& loc) {
-    this->location = loc;
-    this->locationUpLeft = loc;
-    this->locationDownRight = loc;
+    location = loc;
+    if (!locSW.isValid()) locSW = loc;
+    if (!locNE.isValid()) locNE = loc;
 }
 
 void Airport::setRegion(std::shared_ptr<Region> region) {
@@ -76,20 +77,8 @@ void Airport::addATCFrequency(ATCFrequency which, const Frequency &frq) {
 void Airport::addRunway(std::shared_ptr<Runway> rwy) {
     runways.insert(std::make_pair(rwy->getID(), rwy));
     auto &loc = rwy->getLocation();
-
-    if (!locationUpLeft.isValid()) {
-        locationUpLeft = rwy->getLocation();
-    } else {
-        locationUpLeft.longitude = std::min(locationUpLeft.longitude, loc.longitude);
-        locationUpLeft.latitude  = std::max(locationUpLeft.latitude,  loc.latitude);
-    }
-
-    if (!locationDownRight.isValid()) {
-        locationDownRight = rwy->getLocation();
-    } else {
-        locationDownRight.longitude = std::max(locationDownRight.longitude, loc.longitude);
-        locationDownRight.latitude  = std::min(locationDownRight.latitude,  loc.latitude);
-    }
+    locSW = locSW.areaSouthWest(loc);
+    locNE = locNE.areaNorthEast(loc);
 }
 
 void Airport::addRunwayEnds(std::shared_ptr<Runway> rwy1, std::shared_ptr<Runway> rwy2) {
@@ -365,28 +354,16 @@ std::shared_ptr<Approach> Airport::getApproachByName(std::string appName) const 
 }
 
 const world::Location& Airport::getLocation() const {
-    if (!location.isValid()) {
-        // some airports do not have a location, try the first runway's location instead
-        if (!runways.empty()) {
-            return runways.begin()->second->getLocation();
-        }
-
-        if (!heliports.empty()) {
-            return heliports.begin()->second->getLocation();
-        }
-
-        // if they don't even have runways or heliports, we can't do anything -> return NaN below
-    }
-
+    assert(location.isValid());
     return location;
 }
 
-const world::Location& Airport::getLocationUpLeft() const {
-    return (locationUpLeft.isValid()) ? locationUpLeft :getLocation();
+const world::Location& Airport::getCornerSW() const {
+    return (locSW.isValid()) ? locSW : location;
 }
 
-const world::Location& Airport::getLocationDownRight() const {
-    return (locationUpLeft.isValid()) ? locationDownRight : getLocation();
+const world::Location& Airport::getCornerNE() const {
+    return (locNE.isValid()) ? locNE : location;
 }
 
 std::string Airport::getInitialATCContactInfo() const {

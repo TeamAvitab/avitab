@@ -18,8 +18,8 @@
 #pragma once
 
 #include <memory>
+#include "WorldGeometry.h"
 #include "../../graph/NavNode.h"
-#include "../Location.h"
 #include "../Region.h"
 #include "../Airway.h"
 #include "NDB.h"
@@ -32,9 +32,9 @@ namespace world {
 
 class Fix: public NavNode {
 public:
-    Fix(std::shared_ptr<Region> region, std::string id, Location loc);
+    Fix(std::shared_ptr<Region> region, std::string id, world::Location loc);
     const std::string &getID() const override;
-    const Location &getLocation() const override;
+    const world::Location &getLocation() const override;
     bool isAirport() const override { return false; }
     bool isFix() const override { return true; }
     bool isGlobalFix() const override;
@@ -59,7 +59,7 @@ public:
 private:
     std::shared_ptr<Region> region;
     std::string id;
-    Location location;
+    world::Location location;
     bool global = false;
 
     // Optional

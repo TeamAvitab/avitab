@@ -49,8 +49,8 @@ public:
     void attachCalibration1(double x, double y, double lat, double lon, int zoom) override;
     void attachCalibration2(double x, double y, double lat, double lon, int zoom) override;
     void attachCalibration3Angle(double angle) override;
-    img::Point<double> worldToXY(double lon, double lat, int zoom) override;
-    img::Point<double> xyToWorld(double x, double y, int zoom) override;
+    img::Point<double> worldToXY(const world::Location &loc, int zoom) override;
+    world::Location xyToWorld(double x, double y, int zoom) override;
 
 private:
     static constexpr const int TILE_SIZE = 256;

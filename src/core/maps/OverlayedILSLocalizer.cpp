@@ -90,8 +90,8 @@ OverlayedNode::Hotspot OverlayedILSLocalizer::getClickHotspot() const {
 }
 
 void OverlayedILSLocalizer::polarToCartesian(float radius, float angleDegrees, double& x, double& y) {
-    x =  std::sin(angleDegrees * M_PI / 180.0) * radius;
-    y = -std::cos(angleDegrees * M_PI / 180.0) * radius; // 0 degrees is up, decreasing y values
+    x =  std::sin(angleDegrees * world::DEG_TO_RAD) * radius;
+    y = -std::cos(angleDegrees * world::DEG_TO_RAD) * radius; // 0 degrees is up, decreasing y values
 }
 
 void OverlayedILSLocalizer::setTailCoords()

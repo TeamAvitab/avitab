@@ -169,14 +169,9 @@ void AirportLoader::onAirportLoaded(const AirportData& port) const {
         }
     }
 
-    if (!std::isnan(port.latitude) && !std::isnan(port.longitude)) {
-        world::Location loc(port.latitude, port.longitude);
-        airport->setLocation(loc);
-    }
-
     for (auto &entry: port.heliports) {
         auto heliport = std::make_shared<world::Heliport>(entry.name);
-        heliport->setLocation(world::Location(entry.latitude, entry.longitude));
+        heliport->setLocation(world::Location::fromGCS(entry.latitude, entry.longitude));
         heliport->setLength(entry.length);
         heliport->setWidth(entry.width);
         airport->addHeliport(heliport);
@@ -188,10 +183,11 @@ void AirportLoader::onAirportLoaded(const AirportData& port) const {
         if (entry.ends.size() == 2) {
             auto &end1 = entry.ends[0];
             auto &end2 = entry.ends[1];
-            world::Location end1Loc(end1.latitude, end1.longitude);
-            world::Location end2Loc(end2.latitude, end2.longitude);
-            heading = end1Loc.bearingTo(end2Loc);
-            length = end1Loc.distanceTo(end2Loc) - end1.displace - end2.displace;
+            auto end1Loc = world::Location::fromGCS(end1.latitude, end1.longitude);
+            auto end2Loc = world::Location::fromGCS(end2.latitude, end2.longitude);
+            world::Trajectory tr(end1Loc, end2Loc);
+            heading = tr.hdgDegrees();
+            length = end1Loc.surfaceDistanceTo(end2Loc) - end1.displace - end2.displace;
         } else {
             LOG_WARN("%s has runway with %d ends!", port.id.c_str(), entry.ends.size());
         }
@@ -199,7 +195,7 @@ void AirportLoader::onAirportLoaded(const AirportData& port) const {
         std::shared_ptr<world::Runway> end0;
         for (auto end = entry.ends.begin(); end != entry.ends.end(); ++end) {
             auto rwy = std::make_shared<world::Runway>(end->name);
-            rwy->setLocation(world::Location(end->latitude, end->longitude));
+            rwy->setLocation(world::Location::fromGCS(end->latitude, end->longitude));
             rwy->setWidth(entry.width);
             rwy->setSurfaceType(mapToSurfaceMaterial(entry.surfaceTypeCode));
             if (!std::isnan(heading)) {
@@ -218,6 +214,19 @@ void AirportLoader::onAirportLoaded(const AirportData& port) const {
                 }
             }
         }
+    }
+
+    // the location of the airport (for Avitab's purposes) is the centre of the area
+    // enclosing the runways, or if no runways then the supplied coordinates, or if no
+    // coordinates then the first heliport.
+    if (port.runways.size() > 0) {
+        airport->setLocation(airport->getCornerSW().areaCenter(airport->getCornerNE()));
+    } else if (!std::isnan(port.latitude) && !std::isnan(port.longitude)) {
+        auto loc = world::Location::fromGCS(port.latitude, port.longitude);
+        airport->setLocation(loc);
+    } else if (port.heliports.size() > 0) {
+        auto &h = port.heliports[0];
+        airport->setLocation(world::Location::fromGCS(h.latitude, h.longitude));
     }
 }
 

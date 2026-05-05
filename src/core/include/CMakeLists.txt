@@ -6,6 +6,8 @@ target_sources(avitab_core_lib PRIVATE
     AviTabWinDriver.h
     JsonConfig.h
     Logger.h
+    WorldGeometry.h
+
     Settings.h # REFACTOR - needs some abstraction
     # REFACTOR - these 2 files should not need exposing to non-core sources
     AirportConfig.h

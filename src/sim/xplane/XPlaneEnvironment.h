@@ -29,6 +29,7 @@
 #include "Environment.h"
 #include "DataCache.h"
 #include "DataRefExport.h"
+#include "WorldGeometry.h"
 
 namespace avitab {
 
@@ -61,7 +62,7 @@ public:
     void enableAndPowerPanel() override;
     void setIsInMenu(bool menu) override;
     AircraftID getActiveAircraftCount() override;
-    Location getAircraftLocation(AircraftID id) override;
+    world::Position getAircraftPosition(AircraftID id) override;
     void updateMapExports(float lat, float lon, int zoom, float vrange) override;
     unsigned int getZuluTimeSeconds() override;
     unsigned int getLocalTimeSeconds() override;
@@ -98,13 +99,13 @@ private:
     DataCache dataCache;
     std::string pluginPath, xplanePrefsDir, xplaneRootPath;
     int xplaneVersion;
-    Location nullLocation { 0, 0, 0, 0 };
+    world::Position nullPosition = world::Position(world::Trajectory(world::Location(0, 0), 0), 0);
 
 private:
     // State updated/accessed by multiple threads, mutex protected
     std::mutex stateMutex;
     std::string aircraftPath;
-    std::vector<Location> aircraftLocations;
+    std::vector<world::Position> aircraftLocations;
     unsigned int otherAircraftCount;
     float mapLatitude { 0.0f };
     float mapLongitude { 0.0f };

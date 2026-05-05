@@ -44,7 +44,7 @@ public:
     std::string getNearestAirportId() override;
     Environment::MagVarMap getMagneticVariations(std::vector<std::pair<double, double>> locations) override;
     AircraftID getActiveAircraftCount() override;
-    Location getAircraftLocation(AircraftID id) override;
+    world::Position getAircraftPosition(AircraftID id) override;
     unsigned int getZuluTimeSeconds() override;
     unsigned int getLocalTimeSeconds() override;
 

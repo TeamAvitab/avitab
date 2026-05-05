@@ -41,9 +41,10 @@ public:
         Leg(EdgePtr via, NodePtr to): via(via), to(to) { }
         Leg(NodePtr from, EdgePtr via, NodePtr to, double magVar):
                        from(from), via(via), to(to) {
-            double distanceMetres = from->getLocation().distanceTo(to->getLocation());
+            double distanceMetres = from->getLocation().surfaceDistanceTo(to->getLocation());
             distanceNm = (distanceMetres / 1000) * world::KM_TO_NM;
-            initialTrueBearing = from->getLocation().bearingTo(to->getLocation());
+            world::Trajectory tr(from->getLocation(), to->getLocation());
+            initialTrueBearing = tr.hdgDegrees();
             initialMagneticBearing = std::fmod(initialTrueBearing + magVar, 360.0);
         }
     };

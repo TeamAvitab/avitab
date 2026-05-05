@@ -23,7 +23,7 @@
 #include <vector>
 #include <set>
 #include <functional>
-#include "models/Location.h"
+#include "WorldGeometry.h"
 #include "graph/NavNode.h"
 #include "models/Region.h"
 #include "models/Frequency.h"
@@ -60,15 +60,15 @@ public:
     const std::string& getID() const override;
     bool isAirport() const override { return true; }
     bool isFix() const override { return false; }
-    const Location &getLocation() const override;
-    const Location &getLocationUpLeft() const;
-    const Location &getLocationDownRight() const;
+    const world::Location &getLocation() const override;
+    const world::Location &getCornerSW() const;
+    const world::Location &getCornerNE() const;
 
     // Optional
     void setICAOCode(const std::string &icaoCode);
     void setFAACode(const std::string &faaCode);
     void setLocalCode(const std::string &localCode);
-    void setLocation(const Location &loc);
+    void setLocation(const world::Location &loc);
     void setRegion(std::shared_ptr<Region> region);
     void addATCFrequency(ATCFrequency which, const Frequency &frq);
 
@@ -118,9 +118,9 @@ private:
     std::string id; // either ICAO code or X + fictional id
     std::string displayID; // either Xplane ID or ICAO, FAA or Local code
     std::string name;
-    Location location;
-    Location locationUpLeft;
-    Location locationDownRight;
+    world::Location location;
+    world::Location locSW;
+    world::Location locNE;
     int elevation = 0; // feet AMSL
 
     // Optional

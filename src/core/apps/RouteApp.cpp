@@ -334,7 +334,7 @@ void RouteApp::parseFMS(const std::string &fmsFilename) {
     std::vector<std::pair<double, double>> locations;
     for (auto node: nodes) {
         auto loc = node->getLocation();
-        locations.push_back(std::make_pair(loc.latitude, loc.longitude));
+        locations.push_back(std::make_pair(loc.latDegrees(), loc.lonDegrees()));
     }
     auto magVarMap = api().getMagneticVariations(locations);
 
@@ -343,7 +343,7 @@ void RouteApp::parseFMS(const std::string &fmsFilename) {
     for (auto node: nodes) {
         if (prevNode) {
             auto prevLoc = prevNode->getLocation();
-            auto magVar = magVarMap[std::make_pair(prevLoc.latitude, prevLoc.longitude)];
+            auto magVar = magVarMap[std::make_pair(prevLoc.latDegrees(), prevLoc.lonDegrees())];
             fmsRoute.push_back(world::Route::Leg(prevNode, nullptr, node, magVar));
         } else {
             departureNode = node;

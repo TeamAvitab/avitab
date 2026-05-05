@@ -136,10 +136,10 @@ img::Point<int> DocumentSource::getPageDimensions(int page, int zoom) {
     return img::Point<int>{rasterizer.getPageWidth(page, zoom), rasterizer.getPageHeight(page, zoom)};
 }
 
-img::Point<double> DocumentSource::worldToXY(double lon, double lat, int zoom) {
+img::Point<double> DocumentSource::worldToXY(const world::Location &loc, int zoom) {
     int tileSize = rasterizer.getTileSize();
 
-    auto normXY = calibration.worldToPixels(lon, lat);
+    auto normXY = calibration.worldToPixels(loc);
 
     double x = normXY.x * rasterizer.getPageWidth(0, zoom) / tileSize;
     double y = normXY.y * rasterizer.getPageHeight(0, zoom) / tileSize;
@@ -147,7 +147,7 @@ img::Point<double> DocumentSource::worldToXY(double lon, double lat, int zoom) {
     return img::Point<double>{x, y};
 }
 
-img::Point<double> DocumentSource::xyToWorld(double x, double y, int zoom) {
+world::Location DocumentSource::xyToWorld(double x, double y, int zoom) {
     int tileSize = rasterizer.getTileSize();
 
     double normX = x * tileSize / rasterizer.getPageWidth(0, zoom);
