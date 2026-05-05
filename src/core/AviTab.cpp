@@ -24,8 +24,8 @@
 #include "AviTab.h"
 #include "gui_toolkit/LVGLToolkit.h"
 #include "libimg/TTFStamper.h"
-#include "avitab/apps/HeaderApp.h"
-#include "avitab/apps/AppLauncher.h"
+#include "apps/HeaderApp.h"
+#include "apps/AppLauncher.h"
 #include "AviTabBuildSettings.h"
 
 static const char *defaultMapConfigJson();

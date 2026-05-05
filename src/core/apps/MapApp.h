@@ -18,8 +18,8 @@
 #pragma once
 
 #include "App.h"
-#include "avitab/apps/components/FileChooser.h"
-#include "avitab/apps/components/ContainerWithClickableCustomList.h"
+#include "apps/components/FileChooser.h"
+#include "apps/components/ContainerWithClickableCustomList.h"
 #include "gui_toolkit/widgets/PixMap.h"
 #include "gui_toolkit/widgets/Window.h"
 #include "gui_toolkit/widgets/Button.h"

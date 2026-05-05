@@ -22,7 +22,7 @@
 #include <set>
 #include "App.h"
 //#include "router/Route.h"
-#include "avitab/apps/components/FileChooser.h"
+#include "apps/components/FileChooser.h"
 #include "gui_toolkit/widgets/TabGroup.h"
 #include "gui_toolkit/widgets/Page.h"
 #include "gui_toolkit/widgets/TextArea.h"

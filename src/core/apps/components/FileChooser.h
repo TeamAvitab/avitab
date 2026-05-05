@@ -1,7 +1,6 @@
 /*
  *   AviTab - Aviator's Virtual Tablet
  *   Copyright (C) 2018-2026 Folke Will and Avitab Contributors
- *   Copyright (C) 2023 Vangelis Tasoulas <cyberang3l@gmail.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Affero General Public License as published by
@@ -18,43 +17,52 @@
  */
 #pragma once
 
-#include "avitab/apps/App.h"
-#include "gui_toolkit/widgets/Container.h"
-#include "gui_toolkit/widgets/List.h"
-#include "gui_toolkit/widgets/Window.h"
-#include <string>
+#include <memory>
+#include <functional>
 #include <vector>
+#include <string>
+#include "apps/App.h"
+#include "gui_toolkit/widgets/Window.h"
+#include "gui_toolkit/widgets/List.h"
+#include "platform/Platform.h"
+#include "gui_toolkit/widgets/Container.h"
+#include "FilesysBrowser.h"
 
 namespace avitab {
 
-// dialog that lists a custom set of objects
-class ContainerWithClickableCustomList {
-  public:
+class FileChooser {
+    // dialog to allow choosing of file with name filtering
+    // or choosing of directory (navigation not possible, is this intended?)
+    // currently used by MapApp only
+public:
     using CancelCallback = std::function<void(void)>;
-    using SelectCallback = std::function<void(int)>;
+    using SelectCallback = std::function<void(const std::string &)>;
 
-    ContainerWithClickableCustomList(App::FuncsPtr appFunctions,
-                                     const std::string &windowTitle);
+    FileChooser(App::FuncsPtr appFunctions, const std::string &prefix, bool dirSelect = false);
 
     void setCancelCallback(CancelCallback cb);
     void setSelectCallback(SelectCallback cb);
-    void setListItems(const std::vector<std::string> &items);
+    void setFilterRegex(const std::string &regex);
+    void setBaseDirectory(const std::string &path);
     void show(std::shared_ptr<Container> parent);
-    std::string getEntry(int index);
-
-  private:
+private:
     App::FuncsPtr api{};
-    const std::string windowTitle;
+    const std::string captionPrefix;
+    const bool selectDirOnly;
     std::shared_ptr<Window> window;
     std::shared_ptr<List> list;
 
     CancelCallback onCancel;
     SelectCallback onSelect;
 
-    std::vector<std::string> currentEntries{};
+    FilesystemBrowser fsBrowser;
+    std::vector<platform::DirEntry> currentEntries;
 
+    void showDirectory();
+    void removeFiles();
     void showCurrentEntries();
-    void onListSelect(int index);
+    void onListSelect(int data);
+    void upOneDirectory();
 };
 
 } /* namespace avitab */

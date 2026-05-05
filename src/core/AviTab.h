@@ -24,14 +24,14 @@
 #include <future>
 #include "AviTabCore.h"
 #include "GUIDriver.h"
-#include "avitab/apps/AppFunctions.h"
+#include "apps/AppFunctions.h"
 #include "Environment.h"
 #include "charts/libnavigraph/NavigraphAPI.h"
 #include "charts/ChartService.h"
 #include "gui_toolkit/LVGLToolkit.h"
 #include "gui_toolkit/widgets/Container.h"
 #include "gui_toolkit/widgets/Label.h"
-#include "avitab/apps/AppLauncher.h"
+#include "apps/AppLauncher.h"
 
 namespace avitab {
 

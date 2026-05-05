@@ -19,7 +19,7 @@
 
 #include <functional>
 #include <string>
-#include "avitab/apps/App.h"
+#include "apps/App.h"
 #include "gui_toolkit/widgets/Window.h"
 #include "gui_toolkit/widgets/List.h"
 #include "platform/Platform.h"
