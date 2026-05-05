@@ -29,7 +29,6 @@ public:
 
     virtual void discoverSceneries() = 0;
     virtual void load() = 0;
-    virtual void reloadMetar() = 0;
 
     virtual NavNodeList loadFlightPlan(const std::string filename);
 

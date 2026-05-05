@@ -5,6 +5,5 @@ target_sources(avitab_xplane_lib PRIVATE
     AirwayData.h
     CIFPData.h
     FixData.h
-    MetarData.h
     NavaidData.h
 )

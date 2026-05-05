@@ -90,7 +90,6 @@ public:
     std::shared_ptr<world::World> getNavWorld();
     virtual std::string getAirplanePath() = 0;
     void cancelNavWorldLoading();
-    void reloadMetar();
     world::NavNodeList loadFlightPlan(const std::string filename);
     void loadUserFixes(std::string filename);
     virtual void enableAndPowerPanel();

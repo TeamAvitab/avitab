@@ -11,8 +11,6 @@ target_sources(avitab_xplane_lib PRIVATE
     CustomSceneryParser.h
     FixParser.cpp
     FixParser.h
-    MetarParser.cpp
-    MetarParser.h
     NavaidParser.cpp
     NavaidParser.h
 )

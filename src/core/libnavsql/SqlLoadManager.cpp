@@ -63,12 +63,6 @@ void SqlLoadManager::load()
     loadUserFixes();
 }
 
-void SqlLoadManager::reloadMetar()
-{
-    // TODO: reloadMetar() should not be part of the NAV world - this should be the responsibility of the Environment
-    LOG_ERROR("NOT-YET-IMPLEMENTED: SqlData::reloadMetar()");
-}
-
 std::shared_ptr<world::Region> SqlLoadManager::getRegion(const std::string &id)
 {
     return sqlworld->getRegion(id);

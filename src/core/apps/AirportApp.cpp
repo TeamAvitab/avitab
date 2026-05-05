@@ -156,7 +156,6 @@ void AirportApp::onAirportSelected(std::shared_ptr<world::Airport> airport) {
     tab.label->setLongMode(true);
 
     tab.window->addSymbol(Widget::Symbol::REFRESH, [this, page, airport] {
-        api().reloadMetar();
         TabPage &tab = findPage(page);
         if (tab.charts.empty()) {
             fillPage(page, airport);

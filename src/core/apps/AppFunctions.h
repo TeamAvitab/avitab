@@ -51,7 +51,6 @@ public:
     virtual void showGUIContainer(std::shared_ptr<Container> container) = 0;
     virtual void onHomeButton() = 0;
     virtual std::shared_ptr<world::World> getNavWorld() = 0;
-    virtual void reloadMetar() = 0;
     virtual void loadUserFixes(std::string filename) = 0;
     virtual world::NavNodeList loadFlightPlan(const std::string filename) = 0;
     using MagVarMap = std::map<std::pair<double, double>, double>;

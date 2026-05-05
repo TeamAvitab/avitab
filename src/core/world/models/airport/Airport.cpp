@@ -112,11 +112,6 @@ std::shared_ptr<Fix> world::Airport::getTerminalFix(const std::string& id) {
     return it->second;
 }
 
-void Airport::setCurrentMetar(const std::string& timestamp, const std::string& metar) {
-    metarTimestamp = timestamp;
-    metarString = metar;
-}
-
 const std::string& Airport::getID() const {
     return id;
 }
@@ -367,14 +362,6 @@ std::shared_ptr<Approach> Airport::getApproachByName(std::string appName) const 
         return nullptr;
     }
     return approach->second;
-}
-
-const std::string& Airport::getMetarTimestamp() const {
-    return metarTimestamp;
-}
-
-const std::string& Airport::getMetarString() const {
-    return metarString;
 }
 
 const world::Location& Airport::getLocation() const {

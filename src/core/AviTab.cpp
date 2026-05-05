@@ -425,12 +425,6 @@ int AviTab::getWeatherAtLocation(const world::Location &loc, const float &altitu
     return env->getWeatherAtLocation(loc, altitude, weather);
 }
 
-void AviTab::reloadMetar() {
-    logger::info("Reloading METAR...");
-    env->reloadMetar();
-    logger::info("Done METAR");
-}
-
 void AviTab::loadUserFixes(std::string filename) {
     env->loadUserFixes(filename);
 }

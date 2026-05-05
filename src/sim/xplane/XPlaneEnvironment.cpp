@@ -375,12 +375,8 @@ std::string XPlaneEnvironment::getMETARForAirport(const std::string &icao) {
         logger::verbose("Time to get METAR: %d millis",
             std::chrono::duration_cast<std::chrono::milliseconds>(duration).count());
     } else {
-        auto airport = getWorldManager()->getWorld()->findAirportByID(icao);
-        if (!airport) {
-            throw std::invalid_argument("No such airport");
-        }
-        timestamp = airport->getMetarTimestamp();
-        metar = airport->getMetarString();
+        // REFACTOR - if we decide to restore XP11 METAR, then we can do it here by scanning the METAR.rwx
+        // using the runInEnvironment pattern above, and extracting the data directly
     }
 
     return metar;

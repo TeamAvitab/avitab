@@ -68,7 +68,6 @@ public:
     std::string getMETARForAirport(const std::string &icao) override;
     int getWeatherAtLocation(const world::Location &loc, const float &altitude, std::string &weather) override;
     std::string getNearestAirportId() override;
-    void reloadMetar() override;
     void loadUserFixes(std::string filename) override;
     world::NavNodeList loadFlightPlan(const std::string filename) override;
     void close() override;

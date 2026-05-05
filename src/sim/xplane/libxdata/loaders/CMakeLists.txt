@@ -9,8 +9,6 @@ target_sources(avitab_xplane_lib PRIVATE
     CIFPLoader.h
     FixLoader.cpp
     FixLoader.h
-    MetarLoader.cpp
-    MetarLoader.h
     NavaidLoader.cpp
     NavaidLoader.h
 )

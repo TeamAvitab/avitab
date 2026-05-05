@@ -35,7 +35,6 @@ public:
 
     void discoverSceneries() override;
     void load() override;
-    void reloadMetar() override;
 
     std::shared_ptr<world::Region> getRegion(const std::string &id);
 

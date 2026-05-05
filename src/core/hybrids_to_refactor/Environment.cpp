@@ -81,10 +81,6 @@ void Environment::setLastFrameTime(float t) {
 
 float Environment::getLastFrameTime() { return lastFrameTime; }
 
-void Environment::reloadMetar() {
-    worldManager->reloadMetar();
-}
-
 std::shared_ptr<world::World> Environment::loadNavWorldAsync() {
     crash::ThreadCookie crashCookie;
 

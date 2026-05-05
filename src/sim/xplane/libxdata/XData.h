@@ -33,7 +33,6 @@ public:
     std::shared_ptr<world::World> getWorld() override;
     void discoverSceneries() override;
     void load() override;
-    void reloadMetar() override;
 private:
     std::string xplaneRoot;
     std::string navDataPath;
@@ -48,7 +47,6 @@ private:
     void loadNavaids();
     void loadAirways();
     void loadProcedures();
-    void loadMetar();
     void loadCustomScenery(const AirportLoader& loader);
 
 };

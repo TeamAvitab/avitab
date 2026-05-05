@@ -71,7 +71,6 @@ public:
     void setLocation(const Location &loc);
     void setRegion(std::shared_ptr<Region> region);
     void addATCFrequency(ATCFrequency which, const Frequency &frq);
-    void setCurrentMetar(const std::string &timestamp, const std::string &metar);
 
     const std::string& getName() const;
     const std::string& getDisplayID() const;
@@ -79,8 +78,6 @@ public:
     const std::string& getICAOCode() const;
     const std::string& getLocalCode() const;
     const std::vector<Frequency> &getATCFrequencies(ATCFrequency type);
-    const std::string &getMetarTimestamp() const;
-    const std::string &getMetarString() const;
 
     void addRunway(std::shared_ptr<Runway> rwy);
     void forEachRunway(std::function<void(const std::shared_ptr<Runway>)> f) const;
@@ -141,8 +138,6 @@ private:
     std::map<std::string, std::shared_ptr<SID>> sids;
     std::map<std::string, std::shared_ptr<STAR>> stars;
     std::map<std::string, std::shared_ptr<Approach>> approaches;
-
-    std::string metarTimestamp, metarString;
 
     std::shared_ptr<Runway> getRunwayAndFixName(const std::string &name);
 };

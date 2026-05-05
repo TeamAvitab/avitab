@@ -23,7 +23,6 @@
 #include "loaders/NavaidLoader.h"
 #include "loaders/AirwayLoader.h"
 #include "loaders/CIFPLoader.h"
-#include "loaders/MetarLoader.h"
 #include "parsers/CustomSceneryParser.h"
 #include "Logger.h"
 
@@ -89,8 +88,6 @@ void XData::load() {
     auto duration = std::chrono::steady_clock::now() - startAt;
     auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
 
-    loadMetar();
-
     logger::verbose("Build node network...");
     xworld->registerNavNodes();
     logger::info("Loaded nav data in %.2f seconds", millis / 1000.0f);
@@ -153,24 +150,6 @@ void XData::loadProcedures() {
             throw std::runtime_error("Cancelled");
         }
     });
-}
-
-void XData::loadMetar() {
-    using namespace std::placeholders;
-
-    logger::verbose("Loading METAR...");
-
-    try {
-        MetarLoader loader(shared_from_this());
-        loader.load(xplaneRoot + "METAR.rwx");
-    } catch (const std::exception &e) {
-        // metar is optional, so only log
-        logger::warn("Error parsing METAR: %s", e.what());
-    }
-}
-
-void XData::reloadMetar() {
-    loadMetar();
 }
 
 } /* namespace xdata */
