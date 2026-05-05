@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cassert>
 #include "OverlayedAirport.h"
 #include "World.h"
 
@@ -67,13 +68,12 @@ void OverlayedAirport::drawText(bool detailed) {
         return;
     }
     // Place text below southern airport boundary and below symbol
-    int yOffset = posY + ICAO_CIRCLE_RADIUS;
-    auto &locDownRight = airport->getLocationDownRight();
-    if (locDownRight.isValid()) {
-        int xIgnored;
-        overlayHelper->positionToPixel(locDownRight.latitude, locDownRight.longitude, xIgnored, yOffset);
-        yOffset += ICAO_CIRCLE_RADIUS;
-    }
+    auto &sw = airport->getCornerSW();
+    assert(sw.isValid());
+    int yOffset = 0;
+    int xIgnored = 0;
+    overlayHelper->locationToPixel(sw, xIgnored, yOffset);
+    yOffset += ICAO_CIRCLE_RADIUS;
 
     auto mapImage = overlayHelper->getMapImage();
 
@@ -125,11 +125,10 @@ void OverlayedAirport::drawAirportBlob() {
 }
 
 void OverlayedAirport::getRunwaysCentre(int zoomLevel, int& xCentre, int &yCentre) {
-    auto &locUpLeft    = airport->getLocationUpLeft();
-    auto &locDownRight = airport->getLocationDownRight();
-    double latitudeCentre  = (locUpLeft.latitude +  locDownRight.latitude) / 2;
-    double longitudeCentre = (locUpLeft.longitude + locDownRight.longitude) / 2;
-    overlayHelper->positionToPixel(latitudeCentre, longitudeCentre, xCentre, yCentre, zoomLevel);
+    auto sw = airport->getCornerSW();
+    auto ne = airport->getCornerNE();
+    auto centre = sw.areaCenter(ne);
+    overlayHelper->locationToPixel(centre, xCentre, yCentre, zoomLevel);
 }
 
 int OverlayedAirport::getMaxRunwayDistanceFromCentre(int zoomLevel, int xCentre, int yCentre) {
@@ -137,7 +136,7 @@ int OverlayedAirport::getMaxRunwayDistanceFromCentre(int zoomLevel, int xCentre,
     airport->forEachRunway([this, zoomLevel, xCentre, yCentre, &maxDistance] (const std::shared_ptr<world::Runway> rwy) {
         auto loc = rwy->getLocation();
         int x, y;
-        overlayHelper->positionToPixel(loc.latitude, loc.longitude, x, y, zoomLevel);
+        overlayHelper->locationToPixel(loc, x, y, zoomLevel);
         maxDistance = std::max(maxDistance, (x - xCentre) * (x - xCentre) + (y - yCentre) * (y - yCentre));
     });
     return std::sqrt(maxDistance);
@@ -153,15 +152,15 @@ void OverlayedAirport::drawRunwayRectangles(float size, uint32_t rectColor) {
         auto loc1 = rwy1->getLocation();
         auto loc2 = rwy2->getLocation();
         int x1, y1, x2, y2;
-        overlayHelper->positionToPixel(loc1.latitude, loc1.longitude, x1, y1);
-        overlayHelper->positionToPixel(loc2.latitude, loc2.longitude, x2, y2);
-        float angleDegrees = atan2((float)(y2 - y1), (float)(x2 - x1)) * 180.0 / M_PI;
+        overlayHelper->locationToPixel(loc1, x1, y1);
+        overlayHelper->locationToPixel(loc2, x2, y2);
+        float angleDegrees = atan2((float)(y2 - y1), (float)(x2 - x1)) * world::RAD_TO_DEG;
         float angleClockwiseCorner =      angleDegrees + 45;
         float angleAnticlockwiseCorner  = angleDegrees - 45;
-        int xc = size * cos(angleClockwiseCorner * M_PI / 180.0);
-        int yc = size * sin(angleClockwiseCorner * M_PI / 180.0);
-        int xa = size * cos(angleAnticlockwiseCorner * M_PI / 180.0);
-        int ya = size * sin(angleAnticlockwiseCorner * M_PI / 180.0);
+        int xc = size * cos(angleClockwiseCorner * world::DEG_TO_RAD);
+        int yc = size * sin(angleClockwiseCorner * world::DEG_TO_RAD);
+        int xa = size * cos(angleAnticlockwiseCorner * world::DEG_TO_RAD);
+        int ya = size * sin(angleAnticlockwiseCorner * world::DEG_TO_RAD);
         auto mapImage = overlayHelper->getMapImage();
         mapImage->fillRectangle(x2 + xc, y2 + yc, x2 + xa, y2 + ya, x1 - xc, y1 - yc, x1 - xa, y1 - ya, rectColor);
     });
@@ -192,8 +191,8 @@ void OverlayedAirport::drawAirportGeographicRunways() {
         auto loc1 = rwy1->getLocation();
         auto loc2 = rwy2->getLocation();
         int px1, py1, px2, py2;
-        overlayHelper->positionToPixel(loc1.latitude, loc1.longitude, px1, py1);
-        overlayHelper->positionToPixel(loc2.latitude, loc2.longitude, px2, py2);
+        overlayHelper->locationToPixel(loc1, px1, py1);
+        overlayHelper->locationToPixel(loc2, px2, py2);
         float rwyLength = rwy1->getLength();
         float rwyWidth = rwy1->getWidth();
         if (std::isnan(rwyLength) || (rwyLength == 0)) {
@@ -235,8 +234,8 @@ void OverlayedAirport::drawAirportICAOCircleAndRwyPattern() {
         auto loc1 = rwy1->getLocation();
         auto loc2 = rwy2->getLocation();
         int px1, py1, px2, py2;
-        overlayHelper->positionToPixel(loc1.latitude, loc1.longitude, px1, py1, overlayHelper->getMaxZoomLevel());
-        overlayHelper->positionToPixel(loc2.latitude, loc2.longitude, px2, py2, overlayHelper->getMaxZoomLevel());
+        overlayHelper->locationToPixel(loc1, px1, py1, overlayHelper->getMaxZoomLevel());
+        overlayHelper->locationToPixel(loc2, px2, py2, overlayHelper->getMaxZoomLevel());
         px1 /= scale;
         px2 /= scale;
         py1 /= scale;

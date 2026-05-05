@@ -26,36 +26,33 @@ void Calibration::setHash(const std::string &s) {
     regHash = s;
 }
 
-void Calibration::setPoint1(double x, double y, double lat, double lon) {
-    LOG_INFO(1,"%4.10f,%4.10f -> %4.10f,%4.10f", x, y, lat, lon);
+void Calibration::setPoint1(double x, double y, world::Location loc) {
+    LOG_INFO(1,"%4.10f,%4.10f -> %4.10f,%4.10f", x, y, loc.latDegrees(), loc.lonDegrees());
     regX1 = x;
     regY1 = y;
-    regLat1 = lat;
-    regLon1 = lon;
+    regLoc1 = loc;
 }
 
-void Calibration::setPoint2(double x, double y, double lat, double lon) {
-    if ((lat == regLat1 && lon == regLon1) || (x == regX1 && y == regY1)) {
+void Calibration::setPoint2(double x, double y, world::Location loc) {
+    if ((loc == regLoc1) || (x == regX1 && y == regY1)) {
         throw std::runtime_error("Must be two different points");
     }
-    LOG_INFO(1,"%4.10f,%4.10f -> %4.10f,%4.10f", x, y, lat, lon);
+    LOG_INFO(1,"%4.10f,%4.10f -> %4.10f,%4.10f", x, y, loc.latDegrees(), loc.lonDegrees());
     regX2 = x;
     regY2 = y;
-    regLat2 = lat;
-    regLon2 = lon;
+    regLoc2 = loc;
 }
 
-void Calibration::setPoint3(double x, double y, double lat, double lon) {
-    if (((lat == regLat1 && lon == regLon1) || (x == regX1 && y == regY1)) ||
-        ((lat == regLat2 && lon == regLon2) || (x == regX2 && y == regY2))) {
+void Calibration::setPoint3(double x, double y, world::Location loc) {
+    if (((loc == regLoc1) || (x == regX1 && y == regY1)) ||
+        ((loc == regLoc2) || (x == regX2 && y == regY2))) {
         throw std::runtime_error("Must be two different points");
     }
-    LOG_INFO(1,"%4.10f,%4.10f -> %4.10f,%4.10f", x, y, lat, lon);
+    LOG_INFO(1,"%4.10f,%4.10f -> %4.10f,%4.10f", x, y, loc.latDegrees(), loc.lonDegrees());
     regX3 = x;
     regY3 = y;
-    regLat3 = lat;
-    regLon3 = lon;
-    northOffsetAngle = NAN;
+    regLoc3 = loc;
+    northOffsetAngle = std::numeric_limits<double>::quiet_NaN();
     
     calculateLocalCalibration();
 }
@@ -63,10 +60,9 @@ void Calibration::setPoint3(double x, double y, double lat, double lon) {
 void Calibration::setAngle(double angle) {
     LOG_INFO(1, "%4.10f", angle);
     northOffsetAngle = angle;
-    regX3 = NAN;
-    regY3 = NAN;
-    regLat3 = NAN;
-    regLon3 = NAN;
+    regX3 = std::numeric_limits<double>::quiet_NaN();
+    regY3 = std::numeric_limits<double>::quiet_NaN();
+    regLoc3 = world::Location();
 
     calculateLocalCalibration();
 }
@@ -86,13 +82,13 @@ std::string Calibration::toString() const {
 
                         {"x1", regX1},
                         {"y1", regY1},
-                        {"longitude1", regLon1},
-                        {"latitude1", regLat1},
+                        {"longitude1", regLoc1.lonDegrees()},
+                        {"latitude1", regLoc1.latDegrees()},
 
                         {"x2", regX2},
                         {"y2", regY2},
-                        {"longitude2", regLon2},
-                        {"latitude2", regLat2},
+                        {"longitude2", regLoc2.lonDegrees()},
+                        {"latitude2", regLoc2.latDegrees()},
 
                         {"northOffsetAngle", northOffsetAngle},
                     };
@@ -104,18 +100,18 @@ std::string Calibration::toString() const {
 
                         {"x1", regX1},
                         {"y1", regY1},
-                        {"longitude1", regLon1},
-                        {"latitude1", regLat1},
+                        {"longitude1", regLoc1.lonDegrees()},
+                        {"latitude1", regLoc1.latDegrees()},
 
                         {"x2", regX2},
                         {"y2", regY2},
-                        {"longitude2", regLon2},
-                        {"latitude2", regLat2},
+                        {"longitude2", regLoc2.lonDegrees()},
+                        {"latitude2", regLoc2.latDegrees()},
 
                         {"x3", regX3},
                         {"y3", regY3},
-                        {"longitude3", regLon3},
-                        {"latitude3", regLat3},
+                        {"longitude3", regLoc3.lonDegrees()},
+                        {"latitude3", regLoc3.latDegrees()},
                     };
     }
     return json.dump(2);
@@ -127,34 +123,36 @@ void Calibration::fromLocalJson(const nlohmann::json &json) {
 
     preRotate = json.value("/calibration/prerotate"_json_pointer, 0);
 
-    regLon1 = json[j::json_pointer("/calibration/longitude1")];
-    regLat1 = json[j::json_pointer("/calibration/latitude1")];
+    regLoc1 = world::Location::fromGCS(json[j::json_pointer("/calibration/latitude1")],
+        json[j::json_pointer("/calibration/longitude1")]);
     regX1 = json[j::json_pointer("/calibration/x1")];
     regY1 = json[j::json_pointer("/calibration/y1")];
 
-    regLon2 = json[j::json_pointer("/calibration/longitude2")];
-    regLat2 = json[j::json_pointer("/calibration/latitude2")];
+    regLoc2 = world::Location::fromGCS(json[j::json_pointer("/calibration/latitude2")],
+        json[j::json_pointer("/calibration/longitude2")]);
     regX2 = json[j::json_pointer("/calibration/x2")];
     regY2 = json[j::json_pointer("/calibration/y2")];
 
-    regLon3 = json.value("/calibration/longitude3"_json_pointer, NAN);
-    regLat3 = json.value("/calibration/latitude3"_json_pointer, NAN);
-    regX3 = json.value("/calibration/x3"_json_pointer, NAN);
-    regY3 = json.value("/calibration/y3"_json_pointer, NAN);
+    regLoc3 = world::Location();
+    auto lat = json.value("/calibration/latitude3"_json_pointer, std::numeric_limits<double>::quiet_NaN());
+    auto lon = json.value("/calibration/longitude3"_json_pointer, std::numeric_limits<double>::quiet_NaN());
+    if (!std::isnan(lat) && !std::isnan(lon)) regLoc3 = world::Location::fromGCS(lat, lon);
+    regX3 = json.value("/calibration/x3"_json_pointer, std::numeric_limits<double>::quiet_NaN());
+    regY3 = json.value("/calibration/y3"_json_pointer, std::numeric_limits<double>::quiet_NaN());
 
-    northOffsetAngle = json.value("/calibration/northOffsetAngle"_json_pointer, NAN);
+    northOffsetAngle = json.value("/calibration/northOffsetAngle"_json_pointer, std::numeric_limits<double>::quiet_NaN());
 
     calculateLocalCalibration();
 }
 
 void Calibration::fromChartfoxJson(const nlohmann::json &json, double aspectRatio) {
     logger::info("Using calibration metadata from Chartfox:");
-    double k = json.value("/k"_json_pointer, NAN);
+    double k = json.value("/k"_json_pointer, std::numeric_limits<double>::quiet_NaN());
     int page = json.value("/page"_json_pointer, 0);
     int pdf_page_rotation = json.value("/pdf_page_rotation"_json_pointer, 0);
-    double transform_angle = json.value("/transform_angle"_json_pointer, NAN);
-    double tx = json.value("/tx"_json_pointer, NAN);
-    double ty = json.value("/ty"_json_pointer, NAN);
+    double transform_angle = json.value("/transform_angle"_json_pointer, std::numeric_limits<double>::quiet_NaN());
+    double tx = json.value("/tx"_json_pointer, std::numeric_limits<double>::quiet_NaN());
+    double ty = json.value("/ty"_json_pointer, std::numeric_limits<double>::quiet_NaN());
     LOG_INFO(dbg, "page=%d, pdf_page_rotation=%d", page, pdf_page_rotation);
 
     calculateChartfoxCalibration(k, transform_angle, tx, ty, aspectRatio);
@@ -183,7 +181,7 @@ std::string Calibration::getKmlTagData(const std::string kml, const std::string 
 }
 
 std::pair<double, double> Calibration::rotate(double x, double y, double angleDegrees) const {
-    double a = angleDegrees * M_PI / 180.0;
+    double a = angleDegrees * world::DEG_TO_RAD;
     double xr = x * std::cos(a) - y * sin(a);
     double yr = x * std::sin(a) + y * cos(a);
     return std::make_pair(xr, yr);
@@ -197,12 +195,12 @@ void Calibration::fromKmlString(const std::string& s) {
     double rotation = (getKmlTagData(s, "rotation") == "") ? 0 : stof(getKmlTagData(s, "rotation"));
     LOG_INFO(dbg, "N %4.6f, S %4.6f, E %4.6f, W %4.6f,  R %4.6f", north, south, east, west, rotation);
 
-    // Convert from mercator to equirectangular
-    auto nw = mercator(north, west); // For nw, y is 1st, x is 2nd
-    auto ne = mercator(north, east);
-    auto se = mercator(south, east);
+    // Convert from GCS(lat/lon) to Mercator equirectangular
+    auto nw = world::Location::fromGCS(north, west).toMercator();
+    auto ne = world::Location::fromGCS(north, east).toMercator();
+    auto se = world::Location::fromGCS(south, east).toMercator();
 
-    // Rotate about the centre and invMercator
+    // Rotate about the centre
     auto cx = (nw.second + se.second) / 2; // Calculate centre (cx,cy)
     auto cy = (nw.first + se.first) / 2;
     auto nw0 = std::make_pair(nw.second - cx, nw.first - cy); // Translate so centre is (0,0)
@@ -211,17 +209,19 @@ void Calibration::fromKmlString(const std::string& s) {
     auto nwr = rotate(nw0.first, nw0.second, rotation); // Rotate about centre (0,0)
     auto ner = rotate(ne0.first, ne0.second, rotation);
     auto ser = rotate(se0.first, se0.second, rotation);
-    auto nwRef = std::make_pair(nwr.first + cx, invMercator(nwr.second + cy)); // Translate back from centre of (0,0)
-    auto neRef = std::make_pair(ner.first + cx, invMercator(ner.second + cy));
-    auto seRef = std::make_pair(ser.first + cx, invMercator(ser.second + cy));
 
-    LOG_INFO(dbg, "NW  %4.6f, %4.6f", nwRef.first, nwRef.second); // nwRef x/lon 1st, y/lat 2nd
-    LOG_INFO(dbg, "NE  %4.6f, %4.6f", neRef.first, neRef.second);
-    LOG_INFO(dbg, "SE  %4.6f, %4.6f", seRef.first, seRef.second);
+    // Convert back to GCS(lat/lon) from centre as (0,0)
+    auto nwRef = world::Location::fromMercator(nwr.first + cx, nwr.second + cy);
+    auto neRef = world::Location::fromMercator(ner.first + cx, ner.second + cy);
+    auto seRef = world::Location::fromMercator(ser.first + cx, ser.second + cy);
 
-    setPoint1(0, 0, nwRef.second, nwRef.first);
-    setPoint2(1, 0, neRef.second, neRef.first);
-    setPoint3(1, 1, seRef.second, seRef.first);
+    LOG_INFO(dbg, "NW  %4.6f, %4.6f", nwRef.lonDegrees(), nwRef.latDegrees()); // nwRef x/lon 1st, y/lat 2nd
+    LOG_INFO(dbg, "NE  %4.6f, %4.6f", neRef.lonDegrees(), neRef.latDegrees());
+    LOG_INFO(dbg, "SE  %4.6f, %4.6f", seRef.lonDegrees(), seRef.latDegrees());
+
+    setPoint1(0, 0, nwRef);
+    setPoint2(1, 0, neRef);
+    setPoint3(1, 1, seRef);
 }
 
 bool Calibration::hasCalibration() const {
@@ -235,12 +235,12 @@ std::string Calibration::getReport() const {
 void Calibration::calculateLocalCalibration() {
     report = "Not calibrated";
 
-    auto xy1 = mercator(regLat1, regLon1);
-    auto xy2 = mercator(regLat2, regLon2);
+    auto xy1 = regLoc1.toMercator();
+    auto xy2 = regLoc2.toMercator();
 
-    LOG_INFO(dbg, "ref1 %4.6f, %4.6f => %4.6f, %4.6f", regX1, regY1, regLat1, regLon1);
+    LOG_INFO(dbg, "ref1 %4.6f, %4.6f => %4.6f, %4.6f", regX1, regY1, regLoc1.latDegrees(), regLoc1.lonDegrees());
     LOG_INFO(dbg, "ref1 after mercator        %4.6f, %4.6f", xy1.first, xy1.second);
-    LOG_INFO(dbg, "ref2 %4.6f, %4.6f => %4.6f, %4.6f", regX2, regY1, regLat2, regLon1);
+    LOG_INFO(dbg, "ref2 %4.6f, %4.6f => %4.6f, %4.6f", regX2, regY1, regLoc2.latDegrees(), regLoc2.lonDegrees());
     LOG_INFO(dbg, "ref2 after mercator        %4.6f, %4.6f", xy2.first, xy2.second);
 
     // Handle legacy calibration .json files with angle implicitly = 0
@@ -264,8 +264,8 @@ void Calibration::calculateLocalCalibration() {
     } else if (!std::isnan(regX3) && std::isnan(northOffsetAngle)) {
         offsetAngleDefined = false;
         LOG_INFO(1, "point3 defined");
-        auto xy3 = mercator(regLat3, regLon3);
-        LOG_INFO(dbg, "ref3 %4.6f, %4.6f => %4.6f, %4.6f", regX3, regY3, regLat3, regLon3);
+        auto xy3 = regLoc3.toMercator();
+        LOG_INFO(dbg, "ref3 %4.6f, %4.6f => %4.6f, %4.6f", regX3, regY3, regLoc3.latDegrees(), regLoc3.lonDegrees());
         LOG_INFO(dbg, "ref3 after mercator        %4.6f, %4.6f", xy3.first, xy3.second);
 
         LOG_INFO(dbg, "WorldToPixels ...");
@@ -350,46 +350,47 @@ void Calibration::logDebugInfo() const {
     LOG_INFO(dbg, "leP2W reversed %+4.10f, %+4.10f, %+4.10f,  %+4.10f, %+4.10f, %+4.10f",
             axr, bxr, cxr,  ayr, byr, cyr);
 
-    img::Point<double> p, w;
+    img::Point<double> p;
+    world::Location w;
     LOG_INFO(dbg, "Corners P2W -> W2P:");
     w = pixelsToWorld(0, 0);
-    p = worldToPixels(w.x, w.y);
-    LOG_INFO(dbg, " 0, 0 -> %9.9lf, %9.9lf -> %9.9lf, %9.9lf", w.x, w.y, p.x, p.y);
+    p = worldToPixels(w);
+    LOG_INFO(dbg, " 0, 0 -> %9.9lf, %9.9lf -> %9.9lf, %9.9lf", w.lonDegrees(), w.latDegrees(), p.x, p.y);
     w = pixelsToWorld(0, 1);
-    p = worldToPixels(w.x, w.y);
-    LOG_INFO(dbg, " 0, 1 -> %9.9lf, %9.9lf -> %9.9lf, %9.9lf", w.x, w.y, p.x, p.y);
+    p = worldToPixels(w);
+    LOG_INFO(dbg, " 0, 1 -> %9.9lf, %9.9lf -> %9.9lf, %9.9lf", w.lonDegrees(), w.latDegrees(), p.x, p.y);
     w = pixelsToWorld(1, 0);
-    p = worldToPixels(w.x, w.y);
-    LOG_INFO(dbg, " 1, 0 -> %9.9lf, %9.9lf -> %9.9lf, %9.9lf", w.x, w.y, p.x, p.y);
+    p = worldToPixels(w);
+    LOG_INFO(dbg, " 1, 0 -> %9.9lf, %9.9lf -> %9.9lf, %9.9lf", w.lonDegrees(), w.latDegrees(), p.x, p.y);
     w = pixelsToWorld(1, 1);
-    p = worldToPixels(w.x, w.y);
-    LOG_INFO(dbg, " 1, 1 -> %9.9lf, %9.9lf -> %9.9lf, %9.9lf", w.x, w.y, p.x, p.y);
+    p = worldToPixels(w);
+    LOG_INFO(dbg, " 1, 1 -> %9.9lf, %9.9lf -> %9.9lf, %9.9lf", w.lonDegrees(), w.latDegrees(), p.x, p.y);
 
     if (isChartfoxGeoreferenced) {
         return;
     }
     // Recalculate reference points
     w = pixelsToWorld(regX1, regY1);
-    LOG_INFO(dbg, "reference 1 P2W  %4.6f, %4.6f - > %4.6f, %4.6f", regX1, regY1, regLon1, regLat1);
-    LOG_INFO(dbg, "computed    P2W  %4.6f, %4.6f - > %4.6f, %4.6f", regX1, regY1, w.x, w.y);
-    p = worldToPixels(regLon1, regLat1);
-    LOG_INFO(dbg, "reference 1 W2P  %4.6f, %4.6f - > %4.6f, %4.6f", regLon1, regLat1, regX1, regY1);
-    LOG_INFO(dbg, "computed    W2P  %4.6f, %4.6f - > %4.6f, %4.6f", regLon1, regLat1, p.x, p.y);
+    LOG_INFO(dbg, "reference 1 P2W  %4.6f, %4.6f - > %4.6f, %4.6f", regX1, regY1, regLoc1.lonDegrees(), regLoc1.latDegrees());
+    LOG_INFO(dbg, "computed    P2W  %4.6f, %4.6f - > %4.6f, %4.6f", regX1, regY1, w.lonDegrees(), w.latDegrees());
+    p = worldToPixels(regLoc1);
+    LOG_INFO(dbg, "reference 1 W2P  %4.6f, %4.6f - > %4.6f, %4.6f", regLoc1.lonDegrees(), regLoc1.latDegrees(), regX1, regY1);
+    LOG_INFO(dbg, "computed    W2P  %4.6f, %4.6f - > %4.6f, %4.6f", regLoc1.lonDegrees(), regLoc1.latDegrees(), p.x, p.y);
 
     w = pixelsToWorld(regX2, regY2);
-    LOG_INFO(dbg, "reference 2 P2W  %4.6f, %4.6f - > %4.6f, %4.6f", regX2, regY2, regLon2, regLat2);
-    LOG_INFO(dbg, "computed    P2W  %4.6f, %4.6f - > %4.6f, %4.6f", regX2, regY2, w.x, w.y);
-    p = worldToPixels(regLon2, regLat2);
-    LOG_INFO(dbg, "reference 2 W2P  %4.6f, %4.6f - > %4.6f, %4.6f", regLon2, regLat2, regX2, regY2);
-    LOG_INFO(dbg, "computed    W2P  %4.6f, %4.6f - > %4.6f, %4.6f", regLon2, regLat2, p.x, p.y);
+    LOG_INFO(dbg, "reference 2 P2W  %4.6f, %4.6f - > %4.6f, %4.6f", regX2, regY2, regLoc2.lonDegrees(), regLoc2.latDegrees());
+    LOG_INFO(dbg, "computed    P2W  %4.6f, %4.6f - > %4.6f, %4.6f", regX2, regY2, w.lonDegrees(), w.latDegrees());
+    p = worldToPixels(regLoc2);
+    LOG_INFO(dbg, "reference 2 W2P  %4.6f, %4.6f - > %4.6f, %4.6f", regLoc2.lonDegrees(), regLoc2.latDegrees(), regX2, regY2);
+    LOG_INFO(dbg, "computed    W2P  %4.6f, %4.6f - > %4.6f, %4.6f", regLoc2.lonDegrees(), regLoc2.latDegrees(), p.x, p.y);
 
     if (!offsetAngleDefined) {
         w = pixelsToWorld(regX3, regY3);
-        LOG_INFO(dbg, "reference 3 P2W  %4.6f, %4.6f - > %4.6f, %4.6f", regX3, regY3, regLon3, regLat3);
-        LOG_INFO(dbg, "computed    P2W  %4.6f, %4.6f - > %4.6f, %4.6f", regX3, regY3, w.x, w.y);
-        p = worldToPixels(regLon3, regLat3);
-        LOG_INFO(dbg, "reference 3 W2P  %4.6f, %4.6f - > %4.6f, %4.6f", regLon3, regLat3, regX3, regY3);
-        LOG_INFO(dbg, "computed    W2P  %4.6f, %4.6f - > %4.6f, %4.6f", regLon3, regLat3, p.x, p.y);
+        LOG_INFO(dbg, "reference 3 P2W  %4.6f, %4.6f - > %4.6f, %4.6f", regX3, regY3, regLoc3.lonDegrees(), regLoc3.latDegrees());
+        LOG_INFO(dbg, "computed    P2W  %4.6f, %4.6f - > %4.6f, %4.6f", regX3, regY3, w.lonDegrees(), w.latDegrees());
+        p = worldToPixels(regLoc3);
+        LOG_INFO(dbg, "reference 3 W2P  %4.6f, %4.6f - > %4.6f, %4.6f", regLoc3.lonDegrees(), regLoc3.latDegrees(), regX3, regY3);
+        LOG_INFO(dbg, "computed    W2P  %4.6f, %4.6f - > %4.6f, %4.6f", regLoc3.lonDegrees(), regLoc3.latDegrees(), p.x, p.y);
     }
 }
 
@@ -412,14 +413,14 @@ bool Calibration::checkRefRecalculation() {
     // (Checking pixels -> world is difficult to reliably automate, but verbose log shows info)
     img::Point<double> p;
     double ex1, ey1, ex2, ey2, ex3, ey3;
-    p = worldToPixels(regLon1, regLat1);
+    p = worldToPixels(regLoc1);
     ex1 = std::abs(p.x - regX1);
     ey1 = std::abs(p.y - regY1);
-    p = worldToPixels(regLon2, regLat2);
+    p = worldToPixels(regLoc2);
     ex2 = std::abs(p.x - regX2);
     ey2 = std::abs(p.y - regY2);
     if (!offsetAngleDefined) {
-        p = worldToPixels(regLon3, regLat3);
+        p = worldToPixels(regLoc3);
         ex3 = std::abs(p.x - regX3);
         ey3 = std::abs(p.y - regY3);
     } else {
@@ -443,9 +444,9 @@ bool Calibration::checkCornerRoundTrip() {
     for (int x = 0; x <=1; x++) {
         for (int y = 0; y <=1; y++) {
             auto w = pixelsToWorld(x, y);
-            auto p = worldToPixels(w.x, w.y);
+            auto p = worldToPixels(w);
             if ((std::abs(p.x - x) > 0.1) || (std::abs(p.y - y) > 0.1)) {
-                LOG_ERROR("%d,%d -> %f,%f -> %f,%f", x, y, w.x, w.y, p.x, p.y);
+                LOG_ERROR("%d,%d -> %f,%f -> %f,%f", x, y, w.lonDegrees(), w.latDegrees(), p.x, p.y);
                 LOG_ERROR("Pixels -> World -> Pixels roundtrip is bad, submit Avitab.log and chart to devs");
                 report = "Calibration failed. See Avitab.log for further details";
                 return false;
@@ -533,35 +534,11 @@ bool Calibration::checkTriangle() {
     return true;
 }
 
-std::pair<double, double> Calibration::mercator(double lat, double lon) const {
-    // = arsinh(tan(phi))
-    double sinPhi = std::sin(lat * M_PI / 180.0);
-    double mercLat = 0.5 * std::log((1 + sinPhi) / (1 - sinPhi)) * 180.0 / M_PI;
-    return std::make_pair(mercLat, lon);
-}
-
-double Calibration::invMercator(double lat) const {
-    return std::atan(std::sinh(lat * M_PI / 180.0)) * 180.0 / M_PI;
-}
-
-std::pair<double, double> Calibration::latLonToEPSG3857(double lat, double lon) const {
-    double lon3857 = lon * 20037508.34 / 180;
-    double lat3857 = std::log(std::tan((90 + lat) * M_PI / 360)) / (M_PI / 180);
-    lat3857 = lat3857 * 20037508.34 / 180;
-    return std::pair<double, double>(lat3857, lon3857);
-}
-
-std::pair<double, double> Calibration::EPSG3857toLatLon(double lat3857, double lon3857) const {
-    double lon = lon3857 *  180 / 20037508.34 ;
-    double lat = std::atan(std::exp(lat3857 * M_PI / 20037508.34)) * 360 / M_PI - 90;
-    return std::pair<double, double>(lat, lon);
-}
-
-img::Point<double> Calibration::worldToPixels(double lon, double lat) const {
-    LOG_INFO(0, "lat,lon = %9.9lf, %9.9lf", lat, lon);
+img::Point<double> Calibration::worldToPixels(const world::Location &w) const {
+    LOG_INFO(0, "lat,lon = %9.9lf, %9.9lf", w.latDegrees(), w.lonDegrees());
 
     std::pair<double, double> yx;
-    yx = isChartfoxGeoreferenced ? latLonToEPSG3857(lat, lon) : mercator(lat, lon);
+    yx = isChartfoxGeoreferenced ? w.toEPSG3857() : w.toMercator();
     LOG_INFO(0, "x,y =     %9.9lf, %9.9lf", yx.second, yx.first);
 
     auto r = leWorldToPixels.getResult(yx.second, yx.first);
@@ -572,24 +549,23 @@ img::Point<double> Calibration::worldToPixels(double lon, double lat) const {
     return img::Point<double>{x, y};
 }
 
-img::Point<double> Calibration::pixelsToWorld(double x, double y) const {
+world::Location Calibration::pixelsToWorld(double x, double y) const {
     LOG_INFO(0, "x,y =     %9.9lf,%9.9lf", x, y);
 
     auto r = lePixelsToWorld.getResult(x, y);
-    double lat = r.second;
-    double lon = r.first;
+    double& lat = r.second;
+    double& lon = r.first;
     LOG_INFO(0, "lat,lon = %9.9lf,%9.9lf", lat, lon);
 
+    world::Location w;
     if (isChartfoxGeoreferenced) {
-        auto r = EPSG3857toLatLon(lat, lon);
-        lat = r.first;
-        lon = r.second;
+        w = world::Location::fromEPSG3857(lat, lon);
     } else {
-        lat = invMercator(lat);
+        w = world::Location::fromMercator(lat, lon);
     }
 
     LOG_INFO(0, "lat,lon = %4.10f,%4.10f", lat, lon);
-    return img::Point<double>{lon, lat};
+    return w;
 }
 
 int Calibration::getPreRotate() const {

@@ -20,7 +20,7 @@
 #include <string>
 #include <memory>
 #include <limits>
-#include "models/Location.h"
+#include "WorldGeometry.h"
 #include "graph/NavNode.h"
 
 namespace world {
@@ -53,7 +53,7 @@ public:
     void setWidth(float w);
     void setHeading(float b);
     void setLength(float l);
-    void setLocation(const Location &loc);
+    void setLocation(const world::Location &loc);
     void setSurfaceType(SurfaceMaterial surfaceType);
     void setElevation(float elevation);
     float getHeading() const; // can be NaN
@@ -61,7 +61,7 @@ public:
     float getElevation() const; // can be NaN
 
     const std::string &getID() const override;
-    const Location &getLocation() const override;
+    const world::Location &getLocation() const override;
     bool isAirport() const override { return false; }
     bool isFix() const override { return false; }
     bool isRunway() const override;
@@ -76,7 +76,7 @@ public:
     std::shared_ptr<Fix> getILSData() const;
 private:
     std::string name;
-    Location location;
+    world::Location location;
     float elevation = std::numeric_limits<float>::quiet_NaN(); // feet MSL
     float width = std::numeric_limits<float>::quiet_NaN(); // meters
     float heading = std::numeric_limits<float>::quiet_NaN(); // degrees

@@ -17,6 +17,7 @@
  */
 #pragma once
 
+#include "WorldGeometry.h"
 #include "libimg/Image.h"
 #include <string>
 
@@ -56,8 +57,8 @@ public:
     virtual std::unique_ptr<img::Image> loadTileImage(int page, int x, int y, int zoom) = 0;
 
     // World position support
-    virtual Point<double> worldToXY(double lon, double lat, int zoom) = 0;
-    virtual Point<double> xyToWorld(double x, double y, int zoom) = 0;
+    virtual Point<double> worldToXY(const world::Location &loc, int zoom) = 0;
+    virtual world::Location xyToWorld(double x, double y, int zoom) = 0;
     virtual void attachCalibration1(double x, double y, double lat, double lon, int zoom) {}
     virtual void attachCalibration2(double x, double y, double lat, double lon, int zoom) {}
     virtual void attachCalibration3Point(double x, double y, double lat, double lon, int zoom) {}

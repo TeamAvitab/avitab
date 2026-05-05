@@ -255,7 +255,7 @@ std::string XPlaneEnvironment::getFlightPlansPath() {
 }
 
 float XPlaneEnvironment::onFlightLoop(float elapsedSinceLastCall, float elapseSinceLastLoop, int count) {
-    std::vector<Location> activeAircraftLocations;
+    std::vector<world::Position> activeAircraftLocations;
 
     updatePlaneCount();
 
@@ -263,15 +263,12 @@ float XPlaneEnvironment::onFlightLoop(float elapsedSinceLastCall, float elapseSi
     if (tcasAircraftCount > 1) {
         tcasLat = dataCache.getData("sim/cockpit2/tcas/targets/position/lat").floatVector;
         tcasLon = dataCache.getData("sim/cockpit2/tcas/targets/position/lon").floatVector;
-        tcasEle = dataCache.getData("sim/cockpit2/tcas/targets/position/ele").floatVector;
         tcasPsi = dataCache.getData("sim/cockpit2/tcas/targets/position/psi").floatVector;
+        tcasEle = dataCache.getData("sim/cockpit2/tcas/targets/position/ele").floatVector;
 
         for (AircraftID i = 0; i < tcasAircraftCount; i++) {
-            Location loc;
-            loc.latitude = tcasLat.at(i);
-            loc.longitude = tcasLon.at(i);
-            loc.elevation = tcasEle.at(i);
-            loc.heading = tcasPsi.at(i);
+            world::Position loc;
+            loc = world::Position::fromGCSm(tcasLat.at(i), tcasLon.at(i), tcasPsi.at(i), tcasEle.at(i));
             activeAircraftLocations.push_back(loc);
         }
     }
@@ -280,11 +277,9 @@ float XPlaneEnvironment::onFlightLoop(float elapsedSinceLastCall, float elapseSi
     if (tcasAircraftCount == 1) {
         for (AircraftID i = 0; i <= otherAircraftCount; ++i) {
             try {
-                Location loc;
-                loc.latitude = dataCache.getLocationData(i, 0).doubleValue;
-                loc.longitude = dataCache.getLocationData(i, 1).doubleValue;
-                loc.elevation = dataCache.getLocationData(i, 2).doubleValue;
-                loc.heading = dataCache.getLocationData(i, 3).floatValue;
+                world::Position loc;
+                loc = world::Position::fromGCSm(dataCache.getLocationData(i, 0).doubleValue, dataCache.getLocationData(i, 1).doubleValue,
+                        dataCache.getLocationData(i, 3).floatValue, dataCache.getLocationData(i, 2).doubleValue);
                 activeAircraftLocations.push_back(loc);
             } catch (const std::exception &e) {
                 // silently ignore to avoid flooding the log
@@ -311,12 +306,12 @@ AircraftID XPlaneEnvironment::getActiveAircraftCount() {
     return (otherAircraftCount + 1);
 }
 
-Location XPlaneEnvironment::getAircraftLocation(AircraftID id) {
+world::Position XPlaneEnvironment::getAircraftPosition(AircraftID id) {
     std::lock_guard<std::mutex> lock(stateMutex);
     if (id < aircraftLocations.size()) {
         return aircraftLocations[id];
     } else {
-        return nullLocation;
+        return nullPosition;
     }
 }
 
@@ -399,7 +394,7 @@ int XPlaneEnvironment::getWeatherAtLocation(const world::Location &loc, const fl
             int d;
             XPLMWeatherInfo_t w;
             w.structSize = sizeof(XPLMWeatherInfo_t);
-            d = getWeatherAtLoc(loc.latitude, loc.longitude, altitude, &w);
+            d = getWeatherAtLoc(loc.latDegrees(), loc.lonDegrees(), altitude, &w);
             dataPromise.set_value(std::make_pair(d, w));
         });
         std::tie(detailed, winfo) = futureData.get();
@@ -461,8 +456,8 @@ std::string XPlaneEnvironment::getNearestAirportId() {
         float lat = 0.0, lon = 0.0;
         char nearestID[32] = {};
         if (aircraftLocations.size() > 0) {
-            lat = aircraftLocations[0].latitude;
-            lon = aircraftLocations[0].longitude;
+            lat = aircraftLocations[0].latDegrees();
+            lon = aircraftLocations[0].lonDegrees();
         }
         XPLMNavRef navRef = XPLMFindNavAid(nullptr, nullptr, &lat, &lon, nullptr, xplm_Nav_Airport);
         if (navRef != XPLM_NAV_NOT_FOUND) {

@@ -81,7 +81,7 @@ void Route::iterateRouteShort(RouteIterator f) const {
 }
 
 double Route::getDirectDistance() const {
-    return startNode->getLocation().distanceTo(destNode->getLocation());
+    return startNode->getLocation().surfaceDistanceTo(destNode->getLocation());
 }
 
 double Route::getRouteDistance() const {
@@ -90,7 +90,7 @@ double Route::getRouteDistance() const {
     std::shared_ptr<NavNode> prevNode = startNode;
 
     for (auto &entry: waypoints) {
-        distance += prevNode->getLocation().distanceTo(entry.to->getLocation());
+        distance += prevNode->getLocation().surfaceDistanceTo(entry.to->getLocation());
         prevNode = entry.to;
     }
 

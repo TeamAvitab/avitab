@@ -54,9 +54,9 @@ void NavaidLoader::onNavaidLoaded(const NavaidData& navaid) {
         dontPair = ((new_vor || new_dme) && old_ndb) || (new_ndb && old_vor_dme);
     }
     if (!fix || dontPair) {
-        world::Location location(navaid.latitude, navaid.longitude);
+        auto loc = world::Location::fromGCS(navaid.latitude, navaid.longitude);
         auto region = world->findOrCreateRegion(navaid.icaoRegion);
-        fix = std::make_shared<world::Fix>(region, navaid.id, location);
+        fix = std::make_shared<world::Fix>(region, navaid.id, loc);
         world->addFix(fix);
     }
 

@@ -30,7 +30,7 @@ OverlayedNode::OverlayedNode(IOverlayHelper *h, bool a)
 
 void OverlayedNode::configure(const OverlayConfig &cfg, const world::Location &loc)
 {
-    overlayHelper->positionToPixel(loc.latitude, loc.longitude, posX, posY);
+    overlayHelper->locationToPixel(loc, posX, posY);
     highlight = false;
 }
 

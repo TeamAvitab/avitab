@@ -18,7 +18,7 @@
 #pragma once
 
 #include <string>
-#include "models/Location.h"
+#include "WorldGeometry.h"
 #include "graph/NavNode.h"
 
 namespace world {
@@ -28,7 +28,7 @@ class Fix;
 class Heliport: public NavNode {
 public:
     Heliport(const std::string &name);
-    void setLocation(const Location &loc);
+    void setLocation(const world::Location &loc);
     void setLength(const float &l);
     void setWidth(const float &w);
 
@@ -36,13 +36,13 @@ public:
     float getWidth() const;
 
     const std::string &getID() const override;
-    const Location &getLocation() const override;
+    const world::Location &getLocation() const override;
     bool isAirport() const override { return true; }
     bool isFix() const override { return false; }
 
 private:
     std::string name;
-    Location location;
+    world::Location location;
     float length = std::numeric_limits<float>::quiet_NaN(); // meters
     float width = std::numeric_limits<float>::quiet_NaN(); // meters
 };

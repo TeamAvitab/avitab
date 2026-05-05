@@ -20,14 +20,14 @@
 #include <string>
 #include <memory>
 #include <vector>
-#include "models/Location.h"
+#include "WorldGeometry.h"
 
 namespace world {
 
 class NavNode {
 public:
     virtual const std::string &getID() const = 0;
-    virtual const Location& getLocation() const = 0;
+    virtual const world::Location& getLocation() const = 0;
     virtual bool isAirport() const = 0;
     virtual bool isFix() const = 0;
     virtual bool isRunway() const;

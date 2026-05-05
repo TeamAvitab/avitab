@@ -72,14 +72,14 @@ void ImageSource::attachCalibration1(double x, double y, double lat, double lon,
     auto scale = zoomToScale(zoom);
     double normX = x / scale;
     double normY = y / scale;
-    calibration.setPoint1(normX, normY, lat, lon);
+    calibration.setPoint1(normX, normY, world::Location::fromGCS(lat, lon));
 }
 
 void ImageSource::attachCalibration2(double x, double y, double lat, double lon, int zoom) {
     auto scale = zoomToScale(zoom);
     double normX = x / scale;
     double normY = y / scale;
-    calibration.setPoint2(normX, normY, lat, lon);
+    calibration.setPoint2(normX, normY, world::Location::fromGCS(lat, lon));
 }
 
 void ImageSource::attachCalibration3Angle(double angle) {
@@ -154,8 +154,8 @@ void ImageSource::cancelPendingLoads() {
 void ImageSource::resumeLoading() {
 }
 
-img::Point<double> ImageSource::worldToXY(double lon, double lat, int zoom) {
-    auto normXY = calibration.worldToPixels(lon, lat);
+img::Point<double> ImageSource::worldToXY(const world::Location &loc, int zoom) {
+    auto normXY = calibration.worldToPixels(loc);
 
     auto scale = zoomToScale(zoom);
     double x = normXY.x / TILE_SIZE * scale;
@@ -164,7 +164,7 @@ img::Point<double> ImageSource::worldToXY(double lon, double lat, int zoom) {
     return img::Point<double>{x, y};
 }
 
-img::Point<double> ImageSource::xyToWorld(double x, double y, int zoom) {
+world::Location ImageSource::xyToWorld(double x, double y, int zoom) {
     auto scale = zoomToScale(zoom);
     double normX = x * TILE_SIZE / scale;
     double normY = y * TILE_SIZE / scale;

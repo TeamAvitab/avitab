@@ -46,14 +46,14 @@ void LocalFileSource::attachCalibration1(double x, double y, double lat, double 
     int tileSize = rasterizer.getTileSize();
     double normX = x * tileSize / rasterizer.getPageWidth(0, zoom);
     double normY = y * tileSize / rasterizer.getPageHeight(0, zoom);
-    calibration.setPoint1(normX, normY, lat, lon);
+    calibration.setPoint1(normX, normY, world::Location::fromGCS(lat, lon));
 }
 
 void LocalFileSource::attachCalibration2(double x, double y, double lat, double lon, int zoom) {
     int tileSize = rasterizer.getTileSize();
     double normX = x * tileSize / rasterizer.getPageWidth(0, zoom);
     double normY = y * tileSize / rasterizer.getPageHeight(0, zoom);
-    calibration.setPoint2(normX, normY, lat, lon);
+    calibration.setPoint2(normX, normY, world::Location::fromGCS(lat, lon));
 }
 
 void LocalFileSource::attachCalibration3Point(double x, double y, double lat, double lon, int zoom)
@@ -61,7 +61,7 @@ void LocalFileSource::attachCalibration3Point(double x, double y, double lat, do
     int tileSize = rasterizer.getTileSize();
     double normX = x * tileSize / rasterizer.getPageWidth(0, zoom);
     double normY = y * tileSize / rasterizer.getPageHeight(0, zoom);
-    calibration.setPoint3(normX, normY, lat, lon);
+    calibration.setPoint3(normX, normY, world::Location::fromGCS(lat, lon));
 
     try {
         storeCalibration();

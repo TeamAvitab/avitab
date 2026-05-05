@@ -53,7 +53,7 @@ void FixLoader::loadEnrouteFix(const FixData& fix) {
     auto fixModel = world->findFixByRegionAndID(fix.icaoRegion, fix.id);
 
     auto region = world->findOrCreateRegion(fix.icaoRegion);
-    world::Location loc(fix.latitude, fix.longitude);
+    auto loc = world::Location::fromGCS(fix.latitude, fix.longitude);
 
     fixModel = std::make_shared<world::Fix>(region, fix.id, loc);
     world->addFix(fixModel);
@@ -63,7 +63,7 @@ void FixLoader::loadTerminalFix(const FixData& fix) {
     auto fixModel = world->findFixByRegionAndID(fix.icaoRegion, fix.id);
 
     auto region = world->findOrCreateRegion(fix.icaoRegion);
-    world::Location loc(fix.latitude, fix.longitude);
+    auto loc = world::Location::fromGCS(fix.latitude, fix.longitude);
 
     fixModel = std::make_shared<world::Fix>(region, fix.id, loc);
 

@@ -192,17 +192,16 @@ void AirportApp::removeTab(std::shared_ptr<Page> page) {
 }
 
 void AirportApp::sortSearchResults(std::vector<std::shared_ptr<world::Airport>>& airports) {
-    auto a = api().getAircraftLocation(0);
-    world::Location loc(a.latitude, a.longitude);
+    auto loc = api().getAircraftPosition(0);
     bool sortOrder = airportConfig->sortAscending;
     std::sort(airports.begin(), airports.end(),
         [loc, sortOrder] (std::shared_ptr<world::Airport> a, std::shared_ptr<world::Airport> b) {
             auto aLoc = a->getLocation();
             auto bLoc = b->getLocation();
             if (! sortOrder) {
-                return (aLoc.distanceTo(loc) > bLoc.distanceTo(loc));
+                return (aLoc.surfaceDistanceTo(loc) > bLoc.surfaceDistanceTo(loc));
             }
-            return (aLoc.distanceTo(loc) < bLoc.distanceTo(loc));
+            return (aLoc.surfaceDistanceTo(loc) < bLoc.surfaceDistanceTo(loc));
         }
     );
 }
@@ -234,10 +233,10 @@ void AirportApp::fillPage(std::shared_ptr<Page> page, std::shared_ptr<world::Air
 }
 
 std::tuple<double, double> AirportApp::getNavData(std::shared_ptr<world::Airport> airport) {
-    auto a = api().getAircraftLocation(0);
-    world::Location loc(a.latitude, a.longitude);
+    auto loc = api().getAircraftPosition(0);
     auto aptLoc = airport->getLocation();
-    return std::make_tuple((aptLoc.distanceTo(loc) / 1000) * world::KM_TO_NM, loc.bearingTo(aptLoc));
+    world::Trajectory tr(loc, aptLoc);
+    return std::make_tuple((aptLoc.surfaceDistanceTo(loc) / 1000) * world::KM_TO_NM, tr.hdgDegrees());
 }
 
 std::string AirportApp::toAptHeader(std::shared_ptr<world::Airport> airport) {
@@ -280,7 +279,7 @@ std::string AirportApp::toRunwayInfo(std::shared_ptr<world::Airport> airport) {
     str << std::fixed << std::setprecision(0);
     auto aptLoc = airport->getLocation();
 
-    auto loc = std::make_pair(aptLoc.latitude, aptLoc.longitude);
+    auto loc = std::make_pair(aptLoc.latDegrees(), aptLoc.lonDegrees());
     std::vector<std::pair<double, double>> locations;
     locations.push_back(loc);
     auto magneticVariation = api().getMagneticVariations(locations)[loc];
@@ -652,9 +651,9 @@ void AirportApp::changeChartTab(bool next) {
 bool AirportApp::onTimer() {
     for (auto &tab: pages) {
         if (tab.map) {
-            std::vector<avitab::Location> locs;
+            std::vector<world::Position> locs;
             for (AircraftID i = 0; i < api().getActiveAircraftCount(); ++i) {
-                locs.push_back(api().getAircraftLocation(i));
+                locs.push_back(api().getAircraftPosition(i));
             }
             tab.map->setPlaneLocations(locs);
             if (tab.trackPlane) {

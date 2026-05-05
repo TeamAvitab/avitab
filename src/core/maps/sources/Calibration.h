@@ -27,9 +27,9 @@ namespace maps {
 
 class Calibration {
 public:
-    void setPoint1(double x, double y, double lat, double lon);
-    void setPoint2(double x, double y, double lat, double lon);
-    void setPoint3(double x, double y, double lat, double lon);
+    void setPoint1(double x, double y, world::Location loc);
+    void setPoint2(double x, double y, world::Location loc);
+    void setPoint3(double x, double y, world::Location loc);
     void setAngle(double angle);
     void setPreRotate(int angle);
     void setHash(const std::string &s);
@@ -42,17 +42,18 @@ public:
 
     bool hasCalibration() const;
 
-    img::Point<double> worldToPixels(double lon, double lat) const;
-    img::Point<double> pixelsToWorld(double x, double y) const;
+    img::Point<double> worldToPixels(const world::Location &loc) const;
+    world::Location pixelsToWorld(double x, double y) const;
     int getPreRotate() const;
     double getNorthOffset() const;
     std::string getReport() const;
 
 private:
     int preRotate{};
-    double regX1{}, regY1{}, regLat1{}, regLon1{};
-    double regX2{}, regY2{}, regLat2{}, regLon2{};
-    double regX3{}, regY3{}, regLat3{}, regLon3{};
+    double regX1{}, regY1{};
+    double regX2{}, regY2{};
+    double regX3{}, regY3{};
+    world::Location regLoc1, regLoc2, regLoc3;
     std::string regHash{};
     double northOffsetAngle{};
     bool isCalibrated = false;
@@ -68,10 +69,6 @@ private:
     void calculateChartfoxCalibration(double k, double transformAngle, double tx, double ty, double aspectRatio);
     std::pair<double, double> rotate(double x, double y, double angleDegrees) const;
     std::string getKmlTagData(const std::string kml, const std::string tag) const;
-    std::pair<double, double> mercator(double lat, double lon) const;
-    std::pair<double, double> latLonToEPSG3857(double lat, double lon) const;
-    std::pair<double, double> EPSG3857toLatLon(double lat3857, double lon3857) const;
-    double invMercator(double lat) const;
     void define2PAThirdVertex();
     double getTriangleInnerAngleA(double a, double b, double c) const;
     double getTriangleSmallestInnerAngle() const;

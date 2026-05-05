@@ -74,7 +74,7 @@ std::shared_ptr<world::Fix> FixLoader::load()
     laty = q->getDouble(5);
 
     auto r = loadMgr->getRegion(region);
-    world::Location loc(laty, lonx);
+    auto loc = world::Location::fromGCS(laty, lonx);
     f = std::make_shared<world::Fix>(r, ident, loc);
 
     // the fix might have an NDB, VOR, or DME associated with it
@@ -114,7 +114,7 @@ std::vector<std::shared_ptr<world::Fix>> FixLoader::loadAll(const std::vector<in
         auto laty = qry->getDouble(4);
 
         auto r = loadMgr->getRegion(region);
-        world::Location loc(laty, lonx);
+        auto loc = world::Location::fromGCS(laty, lonx);
         fixes[id] = std::make_shared<world::Fix>(r, ident, loc);
     }
 

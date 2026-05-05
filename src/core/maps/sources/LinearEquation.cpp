@@ -17,6 +17,7 @@
  */
 #include <cmath>
 #include "LinearEquation.h"
+#include "WorldGeometry.h"
 #include "Logger.h"
 #include <algorithm>
 #include <cfloat>
@@ -35,7 +36,7 @@ void LinearEquation::initialiseFrom3PointsW2P(double px1, double py1, double wx1
      * so -bx/ax = sin(A)/cos(A) = tan(A)
      */
     double angleRadians = std::atan2(-bx, ax); // angleRadians = trig maths convention : -CW, +CCW
-    angle = -angleRadians * 180.0 / M_PI; // angle = compass/kml convention : -CCW, +CW
+    angle = -angleRadians * world::RAD_TO_DEG; // angle = compass/kml convention : -CCW, +CW
     LOG_INFO(dbg, "    ax = %4.10f, bx = %4.10f, cx = %4.10f, angle = %4.10f", ax, bx, cx, angle);
     LOG_INFO(dbg, "    ay = %4.10f, by = %4.10f, cy = %4.10f", ay, by, cy);
 }
@@ -52,7 +53,7 @@ void LinearEquation::initialiseFrom3PointsP2W(double wx1, double wy1, double px1
      * so ay/ax = sin(A)/cos(A) = tan(A)
      */
     double angleRadians = std::atan2(ay, ax); // angleRadians = trig maths convention : -CW, +CCW
-    angle = -angleRadians * 180.0 / M_PI; // angle = compass/kml convention : -CCW, +CW
+    angle = -angleRadians * world::RAD_TO_DEG; // angle = compass/kml convention : -CCW, +CW
     LOG_INFO(dbg, "    ax = %4.10f, bx = %4.10f, cx = %4.10f, angle = %4.10f", ax, bx, cx, angle);
     LOG_INFO(dbg, "    ay = %4.10f, by = %4.10f, cy = %4.10f", ay, by, cy);
 }
@@ -90,7 +91,7 @@ void LinearEquation::initialiseFrom2PointsAndAngleP2W(double wx1, double wy1, do
     // The world coordinate system has Y axis pointing north/up for increasing values
     // The pixel coordinate system has Y axis pointing down for increasing values
     // So sign of rotation to align with chart is inverse of incoming northOffsetAngle
-    angle = -northOffsetAngleDegrees * M_PI / 180.0; // angle = maths convention (-CW, +CCW)
+    angle = -northOffsetAngleDegrees * world::DEG_TO_RAD; // angle = maths convention (-CW, +CCW)
     double wx1r = (wx1 * std::cos(angle)) - (wy1 * std::sin(angle));
     double wx2r = (wx2 * std::cos(angle)) - (wy2 * std::sin(angle));
     double wy1r = (wx1 * std::sin(angle)) + (wy1 * std::cos(angle));
@@ -134,7 +135,7 @@ void LinearEquation::initialiseFrom2PointsAndAngleW2P(double px1, double py1, do
     // The world coordinate system has Y axis pointing north/up for increasing values
     // The pixel coordinate system has Y axis pointing down for increasing values
     // So sign of rotation to align with chart is inverse of incoming northOffsetAngle
-    angle = -northOffsetAngleDegrees * M_PI / 180.0; // angle = Maths convention : -CW, +CCW
+    angle = -northOffsetAngleDegrees * world::DEG_TO_RAD; // angle = Maths convention : -CW, +CCW
     double wx1r = (wx1 * std::cos(angle)) - (wy1 * std::sin(angle));
     double wx2r = (wx2 * std::cos(angle)) - (wy2 * std::sin(angle));
     double wy1r = (wx1 * std::sin(angle)) + (wy1 * std::cos(angle));

@@ -17,7 +17,7 @@
  */
 #include <algorithm>
 #include "FMSLoader.h"
-#include "models/Location.h"
+#include "WorldGeometry.h"
 #include "models/navaids/Fix.h"
 #include "FMSParser.h"
 #include "Logger.h"
@@ -74,7 +74,7 @@ void FMSLoader::onFMSLoaded(const FlightPlanNodeData &node) {
         case FlightPlanNodeData::Type::VOR:
         case FlightPlanNodeData::Type::FIX:
         case FlightPlanNodeData::Type::UNNAMED:
-            appendNode(node.id, world::Location(node.lat, node.lon));
+            appendNode(node.id, world::Location::fromGCS(node.lat, node.lon));
             break;
 
         case FlightPlanNodeData::Type::AIRPORT:

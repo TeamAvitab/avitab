@@ -4,4 +4,5 @@ target_sources(avitab_core_lib PRIVATE
     JsonConfig.cpp
     Logger.cpp
     Settings.cpp
+    WorldGeometry.cpp
 )

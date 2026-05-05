@@ -45,31 +45,31 @@ void OverlayedRoute::draw(std::shared_ptr<world::Route> route) {
 
     // Draw last node
     int toX, toY;
-    overlayHelper->positionToPixel(toLoc.latitude, toLoc.longitude, toX, toY);
+    overlayHelper->locationToPixel(toLoc, toX, toY);
     overlayHelper->getMapImage()->fillCircle(toX, toY, 3, img::COLOR_BLACK);
 }
 
 void OverlayedRoute::drawLeg(world::Location &from, world::Location &to, double distance,
                              double trueBearing, double magneticBearing) {
-    world::Location crossingPoint(0,0);
-    if (((from.longitude * to.longitude) < 0) && (std::abs(from.longitude - to.longitude) > 180)) {
+    world::Location crossingPoint;
+    if (((from.lonDegrees() * to.lonDegrees()) < 0) && (std::abs(from.lonDegrees() - to.lonDegrees()) > 180)) {
         // this leg of the route crosses the -180/+180 longitude discontinuity. it needs special
         // handling by dividing it into two parts at the point where the discontinuity is crossed.
-        double lonStart = from.longitude;
-        double lonEnd = to.longitude;
+        double lonStart = from.lonDegrees();
+        double lonEnd = to.lonDegrees();
         double crossingFraction = (lonStart > lonEnd)
             ? (180 - lonStart) / ((lonEnd + 360) - lonStart)    // crossing eastbound
             : (-180 - lonStart) / (lonEnd - (lonStart + 360));  // westbound, both parts -ve
-        crossingPoint.longitude = (lonStart > lonEnd) ? 180 : -180;
-        crossingPoint.latitude = from.latitude + (crossingFraction * (to.latitude - from.latitude));
+        crossingPoint = world::Location::fromGCS((lonStart > lonEnd) ? 180 : -180,
+                                from.latDegrees() + (crossingFraction * (to.latDegrees() - from.latDegrees())));
     }
 
     int fromX, fromY, midX, midY, toX, toY;
-    overlayHelper->positionToPixel(from.latitude, from.longitude, fromX, fromY);
-    overlayHelper->positionToPixel(to.latitude, to.longitude, toX, toY);
+    overlayHelper->locationToPixel(from, fromX, fromY);
+    overlayHelper->locationToPixel(to, toX, toY);
 
     std::pair<int, int> legDims(0,0);
-    if (crossingPoint.longitude == 0) {
+    if (!crossingPoint.isValid()) {
         // the leg doesn't cross the -180/+180 longitude discontinuity - easy!
         legDims = drawLeg(fromX, fromY, toX, toY);
         midX = (fromX + toX) / 2;
@@ -79,12 +79,12 @@ void OverlayedRoute::drawLeg(world::Location &from, world::Location &to, double 
         // separately. additionally the midpoint is most likely not the same as the crossing
         // point and needs to be calculated using the 2 parts of the leg.
         int crossX, crossY;
-        overlayHelper->positionToPixel(crossingPoint.latitude, crossingPoint.longitude, crossX, crossY);
+        overlayHelper->locationToPixel(crossingPoint, crossX, crossY);
         legDims = drawLeg(fromX, fromY, crossX, crossY);
         int deltaX = (crossX - fromX);
         int deltaY = (crossY - fromY);
-        crossingPoint.longitude = -crossingPoint.longitude;
-        overlayHelper->positionToPixel(crossingPoint.latitude, crossingPoint.longitude, crossX, crossY);
+        crossingPoint.xpos_rad = 0 - crossingPoint.xpos_rad;
+        overlayHelper->locationToPixel(crossingPoint, crossX, crossY);
         auto leg2Dims = drawLeg(crossX, crossY, toX, toY);
         legDims.first += leg2Dims.first;
         legDims.second += leg2Dims.second;

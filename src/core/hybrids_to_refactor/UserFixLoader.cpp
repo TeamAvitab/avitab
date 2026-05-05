@@ -50,8 +50,8 @@ void UserFixLoader::onUserFixLoaded(const UserFixData& userfixdata) {
     // User fixes are unique, so create new fix each time
     // No region in LNM/PlanG csv format, so just use dummy one
     auto region = world->getRegion(USER_REGION);
-    Location location(userfixdata.latitude, userfixdata.longitude);
-    auto fix = std::make_shared<Fix>(region, userfixdata.ident, location);
+    auto loc = world::Location::fromGCS(userfixdata.latitude, userfixdata.longitude);
+    auto fix = std::make_shared<Fix>(region, userfixdata.ident, loc);
     auto userFix = std::make_shared<UserFix>();
     userFix->setType(userfixdata.type);
     userFix->setName(userfixdata.name);

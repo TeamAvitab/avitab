@@ -48,8 +48,8 @@ public:
     std::unique_ptr<img::Image> loadTileImage(int page, int x, int y, int zoom) override;
 
     // If world position is supported
-    img::Point<double> worldToXY(double lon, double lat, int zoom) override;
-    img::Point<double> xyToWorld(double x, double y, int zoom) override;
+    img::Point<double> worldToXY(const world::Location &loc, int zoom) override;
+    world::Location xyToWorld(double x, double y, int zoom) override;
 
 private:
     int minLevel = std::numeric_limits<int>::max();

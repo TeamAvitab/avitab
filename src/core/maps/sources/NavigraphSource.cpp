@@ -69,28 +69,13 @@ img::Point<double> NavigraphSource::transformZoomedPoint(int page, double oldX, 
     return img::Point<double>{oldX, oldY};
 }
 
-img::Point<double> NavigraphSource::worldToXY(double lon, double lat, int zoom) {
-    double zp = std::pow(2.0, zoom);
-    double x = (lon + 180.0) / 360.0 * zp;
-    double y = (1.0 - std::log(std::tan(lat * M_PI / 180.0) +
-           1.0 / std::cos(lat * M_PI / 180.0)) / M_PI) / 2.0 * zp;
-    return img::Point<double>{x, y};
+img::Point<double> NavigraphSource::worldToXY(const world::Location &loc, int zoom) {
+    auto p = loc.toTileYX(zoom);
+    return img::Point<double>{p.second, p.first};
 }
 
-img::Point<double> NavigraphSource::xyToWorld(double x, double y, int zoom) {
-    double zp = std::pow(2.0, zoom);
-    double plainLon = x / zp * 360.0 - 180;
-    double lon = std::fmod(plainLon, 360.0);
-    if (lon > 180.0) {
-        lon -= 360.0;
-    } else if (lon <= -180.0) {
-        lon += 360.0;
-    }
-
-    double n = M_PI - 2.0 * M_PI * y / zp;
-    double lat = 180.0 / M_PI * std::atan(0.5 * (std::exp(n) - std::exp(-n)));
-
-    return img::Point<double>{lon, lat};
+world::Location NavigraphSource::xyToWorld(double x, double y, int zoom) {
+    return world::Location::fromTileYX(y, x, zoom);
 }
 
 int NavigraphSource::getPageCount() {

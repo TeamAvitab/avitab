@@ -74,7 +74,7 @@ std::shared_ptr<world::Airport> AirportLoader::load(std::vector<std::shared_ptr<
     a->setName(name);
     a->setRegion(r);
     a->setElevation(altitude);
-    a->setLocation(world::Location(laty, lonx));
+    a->setLocation(world::Location::fromGCS(laty, lonx));
 
     // add related info: comms, runways, heliports, navaids, fixes
     addComms();
@@ -204,7 +204,7 @@ void AirportLoader::addRunways()
         r->setHeading(heading);
         r->setWidth(width / world::M_TO_FT);
         r->setLength(length / world::M_TO_FT);
-        world::Location loc(laty, lonx);
+        auto loc = world::Location::fromGCS(laty, lonx);
         r->setLocation(loc);
         r->setSurfaceType(mapToSurfaceMaterial(surface));
         r->setElevation(altitude);
@@ -250,7 +250,7 @@ void AirportLoader::addHeliports()
         auto lonx = q->getDouble(1);
         auto laty = q->getDouble(2);
 
-        world::Location loc(laty, lonx);
+        auto loc = world::Location::fromGCS(laty, lonx);
         std::ostringstream name;
         name << 'H' << id;
 
@@ -307,7 +307,7 @@ void AirportLoader::addLocalizers(std::vector<std::shared_ptr<world::Fix>> *fixe
         auto dme_range = q->getInt(9);
 
         auto r = loadMgr->getRegion(region);
-        world::Location loc(laty, lonx);
+        auto loc = world::Location::fromGCS(laty, lonx);
         auto f = std::make_shared<world::Fix>(r, ils_ident, loc);
 
         world::Frequency ilsFrq(freq, 3, world::Frequency::Unit::MHZ, description);

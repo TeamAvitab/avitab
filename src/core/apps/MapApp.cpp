@@ -377,12 +377,12 @@ void MapApp::reportErrorAndSelectOnlineFallback(std::vector<std::string> errorMs
 
 void MapApp::selectNavigraph(maps::NavigraphMapType type) {
     bool reCenter = false;
-    double lat, lon;
+    world::Location center;
     int zoom = 0;
 
     if (!trackPlane && map && map->isCalibrated()) {
         reCenter = true;
-        map->getCenterLocation(lat, lon);
+        center = map->getCenterLocation();
         zoom = map->getZoomLevel();
     }
 
@@ -397,7 +397,7 @@ void MapApp::selectNavigraph(maps::NavigraphMapType type) {
         if (zoom >= source->getMinZoomLevel() && zoom <= source->getMaxZoomLevel()) {
             mapStitcher->setZoomLevel(zoom);
         }
-        map->centerOnWorldPos(lat, lon);
+        map->centerOnLocation(center);
     }
 }
 
@@ -630,11 +630,10 @@ void MapApp::onRedrawNeeded() {
     }
 
     std::ostringstream str;
-    double lat, lon;
-    map->getCenterLocation(lat, lon);
+    world::Location center = map->getCenterLocation();
 
     str << std::fixed << std::setprecision(3);
-    str << lat << ", " << lon << ", zoom: " << mapStitcher->getZoomLevel();
+    str << center.latDegrees() << ", " << center.lonDegrees() << ", zoom: " << mapStitcher->getZoomLevel();
     window->setCaption(str.str());
 }
 
@@ -817,14 +816,15 @@ void MapApp::processCalibrationPoint(int step) {
             return;
         }
         LOG_INFO(1, "From '%s', got %4.10f, %4.10f", coords.c_str(), lat, lon);
+        auto pt = world::Location::fromGCS(lat, lon);
         if (step == 1) {
-            map->setCalibrationPoint1(lat, lon);
+            map->setCalibrationPoint1(pt);
             coordsField->setText("");
         } else if (step == 2) {
-            map->setCalibrationPoint2(lat, lon);
+            map->setCalibrationPoint2(pt);
             coordsField->setText("0");
         } else {
-            map->setCalibrationPoint3(lat, lon);
+            map->setCalibrationPoint3(pt);
             finalizeCalibration(map->getCalibrationReport());
         }
     } catch (const std::exception &e) {
@@ -852,8 +852,8 @@ bool MapApp::handleNonNumericContent(std::string coords)  {
     ss << std::setprecision(12);
     if (coords.empty()) {
         // Populate empty coords text box with current plane lat,long
-        Location aircraftLoc = api().getAircraftLocation(0);
-        ss << aircraftLoc.latitude << ", " << aircraftLoc.longitude;
+        world::Position aircraftLoc = api().getAircraftPosition(0);
+        ss << aircraftLoc.latDegrees() << ", " << aircraftLoc.lonDegrees();
         coordsField->setText(ss.str());
         return true;
     }
@@ -864,10 +864,10 @@ bool MapApp::handleNonNumericContent(std::string coords)  {
     if (airport) {
         // Replace airport ID in text box with lat,long
         auto airportLoc = airport->getLocation();
-        ss << airportLoc.latitude << ", " << airportLoc.longitude;
+        ss << airportLoc.latDegrees() << ", " << airportLoc.lonDegrees();
         coordsField->setText(ss.str());
         LOG_INFO(1, "Replace airport %s with %4.10f, %4.10f",
-                    coordsUpper.c_str(), airportLoc.latitude, airportLoc.longitude);
+                    coordsUpper.c_str(), airportLoc.latDegrees(), airportLoc.lonDegrees());
         return true;
     }
 
@@ -895,10 +895,10 @@ bool MapApp::handleNonNumericContent(std::string coords)  {
     if (fix) {
         // Replace nav fix region,id in text box with lat,long
         auto fixLoc = fix->getLocation();
-        ss << fixLoc.latitude << ", " << fixLoc.longitude;
+        ss << fixLoc.latDegrees() << ", " << fixLoc.lonDegrees();
         coordsField->setText(ss.str());
         LOG_INFO(1, "Replace nav fix %s with %4.10f, %4.10f",
-                    coordsUpper.c_str(), fixLoc.latitude, fixLoc.longitude);
+                    coordsUpper.c_str(), fixLoc.latDegrees(), fixLoc.lonDegrees());
         return true;
     }
     return false;
@@ -909,9 +909,9 @@ bool MapApp::onTimer() {
         return true;
     }
 
-    std::vector<avitab::Location> locs;
+    std::vector<world::Position> locs;
     for (AircraftID i = 0; i < api().getActiveAircraftCount(); ++i) {
-        locs.push_back(api().getAircraftLocation(i));
+        locs.push_back(api().getAircraftPosition(i));
     }
 
     map->setPlaneLocations(locs);
@@ -921,9 +921,9 @@ bool MapApp::onTimer() {
 
     map->doWork();
 
-    double lat, lon;
-    map->getCenterLocation(lat, lon);
-    api().updateMapExports(lat, lon, map->getZoomLevel(), map->getVerticalRange());
+    world::Location center = map->getCenterLocation();
+    api().updateMapExports(center.latDegrees(), center.lonDegrees(),
+                           map->getZoomLevel(), map->getVerticalRange());
 
     return true;
 }

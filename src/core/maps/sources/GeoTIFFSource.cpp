@@ -147,9 +147,9 @@ bool GeoTIFFSource::supportsWorldCoords() {
     return true;
 }
 
-img::Point<double> GeoTIFFSource::worldToXY(double lon, double lat, int zoom) {
-    double px = lon;
-    double py = lat;
+img::Point<double> GeoTIFFSource::worldToXY(const world::Location &loc, int zoom) {
+    double px = loc.lonDegrees();
+    double py = loc.latDegrees();
 
     GTIFProj4FromLatLong(&defn, 1, &px, &py);
     GTIFPCSToImage(gtif, &px, &py);
@@ -161,16 +161,16 @@ img::Point<double> GeoTIFFSource::worldToXY(double lon, double lat, int zoom) {
     return img::Point<double>{x, y};
 }
 
-img::Point<double> GeoTIFFSource::xyToWorld(double x, double y, int zoom) {
+world::Location GeoTIFFSource::xyToWorld(double x, double y, int zoom) {
     auto scale = zoomToScale(zoom);
 
-    double px = x * tileSize / scale;
-    double py = y * tileSize / scale;
+    double lon = x * tileSize / scale;
+    double lat = y * tileSize / scale;
 
-    GTIFImageToPCS(gtif, &px, &py);
-    GTIFProj4ToLatLong(&defn, 1, &px, &py);
+    GTIFImageToPCS(gtif, &lon, &lat); // TODO - are lat/lon reversed in these calls?
+    GTIFProj4ToLatLong(&defn, 1, &lon, &lat);
 
-    return img::Point<double>{px, py};
+    return world::Location::fromGCS(lat, lon);
 }
 
 GeoTIFFSource::~GeoTIFFSource() {

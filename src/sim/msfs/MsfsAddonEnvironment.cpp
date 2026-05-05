@@ -69,7 +69,7 @@ AircraftID MsfsAddonEnvironment::getActiveAircraftCount()
     return 1 + otherLocations.size();
 }
 
-Location MsfsAddonEnvironment::getAircraftLocation(AircraftID id)
+world::Position MsfsAddonEnvironment::getAircraftPosition(AircraftID id)
 {
     std::lock_guard<std::mutex> lock(stateMutex);
     if (id == 0) {
@@ -82,10 +82,7 @@ Location MsfsAddonEnvironment::getAircraftLocation(AircraftID id)
 void MsfsAddonEnvironment::resetLocations()
 {
     std::lock_guard<std::mutex> lock(stateMutex);
-    userLocation.latitude = 0.0;
-    userLocation.longitude = 0.0;
-    userLocation.heading = 0.0;
-    userLocation.elevation = 0.0;
+    userLocation = world::Position::fromGCSft(0, 0, 0, 0);
     otherLocations.clear();
 }
 
@@ -180,17 +177,11 @@ void MsfsAddonEnvironment::updateAircraftLocation(SIMCONNECT_RECV_SIMOBJECT_DATA
                     pLoc->title, pLoc->latitude, pLoc->longitude, pLoc->altitude, pLoc->heading);
         std::lock_guard<std::mutex> lock(stateMutex);
         if (isUserAircraft) {
-            userLocation.latitude = pLoc->latitude;
-            userLocation.longitude = pLoc->longitude;
-            userLocation.elevation = pLoc->altitude / world::M_TO_FT; // convert to meters
-            userLocation.heading = pLoc->heading;
+            userLocation = world::Position::fromGCSft(pLoc->latitude, pLoc->longitude, pLoc->heading, pLoc->altitude);
         } else {
             size_t id = pObjData->dwentrynumber - 1;
             otherLocations.resize(pObjData->dwoutof);
-            otherLocations[id].latitude = pLoc->latitude;
-            otherLocations[id].longitude = pLoc->longitude;
-            otherLocations[id].elevation = pLoc->altitude / world::M_TO_FT; // convert to meters;
-            otherLocations[id].heading = pLoc->heading;
+            otherLocations[id] = world::Position::fromGCSft(pLoc->latitude, pLoc->longitude, pLoc->heading, pLoc->altitude);
         }
     }
 }

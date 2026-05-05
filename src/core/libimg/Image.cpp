@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <array>
 #include "Image.h"
+#include "WorldGeometry.h"
 #include "Logger.h"
 #include "platform/Platform.h"
 #include "TTFStamper.h"
@@ -598,7 +599,7 @@ void Image::blendImage(const Image& src, int dstX, int dstY, double angle) {
     int cx = srcWidth / 2;
     int cy = srcHeight / 2;
 
-    double theta = -angle * M_PI / 180.0;
+    double theta = -angle * world::DEG_TO_RAD;
     double cosTheta = std::cos(theta);
     double sinTheta = std::sin(theta);
 

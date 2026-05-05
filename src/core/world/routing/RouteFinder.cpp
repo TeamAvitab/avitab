@@ -46,7 +46,7 @@ void RouteFinder::setGetMagVarsCallback(GetMagVarsCallback cb) {
 
 std::shared_ptr<Route> RouteFinder::find() {
     logger::verbose("Searching route from %s to %s", departure->getID().c_str(), arrival->getID().c_str());
-    directDistance = departure->getLocation().distanceTo(arrival->getLocation());
+    directDistance = departure->getLocation().surfaceDistanceTo(arrival->getLocation());
 
     auto from = departure;
     auto goal = arrival;
@@ -117,27 +117,27 @@ std::vector<Route::Leg> RouteFinder::reconstructPath(Route::NodePtr lastFix) {
     // Collate magnetic variations for the node locations used in the route
     // Getting magVar from XPlane is asynchronous and slow, so batch request
     auto locLast = lastFix->getLocation();
-    locations.push_back(std::make_pair(locLast.latitude, locLast.longitude));
+    locations.push_back(std::make_pair(locLast.latDegrees(), locLast.lonDegrees()));
 
     Route::Leg cur = cameFrom[lastFix];
     decltype(cameFrom.find(nullptr)) it;
     while ((it = cameFrom.find(cur.to)) != cameFrom.end()) {
         cur = cameFrom[it->first];
         auto loc = it->first->getLocation();
-        locations.push_back(std::make_pair(loc.latitude, loc.longitude));
+        locations.push_back(std::make_pair(loc.latDegrees(), loc.lonDegrees()));
     }
     auto magVarMap = getMagneticVariations(locations);
 
 
     // Now we've got magvars, reconstruct the path
     cur = cameFrom[lastFix];
-    double magVar = magVarMap[std::make_pair(locLast.latitude, locLast.longitude)];
+    double magVar = magVarMap[std::make_pair(locLast.latDegrees(), locLast.lonDegrees())];
     res.push_back(Route::Leg(cur.to, cur.via, lastFix, magVar));
 
     while ((it = cameFrom.find(cur.to)) != cameFrom.end()) {
         cur = cameFrom[it->first];
         auto loc = it->first->getLocation();
-        magVar = magVarMap[std::make_pair(loc.latitude, loc.longitude)];
+        magVar = magVarMap[std::make_pair(loc.latDegrees(), loc.lonDegrees())];
         res.push_back(Route::Leg(cur.to, cur.via, it->first, magVar));
     }
 
@@ -176,7 +176,7 @@ Route::NodePtr RouteFinder::getLowestOpen() {
 
 double RouteFinder::minCostHeuristic(Route::NodePtr a, Route::NodePtr b) {
     // the minimum cost is a direct line
-    return a->getLocation().distanceTo(b->getLocation());
+    return a->getLocation().surfaceDistanceTo(b->getLocation());
 }
 
 double RouteFinder::cost(Route::NodePtr a, const Route::Leg& dir) {

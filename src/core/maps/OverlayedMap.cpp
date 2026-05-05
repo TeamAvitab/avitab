@@ -18,6 +18,7 @@
 #include <cstring>
 #include <algorithm>
 #include <cmath>
+#include <cassert>
 #include "OverlayedMap.h"
 #include "OverlayedAirport.h"
 #include "OverlayedDME.h"
@@ -64,8 +65,8 @@ OverlayedMap::OverlayedMap(std::shared_ptr<img::Stitcher> stitchedMap, std::shar
     });
 
     for (int angle = 0; angle < 360; angle++) {
-        sinTable[angle] = std::sin(angle * M_PI / 180);
-        cosTable[angle] = std::cos(angle * M_PI / 180);
+        sinTable[angle] = std::sin(angle * world::DEG_TO_RAD);
+        cosTable[angle] = std::cos(angle * world::DEG_TO_RAD);
     }
 
     otherAircraftColors[RelativeHeight::below] = overlayConfig->colorOtherAircraftBelow;
@@ -96,30 +97,30 @@ void OverlayedMap::setNavWorld(std::shared_ptr<world::World> world) {
     navWorld = world;
 }
 
-void OverlayedMap::centerOnWorldPos(double latitude, double longitude) {
+void OverlayedMap::centerOnLocation(const world::Location &loc) {
     if (!tileSource->supportsWorldCoords()) {
         return;
     }
 
     int zoomLevel = stitcher->getZoomLevel();
-    auto centerXY = tileSource->worldToXY(longitude, latitude, zoomLevel);
+    auto centerXY = tileSource->worldToXY(loc, zoomLevel);
     int page = stitcher->getCurrentPage();
     if (tileSource->isTileValid(page, centerXY.x, centerXY.y, zoomLevel)) {
         stitcher->setCenter(centerXY.x, centerXY.y);
     }
 }
 
-void OverlayedMap::setPlaneLocations(std::vector<avitab::Location> &locs) {
+void OverlayedMap::setPlaneLocations(std::vector<world::Position> &locs) {
     if (!tileSource->supportsWorldCoords()) {
         return;
     }
 
     bool movement = false;
-    for (size_t i = 0; i < locs.size(); ++i) {
+    for (size_t i = 0; !movement && (i < locs.size()); ++i) {
         if (i < planeLocations.size()) {
-            double deltaLat = std::abs(locs[i].latitude - planeLocations[i].latitude);
-            double deltaLon = std::abs(locs[i].longitude - planeLocations[i].longitude);
-            double deltaHeading = std::abs(locs[i].heading - planeLocations[i].heading);
+            double deltaLat = std::abs(locs[i].latDegrees() - planeLocations[i].latDegrees());
+            double deltaLon = std::abs(locs[i].lonDegrees() - planeLocations[i].lonDegrees());
+            double deltaHeading = std::abs(locs[i].hdgDegrees() - planeLocations[i].hdgDegrees());
             movement |= (deltaLat > 0.0000001 || deltaLon > 0.0000001 || deltaHeading > 0.1);
         } else {
             movement = true;
@@ -138,16 +139,17 @@ void OverlayedMap::centerOnPlane() {
     }
 
     if (!planeLocations.empty()) {
-        centerOnWorldPos(planeLocations[0].latitude, planeLocations[0].longitude);
+        centerOnLocation(planeLocations[0]);
     }
 }
 
-void OverlayedMap::getCenterLocation(double& latitude, double& longitude) {
-    pixelToPosition(mapImage->getWidth() / 2, mapImage->getHeight() / 2, latitude, longitude);
+world::Location OverlayedMap::getCenterLocation() {
+    return pixelToLocation(mapImage->getWidth() / 2, mapImage->getHeight() / 2);
 }
 
 float OverlayedMap::getVerticalRange() const {
-    auto rangeLat = (maxLat - minLat) * stitcher->getTargetImage()->getHeight() / mapImage->getHeight();
+    auto rangeLat = (neCorner.latDegrees() - swCorner.latDegrees())
+                * stitcher->getTargetImage()->getHeight() / mapImage->getHeight();
     auto rangeKM = rangeLat * world::LAT_TO_KM;
     return (float)rangeKM * 1000;
 }
@@ -225,12 +227,12 @@ void OverlayedMap::drawAircraftOverlay() {
     }
 
     int px = 0, py = 0;
-    positionToPixel(planeLocations[0].latitude, planeLocations[0].longitude, px, py);
+    locationToPixel(planeLocations[0], px, py);
 
     px -= planeIcon.getWidth() / 2;
     py -= planeIcon.getHeight() / 2;
 
-    mapImage->blendImage(planeIcon, px, py, planeLocations[0].heading + getNorthOffset());
+    mapImage->blendImage(planeIcon, px, py, planeLocations[0].hdgDegrees() + getNorthOffset());
 }
 
 void OverlayedMap::drawOtherAircraftOverlay() {
@@ -241,21 +243,21 @@ void OverlayedMap::drawOtherAircraftOverlay() {
     int px = 0, py = 0;
 
     for (size_t i = 1; i < planeLocations.size(); ++i) {
-        bool isAbove = (planeLocations[i].elevation > (planeLocations[0].elevation + 30));
-        bool isBelow = (planeLocations[i].elevation < (planeLocations[0].elevation - 30));
+        bool isAbove = (planeLocations[i].alt_metres > (planeLocations[0].alt_metres + 30));
+        bool isBelow = (planeLocations[i].alt_metres < (planeLocations[0].alt_metres - 30));
         uint32_t color = (isAbove ? otherAircraftColors[RelativeHeight::above]
                                   : (isBelow ? otherAircraftColors[RelativeHeight::below] 
                                              : otherAircraftColors[RelativeHeight::same]));
-        positionToPixel(planeLocations[i].latitude, planeLocations[i].longitude, px, py);
+        locationToPixel(planeLocations[i], px, py);
         mapImage->drawCircle(px, py, 6, color);
         mapImage->drawCircle(px, py, 7, color);
         double ax, ay, tx, ty, rx, ry;
-        fastPolarToCartesian(12.0, static_cast<int>(planeLocations[i].heading + getNorthOffset()), ax, ay);
-        fastPolarToCartesian(3.0, static_cast<int>(planeLocations[i].heading + getNorthOffset()), tx, ty);
-        fastPolarToCartesian(2.0, static_cast<int>(planeLocations[i].heading + getNorthOffset()) + 90, rx, ry);
+        fastPolarToCartesian(12.0, static_cast<int>(planeLocations[i].hdgDegrees() + getNorthOffset()), ax, ay);
+        fastPolarToCartesian(3.0, static_cast<int>(planeLocations[i].hdgDegrees() + getNorthOffset()), tx, ty);
+        fastPolarToCartesian(2.0, static_cast<int>(planeLocations[i].hdgDegrees() + getNorthOffset()) + 90, rx, ry);
         mapImage->drawLineAA(px + tx + rx, py + ty + ry, px + ax, py + ay, color);
         mapImage->drawLineAA(px + tx - rx, py + ty - ry, px + ax, py + ay, color);
-        unsigned int flightLevel = static_cast<unsigned int>(planeLocations[i].elevation * world::M_TO_FT + 50.0) / 100.0;
+        unsigned int flightLevel = static_cast<unsigned int>(planeLocations[i].altFeet() + 50.0) / 100.0;
         std::string flText = "---";
         flText[0] = '0' + (flightLevel / 100) % 10;
         flText[1] = '0' + (flightLevel / 10) % 10;
@@ -311,22 +313,30 @@ void OverlayedMap::drawNavWorldOverlays() {
     }
 
     // Don't overlay anything if zoomed out beyond half of the globe
-    if (bottomRightLon > (topLeftLon + 180)) return;
-    if ((getNorthOffset() == 0) && ((bottomRightLon < topLeftLon)) && ((bottomRightLon + 360) > (topLeftLon + 180))) return;
+    auto leftEdge = swCorner.lonDegrees();
+    auto rightEdge = neCorner.lonDegrees();
+    auto widthDegrees = rightEdge - leftEdge;
+    if (widthDegrees > 180) {
+        return;
+    }
+    if ((rightEdge < leftEdge) && ((rightEdge + 180) > leftEdge)) {
+        // meridian-wrapping version
+        return;
+    }
 
     // Extend the area of the search to ensure that any NAV data that might be partially visible
     // at the edges of the window will be included, even if the specific NAV item ends up being
     // entirely off-screen.
     double marginDegrees = (double)MAX_ILS_RANGE_NM / MAX_NM_PER_DEGREE;
-    world::Location searchMin(minLat - marginDegrees, minLon - marginDegrees);
-    world::Location searchMax(maxLat + marginDegrees, maxLon + marginDegrees);
+    auto searchMin = world::Location::fromGCS(swCorner.latDegrees() - marginDegrees, leftEdge - marginDegrees);
+    auto searchMax = world::Location::fromGCS(neCorner.latDegrees() + marginDegrees, rightEdge + marginDegrees);
 
     // Find out what is the likely maximum density of the area being shown, and use this value
     // to configure filters for the node search and graphic/text drawing styles.
     maxNodeDensity = navWorld->maxDensity(searchMin, searchMax);
     LOG_INFO(DBG_OVERLAYS,"Estimating %d nodes in (%0.2f,%0.2f) -> (%0.2f,%0.2f)",
-                    maxNodeDensity, searchMin.longitude, searchMin.latitude,
-                    searchMax.longitude, searchMax.latitude);
+                    maxNodeDensity, searchMin.lonDegrees(), searchMin.latDegrees(),
+                    searchMax.lonDegrees(), searchMax.latDegrees());
     if (maxNodeDensity > MAX_VISIT_OBJECTS_IN_FRAME) {
         return;
     }
@@ -389,7 +399,7 @@ void OverlayedMap::drawNavWorldOverlays() {
         }
         if (overlayConfig->drawMyAircraft && !planeLocations.empty()) {
             int x, y;
-            positionToPixel(planeLocations[0].latitude, planeLocations[0].longitude, x, y);
+            locationToPixel(planeLocations[0], x, y);
             highlights[USER_PLANE].activate(x, y);
         }
         highlights[MAP_CENTER].activate(mapImage->getWidth() / 2, mapImage->getHeight() / 2);
@@ -496,12 +506,12 @@ void OverlayedMap::drawCompass() {
     rotatedImage->drawLineAA(cx + xt, cy + yt, cx + xm, cy + ym, img::COLOR_RED);
 }
 
-void OverlayedMap::positionToPixel(double lat, double lon, int& px, int& py) const {
+void OverlayedMap::locationToPixel(const world::Location& loc, int& px, int& py) const {
     int zoomLevel = stitcher->getZoomLevel();
-    positionToPixel(lat, lon, px, py, zoomLevel);
+    locationToPixel(loc, px, py, zoomLevel);
 }
 
-void OverlayedMap::positionToPixel(double lat, double lon, int& px, int& py, int zoomLevel) const {
+void OverlayedMap::locationToPixel(const world::Location& loc, int& px, int& py, int zoomLevel) const {
     auto mapWidth = tileSource->getPageDimensions(0, zoomLevel).x;
     auto dim = tileSource->getTileDimensions(zoomLevel);
 
@@ -509,7 +519,7 @@ void OverlayedMap::positionToPixel(double lat, double lon, int& px, int& py, int
     auto centerXY = stitcher->getCenter();
 
     // Target tile num
-    auto tileXY = tileSource->worldToXY(lon, lat, zoomLevel);
+    auto tileXY = tileSource->worldToXY(loc, zoomLevel);
 
     // Adjust for wrapping at the -180/180 meridian
     if (tileXY.x > (centerXY.x + (mapWidth / 2))) {
@@ -524,28 +534,18 @@ void OverlayedMap::positionToPixel(double lat, double lon, int& px, int& py, int
 
 void OverlayedMap::updateMapAttributes()
 {
+    // Update the corner positions
+    swCorner = pixelToLocation(0, mapImage->getHeight() - 1);
+    neCorner = pixelToLocation(mapImage->getWidth() - 1, 0);
+
     // Calculate scaling from a hybrid of horizontal and vertical axes
-    pixelToPosition(0, 0, topLeftLat, topLeftLon);
-    pixelToPosition(mapImage->getWidth() - 1, mapImage->getHeight() - 1, bottomRightLat, bottomRightLon);
-    world::Location br(bottomRightLat, bottomRightLon);
-    world::Location tl(topLeftLat, topLeftLon);
     double diagonalPixels = sqrt(pow(mapImage->getWidth(), 2) + pow(mapImage->getHeight(), 2));
-    double kmPerPixel = (br.distanceTo(tl) / diagonalPixels) / 1000;
+    double kmPerPixel = (swCorner.surfaceDistanceTo(neCorner) / diagonalPixels) / 1000;
     mapScaleNMperPixel = kmPerPixel * world::KM_TO_NM;
     mapWidthNM = mapScaleNMperPixel * mapImage->getWidth();
-
-    double topRightLat, topRightLon, bottomLeftLat, bottomLeftLon;
-    pixelToPosition(mapImage->getWidth() - 1, 0, bottomLeftLat, bottomLeftLon);
-    pixelToPosition(0, mapImage->getHeight() - 1, topRightLat, topRightLon);
-
-    minLat = std::min(std::min(topLeftLat, bottomRightLat), std::min(topRightLat, bottomLeftLat));
-    minLon = std::min(std::min(topLeftLon, bottomRightLon), std::min(topRightLon, bottomLeftLon));
-    maxLat = std::max(std::max(topLeftLat, bottomRightLat), std::max(topRightLat, bottomLeftLat));
-    maxLon = std::max(std::min(topLeftLon, bottomRightLon), std::max(topRightLon, bottomLeftLon));
 }
 
-void OverlayedMap::pixelToPosition(int px, int py, double &lat,
-                                   double &lon) const {
+world::Location OverlayedMap::pixelToLocation(int px, int py) const {
     int zoomLevel = stitcher->getZoomLevel();
     auto dim = tileSource->getTileDimensions(zoomLevel);
 
@@ -554,9 +554,7 @@ void OverlayedMap::pixelToPosition(int px, int py, double &lat,
     double x = centerXY.x + (px - mapImage->getWidth() / 2.0) / dim.x;
     double y = centerXY.y + (py - mapImage->getHeight() / 2.0) / dim.y;
 
-    auto world = tileSource->xyToWorld(x, y, zoomLevel);
-    lat = world.y;
-    lon = world.x;
+    return tileSource->xyToWorld(x, y, zoomLevel);
 }
 
 float OverlayedMap::cosDegrees(int angleDegrees) const {
@@ -584,8 +582,8 @@ void OverlayedMap::fastPolarToCartesian(float radius, int angleDegrees, double& 
 }
 
 void OverlayedMap::polarToCartesian(float radius, float angleDegrees, double& x, double& y) {
-    x = std::sin(angleDegrees * M_PI / 180.0) * radius;
-    y = -std::cos(angleDegrees * M_PI / 180.0) * radius; // 0 degrees is up, decreasing y values
+    x = std::sin(angleDegrees * world::DEG_TO_RAD) * radius;
+    y = -std::cos(angleDegrees * world::DEG_TO_RAD) * radius; // 0 degrees is up, decreasing y values
 }
 
 bool OverlayedMap::isAreaVisible(int xmin, int ymin, int xmax, int ymax) const {
@@ -602,7 +600,12 @@ int OverlayedMap::getMaxZoomLevel() const {
 }
 
 double OverlayedMap::getNorthOffset() const {
-    return tileSource->getNorthOffsetAngle();
+    auto noa = tileSource->getNorthOffsetAngle();
+    if (noa != 0.0) {
+        logger::warn("Current map tile is not north-oriented. That's not supported! What you see will be wrong.");
+        assert(0); // barf when debugging
+    }
+    return 0.0;
 }
 
 bool OverlayedMap::isCalibrated() const {
@@ -618,25 +621,25 @@ void OverlayedMap::beginCalibration() {
     updateImage();
 }
 
-void OverlayedMap::setCalibrationPoint1(double lat, double lon) {
+void OverlayedMap::setCalibrationPoint1(const world::Location &loc) {
     auto center = stitcher->getCenter();
-    tileSource->attachCalibration1(center.x, center.y, lat, lon, stitcher->getZoomLevel());
+    tileSource->attachCalibration1(center.x, center.y, loc.latDegrees(), loc.lonDegrees(), stitcher->getZoomLevel());
 
     calibrationStep = 2;
     updateImage();
 }
 
-void OverlayedMap::setCalibrationPoint2(double lat, double lon) {
+void OverlayedMap::setCalibrationPoint2(const world::Location &loc) {
     auto center = stitcher->getCenter();
-    tileSource->attachCalibration2(center.x, center.y, lat, lon, stitcher->getZoomLevel());
+    tileSource->attachCalibration2(center.x, center.y, loc.latDegrees(), loc.lonDegrees(), stitcher->getZoomLevel());
 
     calibrationStep = 3;
     updateImage();
 }
 
-void OverlayedMap::setCalibrationPoint3(double lat, double lon) {
+void OverlayedMap::setCalibrationPoint3(const world::Location &loc) {
     auto center = stitcher->getCenter();
-    tileSource->attachCalibration3Point(center.x, center.y, lat, lon, stitcher->getZoomLevel());
+    tileSource->attachCalibration3Point(center.x, center.y, loc.latDegrees(), loc.lonDegrees(), stitcher->getZoomLevel());
     calibrationStep = 0;
     updateImage();
 }

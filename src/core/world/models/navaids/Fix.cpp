@@ -19,7 +19,7 @@
 
 namespace world {
 
-Fix::Fix(std::shared_ptr<Region> region, std::string id, Location loc):
+Fix::Fix(std::shared_ptr<Region> region, std::string id, world::Location loc):
     region(region),
     id(id),
     location(loc)
@@ -30,7 +30,7 @@ const std::string& Fix::getID() const {
     return id;
 }
 
-const Location& Fix::getLocation() const {
+const world::Location& Fix::getLocation() const {
     return location;
 }
 

@@ -28,10 +28,11 @@
 #include "EnvData.h"
 #include "JsonConfig.h"
 #include "Settings.h"
+#include "WorldGeometry.h"
 
 namespace avitab {
 
-struct Location {
+struct PositionAndHeading {
     double longitude{}, latitude{}, elevation{}, heading{};
 };
 
@@ -95,7 +96,7 @@ public:
     virtual void enableAndPowerPanel();
     virtual void setIsInMenu(bool menu);
     virtual AircraftID getActiveAircraftCount() = 0;
-    virtual Location getAircraftLocation(AircraftID id) = 0;
+    virtual world::Position getAircraftPosition(AircraftID id) = 0;
     virtual void updateMapExports(float lat, float lon, int zoom, float vrange) { /* default is no operation */ }
     float getLastFrameTime();
     virtual unsigned int getZuluTimeSeconds() = 0;
