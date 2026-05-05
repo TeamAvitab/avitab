@@ -19,20 +19,25 @@
 #include <future>
 #include <filesystem>
 #include "platform/Platform.h"
+#include "Logger.h"
+#include "JsonConfig.h"
 #include "AviTab.h"
-#include "core/libimg/TTFStamper.h"
-#include "core/Logger.h"
-#include "core/env/Config.h"
-#include "core/avitab/apps/HeaderApp.h"
-#include "core/avitab/apps/AppLauncher.h"
-#include "avitab/config.h"
+#include "gui_toolkit/LVGLToolkit.h"
+#include "libimg/TTFStamper.h"
+#include "avitab/apps/HeaderApp.h"
+#include "avitab/apps/AppLauncher.h"
+#include "AviTabBuildSettings.h"
 
 static const char *defaultMapConfigJson();
 namespace avitab {
 
-AviTab::AviTab(std::shared_ptr<Environment> environment):
-    env(environment),
-    guiLib(environment->createGUIToolkit())
+std::unique_ptr<AviTabCore> AviTabCore::CreateAviTabCore(std::shared_ptr<Environment> env, std::shared_ptr<GUIDriver> gui) {
+    return std::make_unique<AviTab>(env, gui);
+}
+
+AviTab::AviTab(std::shared_ptr<Environment> e, std::shared_ptr<GUIDriver> gui) :
+    env(e),
+    guiLib(std::make_shared<LVGLToolkit>(gui))
 {
     // runs in environment thread, called by PluginStart
     img::TTFStamper::setFontDirectory(env->getFontDirectory());
@@ -228,7 +233,7 @@ void AviTab::finishInstall() {
             platform::mkdir(mapConfigDir);
         }
         std::string mapConfigPath(mapConfigDir + "/mapconfig.json");
-        (void)std::make_unique<Config>(mapConfigPath, defaultMapConfigJson());
+        (void)std::make_unique<JsonConfig>(mapConfigPath, defaultMapConfigJson());
     } catch (const std::exception &e) {
         // report to the log, but not totally fatal
         logger::error("Unable to create default mapconfig.json");
@@ -238,7 +243,7 @@ void AviTab::finishInstall() {
 void AviTab::createPanel() {
     auto cfgFile = getAirplanePath() + "/AviTab.json";
     try {
-        Config cfg(cfgFile);
+        JsonConfig cfg(cfgFile);
         int left = cfg.getInt("/panel/left");
         int bottom = cfg.getInt("/panel/bottom");
         int width = cfg.getInt("/panel/width");

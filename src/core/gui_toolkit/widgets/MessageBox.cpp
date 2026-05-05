@@ -18,7 +18,7 @@
 #include <cstring>
 #include <cstdlib>
 #include "MessageBox.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace avitab {
 

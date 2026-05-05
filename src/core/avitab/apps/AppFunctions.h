@@ -19,11 +19,11 @@
 
 #include <memory>
 #include <string>
-#include "core/gui_toolkit/widgets/Container.h"
-#include "core/world/World.h"
-#include "core/world/routing/Route.h"
-#include "core/charts/ChartService.h"
-#include "core/env/Environment.h"
+#include "gui_toolkit/widgets/Container.h"
+#include "World.h"
+#include "routing/Route.h"
+#include "charts/ChartService.h"
+#include "Environment.h"
 
 namespace avitab {
 

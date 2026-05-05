@@ -21,7 +21,7 @@
 #include <cstdio>
 #include <memory>
 #include "ImageSource.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace maps {
 

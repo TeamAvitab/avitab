@@ -17,7 +17,7 @@
  */
 #pragma once
 
-#include "core/world/models/airport/Airport.h"
+#include "models/airport/Airport.h"
 
 namespace sqlnav {
 

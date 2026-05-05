@@ -19,10 +19,10 @@
 
 #include <memory>
 #include <functional>
-#include "core/libimg/stitcher/Stitcher.h"
-#include "core/world/World.h"
-#include "core/libimg/TTFStamper.h"
-#include "core/env/Environment.h"
+#include "libimg/stitcher/Stitcher.h"
+#include "World.h"
+#include "libimg/TTFStamper.h"
+#include "Environment.h"
 #include "OverlayHelper.h"
 #include "OverlayConfig.h"
 #include "OverlayedNode.h"

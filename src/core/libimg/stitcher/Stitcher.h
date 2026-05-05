@@ -21,7 +21,7 @@
 #include <functional>
 #include "TileSource.h"
 #include "TileCache.h"
-#include "core/libimg/Image.h"
+#include "libimg/Image.h"
 
 namespace img {
 

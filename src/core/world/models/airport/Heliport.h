@@ -18,8 +18,8 @@
 #pragma once
 
 #include <string>
-#include "core/world/models/Location.h"
-#include "core/world/graph/NavNode.h"
+#include "models/Location.h"
+#include "graph/NavNode.h"
 
 namespace world {
 

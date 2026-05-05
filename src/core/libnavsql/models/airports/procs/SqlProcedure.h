@@ -17,7 +17,7 @@
  */
 #pragma once
 
-#include "core/world/graph/NavNode.h"
+#include "graph/NavNode.h"
 #include <string>
 #include <vector>
 

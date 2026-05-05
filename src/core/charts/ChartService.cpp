@@ -18,9 +18,9 @@
 
 #include "ChartService.h"
 #include "platform/CrashHandler.h"
-#include "core/Logger.h"
+#include "Logger.h"
 #include "platform/Platform.h"
-#include "core/charts/Crypto.h"
+#include "charts/Crypto.h"
 #include <nlohmann/json.hpp>
 
 namespace apis {

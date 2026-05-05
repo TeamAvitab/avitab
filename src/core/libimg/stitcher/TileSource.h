@@ -17,7 +17,7 @@
  */
 #pragma once
 
-#include "core/libimg/Image.h"
+#include "libimg/Image.h"
 #include <string>
 
 namespace img {

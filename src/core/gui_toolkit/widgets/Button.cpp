@@ -17,7 +17,7 @@
  */
 #include <src/lv_core/lv_style.h>
 #include "Button.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace avitab {
 

@@ -19,7 +19,7 @@
 #include "SqlDatabase.h"
 #include "SqlStatement.h"
 #include "NavDbSchema.h"
-#include "core/Logger.h"
+#include "Logger.h"
 #include <stdexcept>
 #include <filesystem>
 

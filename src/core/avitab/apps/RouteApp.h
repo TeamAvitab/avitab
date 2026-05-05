@@ -21,18 +21,18 @@
 #include <vector>
 #include <set>
 #include "App.h"
-//#include "core/world/router/Route.h"
-#include "core/avitab/apps/components/FileChooser.h"
-#include "core/gui_toolkit/widgets/TabGroup.h"
-#include "core/gui_toolkit/widgets/Page.h"
-#include "core/gui_toolkit/widgets/TextArea.h"
-#include "core/gui_toolkit/widgets/Keyboard.h"
-#include "core/gui_toolkit/widgets/Label.h"
-#include "core/gui_toolkit/widgets/Button.h"
-#include "core/gui_toolkit/widgets/Checkbox.h"
-#include "core/gui_toolkit/widgets/MessageBox.h"
-#include "core/gui_toolkit/widgets/Window.h"
-#include "core/gui_toolkit/widgets/DropDownList.h"
+//#include "router/Route.h"
+#include "avitab/apps/components/FileChooser.h"
+#include "gui_toolkit/widgets/TabGroup.h"
+#include "gui_toolkit/widgets/Page.h"
+#include "gui_toolkit/widgets/TextArea.h"
+#include "gui_toolkit/widgets/Keyboard.h"
+#include "gui_toolkit/widgets/Label.h"
+#include "gui_toolkit/widgets/Button.h"
+#include "gui_toolkit/widgets/Checkbox.h"
+#include "gui_toolkit/widgets/MessageBox.h"
+#include "gui_toolkit/widgets/Window.h"
+#include "gui_toolkit/widgets/DropDownList.h"
 
 namespace avitab {
 

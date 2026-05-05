@@ -23,13 +23,13 @@
 #include <vector>
 #include <set>
 #include <functional>
-#include "core/world/models/Location.h"
-#include "core/world/graph/NavNode.h"
-#include "core/world/models/Region.h"
-#include "core/world/models/Frequency.h"
-#include "core/world/models/airport/procs/SID.h"
-#include "core/world/models/airport/procs/STAR.h"
-#include "core/world/models/airport/procs/Approach.h"
+#include "models/Location.h"
+#include "graph/NavNode.h"
+#include "models/Region.h"
+#include "models/Frequency.h"
+#include "models/airport/procs/SID.h"
+#include "models/airport/procs/STAR.h"
+#include "models/airport/procs/Approach.h"
 #include "Runway.h"
 #include "Heliport.h"
 

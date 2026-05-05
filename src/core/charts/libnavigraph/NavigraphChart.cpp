@@ -17,8 +17,8 @@
  */
 #include <nlohmann/json.hpp>
 #include "NavigraphChart.h"
-#include "core/maps/sources/ImageSource.h"
-#include "core/Logger.h"
+#include "maps/sources/ImageSource.h"
+#include "Logger.h"
 
 namespace navigraph {
 

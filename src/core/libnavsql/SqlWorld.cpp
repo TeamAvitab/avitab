@@ -22,9 +22,9 @@
 #include <cassert>
 #include <thread>
 #include "SqlLoadManager.h"
-#include "core/world/routing/RouteFinder.h"
+#include "routing/RouteFinder.h"
 #include "platform/Platform.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace sqlnav {
 

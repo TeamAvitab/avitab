@@ -18,10 +18,10 @@
 #pragma once
 
 #include "OverlayHelper.h"
-#include "core/world/graph/NavNode.h"
-#include "core/world/routing/Route.h"
-#include "core/libimg/Image.h"
-#include "core/Logger.h"
+#include "graph/NavNode.h"
+#include "routing/Route.h"
+#include "libimg/Image.h"
+#include "Logger.h"
 
 namespace maps {
 

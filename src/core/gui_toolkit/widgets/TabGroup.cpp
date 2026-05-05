@@ -18,7 +18,7 @@
 #include <string>
 #include <stdexcept>
 #include "TabGroup.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace avitab {
 

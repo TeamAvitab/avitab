@@ -17,8 +17,8 @@
  */
 #pragma once
 
-#include "core/libimg/stitcher/TileSource.h"
-#include "core/maps/Downloader.h"
+#include "libimg/stitcher/TileSource.h"
+#include "maps/Downloader.h"
 
 namespace maps {
 

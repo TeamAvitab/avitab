@@ -17,23 +17,29 @@
  */
 #pragma once
 
+// REFACTOR - class AviTab is a muddle of core and simulation environment.
+// It needs significant reworking.
+
 #include <memory>
 #include <future>
-#include "core/charts/libnavigraph/NavigraphAPI.h"
-#include "core/charts/ChartService.h"
-#include "core/env/Environment.h"
-#include "core/gui_toolkit/widgets/Container.h"
-#include "core/gui_toolkit/widgets/Label.h"
-#include "core/avitab/apps/AppFunctions.h"
-#include "core/avitab/apps/AppLauncher.h"
+#include "AviTabCore.h"
+#include "GUIDriver.h"
+#include "avitab/apps/AppFunctions.h"
+#include "Environment.h"
+#include "charts/libnavigraph/NavigraphAPI.h"
+#include "charts/ChartService.h"
+#include "gui_toolkit/LVGLToolkit.h"
+#include "gui_toolkit/widgets/Container.h"
+#include "gui_toolkit/widgets/Label.h"
+#include "avitab/apps/AppLauncher.h"
 
 namespace avitab {
 
-class AviTab: public AppFunctions {
+class AviTab : public AviTabCore, public AppFunctions {
 public:
-    AviTab(std::shared_ptr<Environment> environment);
-    void startApp();
-    void toggleTablet();
+    AviTab(std::shared_ptr<Environment> env, std::shared_ptr<GUIDriver> gui);
+    void startApp() override;
+    void toggleTablet() override;
     void resetWindowPosition();
     void zoomIn();
     void zoomOut();
@@ -42,8 +48,8 @@ public:
     void panRight();
     void panUp();
     void panDown();
-    void stopApp();
-    void onPlaneLoad();
+    void stopApp() override;
+    void onPlaneLoad() override;
 
     // App API
     void setBrightness(float brightness) override;

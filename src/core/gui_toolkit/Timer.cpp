@@ -17,7 +17,7 @@
  */
 #include "Timer.h"
 #include <thread>
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace avitab {
 

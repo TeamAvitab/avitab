@@ -1,6 +1,6 @@
 # This file is part of the Avitab project. See the README and LICENSE for details.
 
-configure_file(config.h.in "${PROJECT_BINARY_DIR}/avitab/config.h")
+configure_file(config.h.in "${PROJECT_BINARY_DIR}/AviTabBuildSettings.h")
 
 # The Avitab sources are built into one core library for all executables,
 # simulator-specific libraries for X-Plane, Flight Simulator and the mock
@@ -10,14 +10,15 @@ configure_file(config.h.in "${PROJECT_BINARY_DIR}/avitab/config.h")
 
 # All of the core Avitab classes are put in here
 add_library(avitab_core_lib)
-target_include_directories(avitab_core_lib PRIVATE
+target_include_directories(avitab_core_lib
+    PUBLIC
+    "${CMAKE_CURRENT_LIST_DIR}/core/include"
+    "${CMAKE_CURRENT_LIST_DIR}/core/world"                  # REFACTOR - transient until the world NAV data classes are put into their own library
+    "${CMAKE_CURRENT_LIST_DIR}/core/hybrids_to_refactor"    # REFACTOR - transient until the driver interfaces are properly abstarcted
+    PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/core"
     "${CMAKE_CURRENT_LIST_DIR}"
     "${PROJECT_BINARY_DIR}"
-    "${XPLANE_SDK}/CHeaders" # avitab core should not need to know about these
-)
-target_compile_definitions(avitab_core_lib PUBLIC # aim to remove core library dependence on X-Plane interfaces
-    XPLM400 XPLM303 XPLM301 XPLM300 XPLM210 XPLM200
-    APL=$<BOOL:${APPLE}> IBM=$<BOOL:${WIN32}> LIN=$<AND:$<BOOL:${UNIX}>,$<NOT:$<BOOL:${APPLE}>>>
 )
 target_link_libraries(avitab_core_lib PUBLIC
     avitab_extern
@@ -77,6 +78,7 @@ if(MSFS_SDK)
 endif()
 
 add_subdirectory(core)
+add_subdirectory(sim)
+add_subdirectory(win)
+add_subdirectory(product)
 add_subdirectory(platform)
-add_subdirectory(env)
-add_subdirectory(wrapper)

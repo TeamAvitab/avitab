@@ -19,8 +19,8 @@
 
 #include <memory>
 #include "OverlayConfig.h"
-#include "core/libimg/Image.h"
-#include "core/world/models/Location.h"
+#include "libimg/Image.h"
+#include "models/Location.h"
 
 namespace maps {
 

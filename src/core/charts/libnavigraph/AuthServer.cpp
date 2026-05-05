@@ -28,7 +28,7 @@
 #include <arpa/inet.h>
 #endif
 #include "AuthServer.h"
-#include "core/Logger.h"
+#include "Logger.h"
 #include "platform/CrashHandler.h"
 
 #if defined(AVITAB_WINDOWS)

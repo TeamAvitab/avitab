@@ -23,8 +23,8 @@
 #include <thread>
 #include <memory>
 #include <functional>
-#include "core/charts/Crypto.h"
-#include "core/charts/RESTClient.h"
+#include "charts/Crypto.h"
+#include "charts/RESTClient.h"
 #include "ChartFoxAuthServer.h"
 
 namespace chartfox {

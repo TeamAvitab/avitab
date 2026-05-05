@@ -18,7 +18,7 @@
 #include <stdexcept>
 #include <cmath>
 #include "TTFStamper.h"
-#include "core/Logger.h"
+#include "Logger.h"
 #include "platform/Platform.h"
 
 namespace {

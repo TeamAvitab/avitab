@@ -24,7 +24,7 @@
 #include "../models/airports/procs/SqlSID.h"
 #include "../models/airports/procs/SqlSTAR.h"
 #include "../models/airports/procs/SqlApproach.h"
-#include "core/Logger.h"
+#include "Logger.h"
 #include <sstream>
 
 namespace sqlnav {

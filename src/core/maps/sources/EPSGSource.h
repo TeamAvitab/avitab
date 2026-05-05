@@ -19,7 +19,7 @@
 
 #include <string>
 #include <limits>
-#include "core/libimg/stitcher/TileSource.h"
+#include "libimg/stitcher/TileSource.h"
 
 namespace maps {
 

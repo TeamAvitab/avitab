@@ -18,7 +18,7 @@
 #include <stdexcept>
 #include <cmath>
 #include "Calibration.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace maps {
 

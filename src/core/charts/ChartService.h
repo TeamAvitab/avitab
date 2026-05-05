@@ -22,10 +22,10 @@
 #include <thread>
 #include "APICall.h"
 #include "Chart.h"
-#include "core/charts/liblocalfile/LocalFileAPI.h"
-#include "core/charts/libnavigraph/NavigraphAPI.h"
-#include "core/charts/libchartfox/ChartFoxAPI.h"
-#include "core/charts/Crypto.h"
+#include "charts/liblocalfile/LocalFileAPI.h"
+#include "charts/libnavigraph/NavigraphAPI.h"
+#include "charts/libchartfox/ChartFoxAPI.h"
+#include "charts/Crypto.h"
 
 namespace apis {
 

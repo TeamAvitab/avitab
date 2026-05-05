@@ -18,7 +18,7 @@
 #include <stdexcept>
 #include "XTiffImage.h"
 #include "platform/Platform.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace {
     void onTiffWarning(const char *, const char *, va_list) {

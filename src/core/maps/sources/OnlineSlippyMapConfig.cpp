@@ -17,7 +17,7 @@
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "OnlineSlippyMapConfig.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace maps {
 

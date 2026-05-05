@@ -23,8 +23,8 @@
 #include <functional>
 #include <mutex>
 #include <vector>
-#include "core/env/GUIDriver.h"
-#include "core/gui_toolkit/widgets/Screen.h"
+#include "GUIDriver.h"
+#include "gui_toolkit/widgets/Screen.h"
 
 namespace avitab {
 

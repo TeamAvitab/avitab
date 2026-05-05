@@ -21,9 +21,9 @@
 #include <memory>
 #include <geotiff.h>
 #include <geo_normalize.h>
-#include "core/libimg/XTiffImage.h"
-#include "core/libimg/stitcher/TileSource.h"
-#include "core/libimg/Rasterizer.h"
+#include "libimg/XTiffImage.h"
+#include "libimg/stitcher/TileSource.h"
+#include "libimg/Rasterizer.h"
 
 namespace maps {
 

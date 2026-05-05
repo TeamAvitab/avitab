@@ -17,7 +17,7 @@
  */
 #pragma once
 
-#include "core/world/models/navaids/Fix.h"
+#include "models/navaids/Fix.h"
 
 namespace sqlnav {
 

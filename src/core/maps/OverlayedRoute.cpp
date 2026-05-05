@@ -17,7 +17,7 @@
  */
 
 #include "OverlayedRoute.h"
-#include "core/Logger.h"
+#include "Logger.h"
 #include <sstream>
 #include <iomanip>
 

@@ -17,7 +17,7 @@
  */
 #pragma once
 
-#include "core/world/LoadManager.h"
+#include "LoadManager.h"
 #include "SqlWorld.h"
 #include "SqlDatabase.h"
 #include "SqlStatement.h"

@@ -20,7 +20,7 @@
 #include <cmath>
 #include <geovalues.h>
 #include "GeoTIFFSource.h"
-#include "core/Logger.h"
+#include "Logger.h"
 #include "platform/Platform.h"
 
 namespace maps {

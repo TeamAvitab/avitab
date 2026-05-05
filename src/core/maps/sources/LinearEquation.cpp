@@ -17,7 +17,7 @@
  */
 #include <cmath>
 #include "LinearEquation.h"
-#include "core/Logger.h"
+#include "Logger.h"
 #include <algorithm>
 #include <cfloat>
 #include <algorithm>

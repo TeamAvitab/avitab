@@ -20,8 +20,8 @@
 #include <string>
 #include <stdexcept>
 #include "platform/Platform.h"
-#include "core/maps/sources/LocalFileSource.h"
-#include "core/maps/sources/ImageSource.h"
+#include "maps/sources/LocalFileSource.h"
+#include "maps/sources/ImageSource.h"
 #include "LocalFileChart.h"
 
 namespace localfile {

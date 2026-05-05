@@ -19,7 +19,7 @@
 #include "SqlStatement.h"
 #include "SqlDatabase.h"
 #include <stdexcept>
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace sqlnav {
 
