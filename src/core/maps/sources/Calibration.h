@@ -19,7 +19,7 @@
 
 #include <utility>
 #include <string>
-#include "core/libimg/stitcher/TileSource.h"
+#include "libimg/stitcher/TileSource.h"
 #include "LinearEquation.h"
 #include <nlohmann/json.hpp>
 

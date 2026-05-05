@@ -16,7 +16,7 @@
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "NotesApp.h"
-#include "core/Logger.h"
+#include "Logger.h"
 #include "platform/Platform.h"
 
 namespace avitab {

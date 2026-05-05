@@ -19,7 +19,7 @@
 #include <algorithm>
 #include "RouteFinder.h"
 #include "Route.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace world {
 

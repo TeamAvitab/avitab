@@ -19,7 +19,7 @@
 #include <stdexcept>
 #include <nlohmann/json.hpp>
 #include "ChartFoxOAuth2Client.h"
-#include "core/Logger.h"
+#include "Logger.h"
 #include "platform/Platform.h"
 
 namespace chartfox {

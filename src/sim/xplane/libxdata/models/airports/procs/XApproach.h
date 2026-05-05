@@ -17,7 +17,7 @@
  */
 #pragma once
 
-#include "core/world/models/airport/procs/Approach.h"
+#include "models/airport/procs/Approach.h"
 #include "ProcedureOptions.h"
 #include <string>
 #include <functional>

@@ -22,7 +22,7 @@
 #include <algorithm>
 #include <tuple>
 #include "AirportApp.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace avitab {
 

@@ -21,7 +21,7 @@
 #include <string>
 #include <functional>
 #include <atomic>
-#include "core/world/World.h"
+#include "World.h"
 
 namespace xdata {
 

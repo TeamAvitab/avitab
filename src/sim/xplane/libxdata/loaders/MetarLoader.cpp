@@ -17,7 +17,7 @@
  */
 #include "MetarLoader.h"
 #include "../parsers/MetarParser.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace xdata {
 

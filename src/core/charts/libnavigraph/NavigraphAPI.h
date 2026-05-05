@@ -25,9 +25,9 @@
 #include <mutex>
 #include <condition_variable>
 #include <nlohmann/json_fwd.hpp>
-#include "core/libimg/Image.h"
-#include "core/libimg/TTFStamper.h"
-#include "core/charts/APICall.h"
+#include "libimg/Image.h"
+#include "libimg/TTFStamper.h"
+#include "charts/APICall.h"
 #include "OIDCClient.h"
 #include "NavigraphChart.h"
 

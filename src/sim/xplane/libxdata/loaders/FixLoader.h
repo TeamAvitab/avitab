@@ -18,7 +18,7 @@
 #pragma once
 
 #include <memory>
-#include "core/world/LoadManager.h"
+#include "LoadManager.h"
 #include "../XWorld.h"
 #include "../parsers/objects/FixData.h"
 

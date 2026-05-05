@@ -31,7 +31,7 @@
 #include <stdexcept>
 #include "XPlaneGUIDriver.h"
 #include "MonitorBoundsDecider.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace avitab {
 

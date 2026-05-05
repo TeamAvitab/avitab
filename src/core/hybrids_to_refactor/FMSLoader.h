@@ -19,9 +19,9 @@
 
 #include <memory>
 #include <vector>
-#include "../graph/NavNode.h"
-#include "../World.h"
-#include "../parsers/objects/FlightPlanNodeData.h"
+#include "graph/NavNode.h"
+#include "World.h"
+#include "FlightPlanNodeData.h"
 
 namespace world {
 

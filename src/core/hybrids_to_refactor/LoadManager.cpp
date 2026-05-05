@@ -16,9 +16,9 @@
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "LoadManager.h"
-#include "loaders/UserFixLoader.h"
-#include "loaders/FMSLoader.h"
-#include "core/Logger.h"
+#include "UserFixLoader.h"
+#include "FMSLoader.h"
+#include "Logger.h"
 
 namespace world {
 

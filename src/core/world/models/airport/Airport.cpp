@@ -21,8 +21,8 @@
 #include <stdexcept>
 #include <sstream>
 #include "Airport.h"
-#include "core/world/models/navaids/Fix.h"
-#include "core/Logger.h"
+#include "models/navaids/Fix.h"
+#include "Logger.h"
 
 namespace world {
 

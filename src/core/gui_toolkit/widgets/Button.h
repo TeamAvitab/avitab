@@ -21,7 +21,7 @@
 #include <vector>
 #include <string>
 #include "Widget.h"
-#include "core/libimg/Image.h"
+#include "libimg/Image.h"
 
 namespace avitab {
 

@@ -18,7 +18,7 @@
 
 #include "AtoolsAirwayCompiler.h"
 #include "AtoolsNavTranslator.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 AtoolsDbAirwayCompiler::AtoolsDbAirwayCompiler(std::shared_ptr<sqlnav::SqlDatabase> targ, std::shared_ptr<AtoolsDbNavTranslator> o)
 :   db(targ), owner(o), nextAirwayId(1)

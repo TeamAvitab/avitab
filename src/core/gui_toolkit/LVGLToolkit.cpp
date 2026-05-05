@@ -21,7 +21,7 @@
 #include "widgets/Keyboard.h"
 #include "platform/Platform.h"
 #include "platform/CrashHandler.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace avitab {
 

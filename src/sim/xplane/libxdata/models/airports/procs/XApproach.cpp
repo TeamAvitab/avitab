@@ -19,7 +19,7 @@
 #include <algorithm>
 #include <sstream>
 #include "XApproach.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace xdata {
 

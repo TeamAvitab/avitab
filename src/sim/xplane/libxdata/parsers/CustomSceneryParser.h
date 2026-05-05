@@ -19,7 +19,7 @@
 
 #include <string>
 #include <functional>
-#include "core/world/parsers/BaseParser.h"
+#include "BaseParser.h"
 
 namespace xdata {
 

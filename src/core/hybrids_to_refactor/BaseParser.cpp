@@ -19,7 +19,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <limits>
-#include "core/Logger.h"
+#include "Logger.h"
 #include "platform/cstrtod.h"
 
 namespace world {

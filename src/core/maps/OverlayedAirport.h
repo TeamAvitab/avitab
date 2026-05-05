@@ -18,7 +18,7 @@
 #pragma once
 
 #include "OverlayedNode.h"
-#include "core/world/models/airport/Airport.h"
+#include "models/airport/Airport.h"
 
 namespace maps {
 

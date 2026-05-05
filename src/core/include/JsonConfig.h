@@ -18,17 +18,21 @@
 #pragma once
 
 #include <string>
-#include <limits>
-#include "../../models/navaids/UserFix.h"
+#include <memory>
+#include <nlohmann/json_fwd.hpp>
 
-namespace world {
+namespace avitab {
 
-struct UserFixData {
-    UserFix::Type type = UserFix::Type::NONE;
-    std::string name;
-    std::string ident;
-    double latitude = std::numeric_limits<double>::quiet_NaN();
-    double longitude = std::numeric_limits<double>::quiet_NaN();
+class JsonConfig {
+public:
+    JsonConfig(const std::string &configFile);
+    JsonConfig(const std::string &configFile, const std::string &createDefault);
+
+    std::string getString(const std::string &pointer);
+    bool getBool(const std::string &pointer);
+    int getInt(const std::string &pointer);
+private:
+    std::shared_ptr<nlohmann::json> config;
 };
 
-} /* namespace world */
+} /* namespace avitab */

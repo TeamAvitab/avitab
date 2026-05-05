@@ -26,7 +26,7 @@
 #include "OverlayedILSLocalizer.h"
 #include "OverlayedWaypoint.h"
 #include "OverlayedUserFix.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 constexpr static bool DBG_OVERLAYS = false;
 constexpr static int INVALID_CLICK = -9999;

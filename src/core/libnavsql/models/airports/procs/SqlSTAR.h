@@ -17,7 +17,7 @@
  */
 #pragma once
 
-#include "core/world/models/airport/procs/STAR.h"
+#include "models/airport/procs/STAR.h"
 #include "SqlProcedure.h"
 
 namespace sqlnav {

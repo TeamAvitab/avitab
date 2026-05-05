@@ -17,7 +17,7 @@
  */
 
 #include "GUIDriver.h"
-#include "core/Logger.h"
+#include "Logger.h"
 #include <cstring>
 
 namespace avitab {

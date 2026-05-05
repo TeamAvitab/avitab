@@ -17,7 +17,7 @@
  */
 #pragma once
 
-#include "core/world/World.h"
+#include "World.h"
 #include <future>
 #include <mutex>
 

@@ -20,9 +20,9 @@
 #include <nlohmann/json_fwd.hpp>
 #include <list>
 #include <memory>
-#include "core/env/GUIDriver.h"
-#include "core/env/AirportConfig.h"
-#include "core/maps/OverlayConfig.h"
+#include "GUIDriver.h"
+#include "AirportConfig.h"
+#include "OverlayConfig.h"
 
 namespace avitab {
 

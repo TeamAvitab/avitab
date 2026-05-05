@@ -21,9 +21,9 @@
 #include <algorithm>
 #include <regex>
 #include "LocalFileAPI.h"
-#include "core/charts/Crypto.h"
+#include "charts/Crypto.h"
 #include "platform/Platform.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace localfile {
 

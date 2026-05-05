@@ -15,7 +15,7 @@
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "core/Logger.h"
+#include "Logger.h"
 #include "AppLauncher.h"
 #include "ChartsApp.h"
 #include "NotesApp.h"
@@ -25,7 +25,7 @@
 #include "RouteApp.h"
 #include "MapApp.h"
 #include "ProvidersApp.h"
-#include "core/libimg/Image.h"
+#include "libimg/Image.h"
 
 namespace avitab {
 

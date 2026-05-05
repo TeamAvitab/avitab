@@ -25,7 +25,7 @@
 
 #include "Logger.h"
 #include "platform/Platform.h"
-#include "avitab/config.h"
+#include "AviTabBuildSettings.h"
 
 static const char *srcname(const char *path) {
     const char *pc = path + strlen(path) - 1;

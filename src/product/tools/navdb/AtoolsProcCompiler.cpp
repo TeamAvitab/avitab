@@ -18,7 +18,7 @@
 
 #include "AtoolsProcCompiler.h"
 #include "AtoolsNavTranslator.h"
-#include "core/Logger.h"
+#include "Logger.h"
 #include <iostream>
 
 AtoolsDbProcedureCompiler::AtoolsDbProcedureCompiler(std::shared_ptr<sqlnav::SqlDatabase> targ, std::shared_ptr<AtoolsDbNavTranslator> o)

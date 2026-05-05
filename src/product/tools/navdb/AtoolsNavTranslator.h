@@ -20,7 +20,7 @@
 #include <memory>
 #include <string>
 #include <map>
-#include "core/libnavsql/SqlDatabase.h"
+#include "libnavsql/SqlDatabase.h"
 
 class AtoolsDbNavTranslator : public std::enable_shared_from_this<AtoolsDbNavTranslator>
 {

@@ -21,8 +21,8 @@
 #include <memory>
 #include <functional>
 #include "App.h"
-#include "core/gui_toolkit/widgets/Button.h"
-#include "core/gui_toolkit/widgets/Label.h"
+#include "gui_toolkit/widgets/Button.h"
+#include "gui_toolkit/widgets/Label.h"
 
 namespace avitab {
 

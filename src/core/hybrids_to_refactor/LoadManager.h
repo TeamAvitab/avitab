@@ -17,23 +17,35 @@
  */
 #pragma once
 
+#include "World.h"
 #include <memory>
-#include "../LoadManager.h"
-#include "../World.h"
+#include <atomic>
 
 namespace world {
 
-struct UserFixData;
-
-class UserFixLoader {
+class LoadManager : public std::enable_shared_from_this<LoadManager> {
 public:
-    UserFixLoader(std::shared_ptr<LoadManager> mgr);
-    void load(const std::string &file);
-private:
-    std::shared_ptr<LoadManager> const loadMgr;
-    std::shared_ptr<World> world;
+    virtual std::shared_ptr<World> getWorld() = 0;
 
-    void onUserFixLoaded(const UserFixData &navaid);
+    virtual void discoverSceneries() = 0;
+    virtual void load() = 0;
+    virtual void reloadMetar() = 0;
+
+    virtual NavNodeList loadFlightPlan(const std::string filename);
+
+    void setUserFixesFilename(std::string &filename);
+    void loadUserFixes(std::string &filename);
+
+    void cancelLoading();
+    bool shouldCancelLoading() const;
+
+protected:
+    void loadUserFixes();
+
+protected:
+    std::atomic_bool loadCancelled { false };
+    std::string userFixesFilename;
+
 };
 
 } /* namespace world */

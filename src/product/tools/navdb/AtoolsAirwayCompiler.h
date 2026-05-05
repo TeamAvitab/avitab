@@ -23,7 +23,7 @@
 #include <list>
 #include <vector>
 #include <sstream>
-#include "core/libnavsql/SqlDatabase.h"
+#include "libnavsql/SqlDatabase.h"
 
 class AtoolsDbNavTranslator;
 

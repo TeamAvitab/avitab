@@ -20,7 +20,7 @@
 #include <iomanip>
 #include <sstream>
 #include "Settings.h"
-#include "core/Logger.h"
+#include "Logger.h"
 #include "platform/Platform.h"
 
 using json = nlohmann::json;

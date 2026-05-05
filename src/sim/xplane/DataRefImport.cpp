@@ -17,7 +17,7 @@
  */
 #include <stdexcept>
 #include "DataRefImport.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace avitab {
 

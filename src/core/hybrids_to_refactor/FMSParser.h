@@ -17,35 +17,32 @@
  */
 #pragma once
 
-#include "core/world/World.h"
-#include <memory>
-#include <atomic>
+#include <string>
+#include <functional>
+#include "BaseParser.h"
+#include "FlightPlanNodeData.h"
 
 namespace world {
 
-class LoadManager : public std::enable_shared_from_this<LoadManager> {
+class FMSParser {
 public:
-    virtual std::shared_ptr<World> getWorld() = 0;
+    using Acceptor = std::function<void(const FlightPlanNodeData &)>;
 
-    virtual void discoverSceneries() = 0;
-    virtual void load() = 0;
-    virtual void reloadMetar() = 0;
+    FMSParser(const std::string &fmsFilename);
+    void setAcceptor(Acceptor a);
+    std::string getHeader() const;
+    void loadFMS();
+private:
+    Acceptor acceptor;
+    std::string header;
+    BaseParser parser;
+    int lineNum;
+    bool parsingEnRouteBlock;
 
-    virtual NavNodeList loadFlightPlan(const std::string filename);
-
-    void setUserFixesFilename(std::string &filename);
-    void loadUserFixes(std::string &filename);
-
-    void cancelLoading();
-    bool shouldCancelLoading() const;
-
-protected:
-    void loadUserFixes();
-
-protected:
-    std::atomic_bool loadCancelled { false };
-    std::string userFixesFilename;
-
+    void parseLine();
+    void parseEnRouteBlock();
+    void parseIntroBlocks();
+    FlightPlanNodeData::Type parseWaypointType(int num);
 };
 
 } /* namespace world */

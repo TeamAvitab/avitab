@@ -16,9 +16,9 @@
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "UserFixLoader.h"
-#include "../parsers/UserFixParser.h"
-#include "../models/navaids/Fix.h"
-#include "core/Logger.h"
+#include "UserFixParser.h"
+#include "models/navaids/Fix.h"
+#include "Logger.h"
 
 namespace world {
 

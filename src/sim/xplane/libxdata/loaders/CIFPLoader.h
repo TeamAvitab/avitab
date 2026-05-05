@@ -18,8 +18,8 @@
 #pragma once
 
 #include <memory>
-#include "core/world/LoadManager.h"
-#include "core/world/models/airport/Airport.h"
+#include "LoadManager.h"
+#include "models/airport/Airport.h"
 #include "../parsers/objects/CIFPData.h"
 #include "../XWorld.h"
 

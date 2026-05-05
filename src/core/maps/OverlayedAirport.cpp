@@ -19,7 +19,7 @@
 #include <algorithm>
 #include <cmath>
 #include "OverlayedAirport.h"
-#include "core/world/World.h"
+#include "World.h"
 
 namespace maps {
 

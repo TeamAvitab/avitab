@@ -21,7 +21,7 @@
 #include <vector>
 #include <mutex>
 #include <atomic>
-#include "core/env/GUIDriver.h"
+#include "GUIDriver.h"
 
 namespace avitab {
 

@@ -17,7 +17,7 @@
  */
 #include "FixLoader.h"
 #include "../parsers/FixParser.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace xdata {
 

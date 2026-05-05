@@ -18,8 +18,8 @@
 #include <nlohmann/json.hpp>
 #include <sstream>
 #include "ChartFoxChart.h"
-#include "core/maps/sources/DownloadedSource.h"
-#include "core/Logger.h"
+#include "maps/sources/DownloadedSource.h"
+#include "Logger.h"
 
 namespace chartfox {
 

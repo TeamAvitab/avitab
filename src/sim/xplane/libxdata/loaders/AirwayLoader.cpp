@@ -17,7 +17,7 @@
  */
 #include "AirwayLoader.h"
 #include "../parsers/AirwayParser.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace xdata {
 

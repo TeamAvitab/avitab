@@ -19,7 +19,7 @@
 #include <sstream>
 #include <algorithm>
 #include "XSTAR.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace xdata {
 

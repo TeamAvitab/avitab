@@ -18,16 +18,16 @@
 #include <memory>
 #include <thread>
 #include <iostream>
+#include "Logger.h"
 #include "MsfsAddonEnvironment.h"
-#include "core/avitab/AviTab.h"
-#include "core/Logger.h"
+#include "AviTabCore.h"
 #include "platform/CrashHandler.h"
 
 int main() {
     crash::registerHandler([] () {return 0;});
 
     try {
-        // Using the heap so we can debug destructors with log messages
+        // Using the stack so we can debug destructors with log messages
         auto env = std::make_shared<avitab::MsfsAddonEnvironment>();
         env->loadConfig();
         logger::setStdOut(env->getConfig()->getBool("/AviTab/logToStdOut"));
@@ -35,7 +35,8 @@ int main() {
         logger::verbose("Main thread has id %d", std::this_thread::get_id());
         env->loadSettings();
 
-        auto aviTab = std::make_unique<avitab::AviTab>(env);
+        auto guiDriver = env->createGUIDriver();
+        auto aviTab = avitab::AviTabCore::CreateAviTabCore(env, guiDriver);
         aviTab->startApp();
         aviTab->toggleTablet();
 

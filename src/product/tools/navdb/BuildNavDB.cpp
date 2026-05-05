@@ -19,9 +19,9 @@
 #include <memory>
 #include <filesystem>
 #include <iostream>
-#include "core/Logger.h"
-#include "core/libnavsql/SqlDatabase.h"
-#include "core/libnavsql/SqlStatement.h"
+#include "Logger.h"
+#include "libnavsql/SqlDatabase.h"
+#include "libnavsql/SqlStatement.h"
 #include "AtoolsNavTranslator.h"
 
 int main(int argc, char *argv[])

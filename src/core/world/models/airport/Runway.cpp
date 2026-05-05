@@ -17,7 +17,7 @@
  */
 #include <stdexcept>
 #include "Runway.h"
-#include "core/world/models/navaids/Fix.h"
+#include "models/navaids/Fix.h"
 
 namespace world {
 

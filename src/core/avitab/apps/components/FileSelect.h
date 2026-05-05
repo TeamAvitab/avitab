@@ -19,9 +19,9 @@
 
 #include <functional>
 #include <string>
-#include "core/avitab/apps/App.h"
-#include "core/gui_toolkit/widgets/Window.h"
-#include "core/gui_toolkit/widgets/List.h"
+#include "avitab/apps/App.h"
+#include "gui_toolkit/widgets/Window.h"
+#include "gui_toolkit/widgets/List.h"
 #include "platform/Platform.h"
 #include "FilesysBrowser.h"
 

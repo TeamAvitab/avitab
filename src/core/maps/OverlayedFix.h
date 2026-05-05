@@ -18,8 +18,8 @@
 #pragma once
 
 #include "OverlayedNode.h"
-#include "core/world/models/navaids/Fix.h"
-#include "core/world/models/navaids/Morse.h"
+#include "models/navaids/Fix.h"
+#include "models/navaids/Morse.h"
 
 namespace maps {
 

@@ -17,9 +17,9 @@
  */
 
 #include "Environment.h"
-#include "core/Logger.h"
+#include "Logger.h"
 #include "platform/CrashHandler.h"
-#include "core/libnavsql/SqlLoadManager.h"
+#include "libnavsql/SqlLoadManager.h"
 
 namespace avitab {
 
@@ -45,11 +45,11 @@ void Environment::loadNavWorldInBackground() {
 }
 
 void Environment::loadConfig() {
-    config = std::make_unique<Config>(getProgramPath() + "/config.json",
+    config = std::make_unique<JsonConfig>(getProgramPath() + "/config.json",
                             R"({ "AviTab": { "logToStdOut": false, "loadNavData": true } })");
 }
 
-std::shared_ptr<Config> Environment::getConfig() {
+std::shared_ptr<JsonConfig> Environment::getConfig() {
     return config;
 }
 

@@ -18,7 +18,7 @@
 #include <cmath>
 #include <ctime>
 #include "StandAloneEnvironment.h"
-#include "core/Logger.h"
+#include "Logger.h"
 #include "platform/Platform.h"
 #include "sim/xplane/libxdata/XData.h"
 
@@ -87,9 +87,9 @@ std::shared_ptr<world::LoadManager> StandAloneEnvironment::createParsingWorldMan
     return std::make_shared<xdata::XData>(xplaneRootPath);
 }
 
-std::shared_ptr<LVGLToolkit> StandAloneEnvironment::createGUIToolkit() {
+std::shared_ptr<GUIDriver> StandAloneEnvironment::createGUIDriver() {
     driver = std::make_shared<GlfwGUIDriver>();
-    return std::make_shared<LVGLToolkit>(driver);
+    return driver;
 }
 
 Environment::MagVarMap StandAloneEnvironment::getMagneticVariations(std::vector<std::pair<double, double>> locations) {

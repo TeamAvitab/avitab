@@ -21,10 +21,10 @@
 #include <vector>
 #include <atomic>
 #include "Calibration.h"
-#include "core/libimg/stitcher/TileSource.h"
-#include "core/libimg/Rasterizer.h"
-#include "core/charts/Crypto.h"
-#include "core/charts/ChartService.h"
+#include "libimg/stitcher/TileSource.h"
+#include "libimg/Rasterizer.h"
+#include "charts/Crypto.h"
+#include "charts/ChartService.h"
 
 namespace maps {
 

@@ -21,13 +21,13 @@
 #include <XPLM/XPLMPlugin.h>
 #include <memory>
 #include "sim/xplane/XPlaneEnvironment.h"
-#include "core/avitab/AviTab.h"
-#include "core/Logger.h"
+#include "AviTabCore.h"
+#include "Logger.h"
 #include "platform/CrashHandler.h"
-#include "avitab/config.h"
+#include "AviTabBuildSettings.h"
 
 std::shared_ptr<avitab::Environment> environment;
-std::unique_ptr<avitab::AviTab> aviTab;
+std::unique_ptr<avitab::AviTabCore> aviTab;
 
 PLUGIN_API int XPluginStart(char *outName, char *outSignature, char *outDescription) {
     strncpy(outName, "AviTab", 255);
@@ -63,7 +63,8 @@ PLUGIN_API int XPluginStart(char *outName, char *outSignature, char *outDescript
 PLUGIN_API int XPluginEnable(void) {
     try {
         if (environment) {
-            aviTab = std::make_unique<avitab::AviTab>(environment);
+            auto guiDriver = environment->createGUIDriver();
+            aviTab = avitab::AviTabCore::CreateAviTabCore(environment, guiDriver);
             aviTab->startApp();
         }
     } catch (const std::exception &e) {

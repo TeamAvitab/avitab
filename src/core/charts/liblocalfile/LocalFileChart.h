@@ -19,7 +19,7 @@
 
 #include <vector>
 #include <string>
-#include "core/charts/Chart.h"
+#include "charts/Chart.h"
 
 namespace localfile {
 

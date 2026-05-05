@@ -18,8 +18,7 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <stdexcept>
-#include "platform/Platform.h"
-#include "Config.h"
+#include "JsonConfig.h"
 
 using json = nlohmann::json;
 
@@ -38,12 +37,12 @@ inline static std::shared_ptr<nlohmann::json> ReadConfig(const std::string& conf
     return cfg;
 }
 
-Config::Config(const std::string& configFile) {
+JsonConfig::JsonConfig(const std::string& configFile) {
     // No recovery from any exceptions raised, just let them propogate.
     config = ReadConfig(configFile);
 }
 
-Config::Config(const std::string& configFile, const std::string &createDefault) {
+JsonConfig::JsonConfig(const std::string& configFile, const std::string &createDefault) {
     try {
         // First attempt to read a json config from the file.
         config = ReadConfig(configFile);
@@ -61,15 +60,15 @@ Config::Config(const std::string& configFile, const std::string &createDefault) 
     config = ReadConfig(configFile);
 }
 
-std::string Config::getString(const std::string& pointer) {
+std::string JsonConfig::getString(const std::string& pointer) {
     return (*config)[json::json_pointer(pointer)];
 }
 
-bool Config::getBool(const std::string& pointer) {
+bool JsonConfig::getBool(const std::string& pointer) {
     return (*config)[json::json_pointer(pointer)];
 }
 
-int Config::getInt(const std::string& pointer) {
+int JsonConfig::getInt(const std::string& pointer) {
     return (*config)[json::json_pointer(pointer)];
 }
 

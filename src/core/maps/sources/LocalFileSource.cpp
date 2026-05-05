@@ -20,7 +20,7 @@
 #include <sstream>
 #include <fstream>
 #include "platform/Platform.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace maps {
 

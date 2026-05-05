@@ -26,8 +26,8 @@
 #include "AtoolsNavTranslator.h"
 #include "AtoolsProcCompiler.h"
 #include "AtoolsAirwayCompiler.h"
-#include "core/libnavsql/SqlStatement.h"
-#include "core/Logger.h"
+#include "libnavsql/SqlStatement.h"
+#include "Logger.h"
 
 static inline std::string quoted(std::string &s);
 

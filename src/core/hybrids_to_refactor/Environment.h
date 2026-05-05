@@ -24,10 +24,9 @@
 #include <vector>
 #include <future>
 #include <atomic>
-#include "core/world/LoadManager.h"
-#include "core/gui_toolkit/LVGLToolkit.h"
+#include "LoadManager.h"
 #include "EnvData.h"
-#include "Config.h"
+#include "JsonConfig.h"
 #include "Settings.h"
 
 namespace avitab {
@@ -54,13 +53,13 @@ public:
 
     // Must be called from the environment thread - do not call from GUI thread!
     void loadConfig();
-    std::shared_ptr<Config> getConfig();
+    std::shared_ptr<JsonConfig> getConfig();
     void loadSettings();
     std::shared_ptr<Settings> getSettings();
     void loadNavWorldInBackground();
     bool isNavWorldReady();
     virtual void onAircraftReload();
-    virtual std::shared_ptr<LVGLToolkit> createGUIToolkit() = 0;
+    virtual std::shared_ptr<GUIDriver> createGUIDriver() = 0;
     virtual void createMenu(const std::string &name) = 0;
     virtual void addMenuEntry(const std::string &label, MenuCallback cb) = 0;
     virtual void destroyMenu() = 0;
@@ -113,7 +112,7 @@ protected:
     virtual bool canUseNavDb(const std::string simCode) = 0;
 
 private:
-    std::shared_ptr<Config> config;
+    std::shared_ptr<JsonConfig> config;
     std::shared_ptr<Settings> settings;
     std::mutex envMutex;
     std::vector<EnvironmentCallback> envCallbacks;

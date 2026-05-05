@@ -25,7 +25,7 @@
 #include <fstream>
 #include <memory>
 #include <sstream>
-#include "core/Logger.h"
+#include "Logger.h"
 #include "platform/Platform.h"
 #include "Crypto.h"
 

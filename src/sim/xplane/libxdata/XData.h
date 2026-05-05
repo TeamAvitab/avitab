@@ -20,7 +20,7 @@
 #include <string>
 #include <memory>
 #include <vector>
-#include "core/world/LoadManager.h"
+#include "LoadManager.h"
 #include "XWorld.h"
 #include "loaders/AirportLoader.h"
 

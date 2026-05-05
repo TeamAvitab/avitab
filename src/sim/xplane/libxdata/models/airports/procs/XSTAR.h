@@ -17,9 +17,9 @@
  */
 #pragma once
 
-#include "core/world/models/airport/procs/STAR.h"
+#include "models/airport/procs/STAR.h"
 #include "ProcedureOptions.h"
-#include "core/world/models/navaids/Fix.h"
+#include "models/navaids/Fix.h"
 #include <string>
 #include <functional>
 

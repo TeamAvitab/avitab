@@ -17,9 +17,9 @@
  */
 #include <cmath>
 #include "MsfsAddonEnvironment.h"
-#include "core/Logger.h"
+#include "Logger.h"
 #include "platform/Platform.h"
-#include "core/world/World.h"
+#include "World.h"
 #include <tchar.h>
 #include <stdio.h>
 #include <strsafe.h>

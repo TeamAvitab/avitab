@@ -19,30 +19,28 @@
 
 #include <string>
 #include <functional>
+#include "models/navaids/UserFix.h"
+#include "UserFixData.h"
 #include "BaseParser.h"
-#include "objects/FlightPlanNodeData.h"
 
 namespace world {
 
-class FMSParser {
+class UserFixParser {
 public:
-    using Acceptor = std::function<void(const FlightPlanNodeData &)>;
+    using Acceptor = std::function<void(const UserFixData &)>;
 
-    FMSParser(const std::string &fmsFilename);
+    UserFixParser(const std::string &file);
     void setAcceptor(Acceptor a);
     std::string getHeader() const;
-    void loadFMS();
+    void loadUserFixes();
 private:
     Acceptor acceptor;
     std::string header;
     BaseParser parser;
     int lineNum;
-    bool parsingEnRouteBlock;
 
     void parseLine();
-    void parseEnRouteBlock();
-    void parseIntroBlocks();
-    FlightPlanNodeData::Type parseWaypointType(int num);
+    UserFix::Type parseType(std::string& typeString);
 };
 
 } /* namespace world */

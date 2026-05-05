@@ -18,8 +18,8 @@
 #pragma once
 
 #include <memory>
-#include "core/env/Environment.h"
-#include "core/gui_toolkit/widgets/Container.h"
+#include "Environment.h"
+#include "gui_toolkit/widgets/Container.h"
 #include "AppFunctions.h"
 
 namespace avitab {

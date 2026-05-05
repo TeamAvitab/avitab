@@ -17,7 +17,7 @@
  */
 #include "AirportParser.h"
 #include "objects/AirportData.h"
-#include "core/world/models/airport/Runway.h"
+#include "models/airport/Runway.h"
 #include <iostream>
 
 namespace xdata {

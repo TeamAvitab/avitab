@@ -18,7 +18,7 @@
 #pragma once
 
 #include <string>
-#include "core/libimg/stitcher/TileSource.h"
+#include "libimg/stitcher/TileSource.h"
 
 namespace apis {
 

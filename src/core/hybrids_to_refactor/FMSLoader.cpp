@@ -17,10 +17,10 @@
  */
 #include <algorithm>
 #include "FMSLoader.h"
-#include "../models/Location.h"
-#include "../models/navaids/Fix.h"
-#include "../parsers/FMSParser.h"
-#include "core/Logger.h"
+#include "models/Location.h"
+#include "models/navaids/Fix.h"
+#include "FMSParser.h"
+#include "Logger.h"
 
 namespace world {
 

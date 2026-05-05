@@ -18,7 +18,7 @@
 #pragma once
 
 #include "OverlayedFix.h"
-#include "core/world/models/navaids/UserFix.h"
+#include "models/navaids/UserFix.h"
 #include <vector>
 
 namespace maps {

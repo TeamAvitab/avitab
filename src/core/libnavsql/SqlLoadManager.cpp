@@ -22,7 +22,7 @@
 #include <string>
 #include "loaders/AirportLoader.h"
 #include "loaders/FixLoader.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace sqlnav {
 

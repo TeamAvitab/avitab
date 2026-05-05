@@ -18,7 +18,7 @@
 #include <stdexcept>
 #include <sstream>
 #include "DocumentSource.h"
-#include "core/Logger.h"
+#include "Logger.h"
 #include "platform/Platform.h"
 
 namespace maps {

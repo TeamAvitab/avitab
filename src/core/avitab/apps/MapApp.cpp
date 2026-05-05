@@ -19,13 +19,13 @@
 #include <iomanip>
 #include <cmath>
 #include "MapApp.h"
-#include "core/Logger.h"
+#include "Logger.h"
 #include "platform/Platform.h"
 #include "platform/cstrtod.h"
-#include "core/maps/sources/OnlineSlippySource.h"
-#include "core/maps/sources/GeoTIFFSource.h"
-#include "core/maps/sources/LocalFileSource.h"
-#include "core/maps/sources/EPSGSource.h"
+#include "maps/sources/OnlineSlippySource.h"
+#include "maps/sources/GeoTIFFSource.h"
+#include "maps/sources/LocalFileSource.h"
+#include "maps/sources/EPSGSource.h"
 
 namespace avitab {
 

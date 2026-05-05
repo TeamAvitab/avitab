@@ -28,7 +28,7 @@
 #include <algorithm>
 #include <array>
 #include "Image.h"
-#include "core/Logger.h"
+#include "Logger.h"
 #include "platform/Platform.h"
 #include "TTFStamper.h"
 

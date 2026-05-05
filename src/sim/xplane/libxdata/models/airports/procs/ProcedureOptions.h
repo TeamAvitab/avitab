@@ -17,8 +17,8 @@
  */
 #pragma once
 
-#include "core/world/models/airport/Runway.h"
-#include "core/world/graph/NavNode.h"
+#include "models/airport/Runway.h"
+#include "graph/NavNode.h"
 #include <map>
 #include <memory>
 #include <string>

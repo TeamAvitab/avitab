@@ -19,8 +19,8 @@
 #include <thread>
 #include <iostream>
 #include "sim/mock/StandAloneEnvironment.h"
-#include "core/avitab/AviTab.h"
-#include "core/Logger.h"
+#include "AviTabCore.h"
+#include "Logger.h"
 #include "platform/CrashHandler.h"
 
 int main() {
@@ -40,7 +40,8 @@ int main() {
         logger::verbose("Main thread has id %d", std::this_thread::get_id());
         env->loadSettings();
 
-        auto aviTab = std::make_unique<avitab::AviTab>(env);
+        auto guiDriver = env->createGUIDriver();
+        auto aviTab = avitab::AviTabCore::CreateAviTabCore(env, guiDriver);
         aviTab->startApp();
         aviTab->toggleTablet();
 

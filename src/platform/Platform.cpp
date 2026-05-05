@@ -35,7 +35,7 @@
 #include <fstream>
 #include <algorithm>
 #include "Platform.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 /*
  * The purpose of this module is to put all platform (as in Posix or Win32)

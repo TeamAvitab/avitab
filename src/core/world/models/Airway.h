@@ -18,7 +18,7 @@
 #pragma once
 
 #include <string>
-#include "core/world/graph/NavEdge.h"
+#include "graph/NavEdge.h"
 
 namespace world {
 

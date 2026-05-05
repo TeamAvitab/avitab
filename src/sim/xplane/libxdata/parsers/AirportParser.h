@@ -19,8 +19,8 @@
 
 #include <string>
 #include <functional>
-#include "core/world/parsers/BaseParser.h"
-#include "objects/AirportData.h"
+#include "BaseParser.h"
+#include "../parsers/objects/AirportData.h"
 
 namespace xdata {
 

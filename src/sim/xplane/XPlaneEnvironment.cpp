@@ -27,10 +27,10 @@
 #include <sstream>
 #include "XPlaneEnvironment.h"
 #include "XPlaneGUIDriver.h"
-#include "core/Logger.h"
+#include "Logger.h"
 #include "platform/Platform.h"
 #include "libxdata/XData.h"
-#include "avitab/config.h"
+#include "AviTabBuildSettings.h"
 
 namespace avitab {
 
@@ -138,12 +138,12 @@ std::shared_ptr<world::LoadManager> XPlaneEnvironment::createParsingWorldManager
     return std::make_shared<xdata::XData>(xplaneRootPath);
 }
 
-std::shared_ptr<LVGLToolkit> XPlaneEnvironment::createGUIToolkit() {
+std::shared_ptr<GUIDriver> XPlaneEnvironment::createGUIDriver() {
     std::shared_ptr<XPlaneGUIDriver> driver = std::make_shared<XPlaneGUIDriver>();
     driver->setPanelEnabledPtr(panelEnabled);
     driver->setPanelPoweredPtr(panelPowered);
     driver->setBrightnessPtr(brightness);
-    return std::make_shared<LVGLToolkit>(driver);
+    return driver;
 }
 
 void XPlaneEnvironment::createMenu(const std::string& name) {

@@ -16,7 +16,7 @@
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "About.h"
-#include "avitab/config.h"
+#include "AviTabBuildSettings.h"
 
 namespace avitab {
 

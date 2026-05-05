@@ -20,7 +20,7 @@
 #include "GlfwGUIDriver.h"
 #include <memory>
 #include <map>
-#include "core/env/ToolEnvironment.h"
+#include "ToolEnvironment.h"
 
 namespace avitab {
 
@@ -32,8 +32,8 @@ public:
 
     // Must be called from the environment thread - do not call from GUI thread!
     std::shared_ptr<world::LoadManager> createParsingWorldManager() override;
-    std::shared_ptr<LVGLToolkit> createGUIToolkit() override;
-
+    std::shared_ptr<GUIDriver> createGUIDriver() override;
+    
     // Can be called from any thread
     std::string getDataRootPath() override;
     std::string getFontDirectory() override;

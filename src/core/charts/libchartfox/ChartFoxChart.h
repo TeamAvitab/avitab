@@ -20,8 +20,8 @@
 #include <nlohmann/json_fwd.hpp>
 #include <memory>
 #include <string>
-#include "core/libimg/Image.h"
-#include "core/charts/Chart.h"
+#include "libimg/Image.h"
+#include "charts/Chart.h"
 
 namespace chartfox {
 

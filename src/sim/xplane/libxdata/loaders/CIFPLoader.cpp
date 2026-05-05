@@ -20,7 +20,7 @@
 #include "../models/airports/procs/XSID.h"
 #include "../models/airports/procs/XSTAR.h"
 #include "../models/airports/procs/XApproach.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace xdata {
 

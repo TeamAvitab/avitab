@@ -18,12 +18,12 @@
 #pragma once
 
 #include "App.h"
-#include "core/gui_toolkit/widgets/Container.h"
-#include "core/gui_toolkit/widgets/Label.h"
-#include "core/gui_toolkit/widgets/Button.h"
-#include "core/gui_toolkit/widgets/Checkbox.h"
-#include "core/gui_toolkit/widgets/Slider.h"
-#include "core/gui_toolkit/Timer.h"
+#include "gui_toolkit/widgets/Container.h"
+#include "gui_toolkit/widgets/Label.h"
+#include "gui_toolkit/widgets/Button.h"
+#include "gui_toolkit/widgets/Checkbox.h"
+#include "gui_toolkit/widgets/Slider.h"
+#include "gui_toolkit/Timer.h"
 #include <array>
 
 namespace avitab {

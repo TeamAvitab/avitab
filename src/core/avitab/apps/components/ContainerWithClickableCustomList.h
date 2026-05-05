@@ -18,10 +18,10 @@
  */
 #pragma once
 
-#include "core/avitab/apps/App.h"
-#include "core/gui_toolkit/widgets/Container.h"
-#include "core/gui_toolkit/widgets/List.h"
-#include "core/gui_toolkit/widgets/Window.h"
+#include "avitab/apps/App.h"
+#include "gui_toolkit/widgets/Container.h"
+#include "gui_toolkit/widgets/List.h"
+#include "gui_toolkit/widgets/Window.h"
 #include <string>
 #include <vector>
 

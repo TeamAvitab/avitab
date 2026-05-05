@@ -20,8 +20,8 @@
 #include <cstring>
 #include <curl/curl.h>
 #include "RESTClient.h"
-#include "core/Logger.h"
-#include "avitab/config.h"
+#include "Logger.h"
+#include "AviTabBuildSettings.h"
 
 namespace apis {
 

@@ -21,7 +21,7 @@
 #include <vector>
 #include <string>
 #include <XPLM/XPLMDataAccess.h>
-#include "core/env/EnvData.h"
+#include "EnvData.h"
 
 namespace avitab {
 

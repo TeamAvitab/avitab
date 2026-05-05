@@ -17,8 +17,8 @@
  */
 #include "NavaidLoader.h"
 #include "../parsers/NavaidParser.h"
-#include "core/world/models/navaids/Fix.h"
-#include "core/Logger.h"
+#include "models/navaids/Fix.h"
+#include "Logger.h"
 
 namespace xdata {
 

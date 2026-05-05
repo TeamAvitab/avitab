@@ -17,7 +17,7 @@
  */
 #include "DataCache.h"
 #include <stdexcept>
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace avitab {
 

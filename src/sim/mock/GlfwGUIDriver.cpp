@@ -18,7 +18,7 @@
 #include <stdexcept>
 #include <chrono>
 #include "GlfwGUIDriver.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 #ifdef __APPLE__
 # include <OpenGL/gl.h>

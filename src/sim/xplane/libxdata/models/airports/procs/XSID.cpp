@@ -17,7 +17,7 @@
  */
 
 #include "XSID.h"
-#include "core/Logger.h"
+#include "Logger.h"
 #include <sstream>
 #include <algorithm>
 

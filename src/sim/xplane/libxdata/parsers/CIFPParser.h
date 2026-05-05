@@ -21,7 +21,7 @@
 #include <memory>
 #include <functional>
 #include "objects/CIFPData.h"
-#include "core/world/parsers/BaseParser.h"
+#include "BaseParser.h"
 
 namespace xdata {
 

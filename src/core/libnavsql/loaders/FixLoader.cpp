@@ -20,7 +20,7 @@
 #include "../SqlLoadManager.h"
 #include "../SqlWorld.h"
 #include "../SqlStatement.h"
-#include "core/Logger.h"
+#include "Logger.h"
 #include <sstream>
 
 namespace sqlnav {

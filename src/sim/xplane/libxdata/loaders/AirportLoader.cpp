@@ -18,7 +18,7 @@
 #include <cmath>
 #include <limits>
 #include "AirportLoader.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace xdata {
 

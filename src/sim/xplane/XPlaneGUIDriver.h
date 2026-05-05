@@ -24,7 +24,7 @@
 #include <mutex>
 #include <memory>
 #include <vector>
-#include "core/env/GUIDriver.h"
+#include "GUIDriver.h"
 #include "DataRefImport.h"
 #include "DataRefExport.h"
 

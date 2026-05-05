@@ -22,8 +22,8 @@
 #include "NavigraphAPI.h"
 #include "platform/Platform.h"
 #include "platform/CrashHandler.h"
-#include "core/Logger.h"
-#include "avitab/config.h"
+#include "Logger.h"
+#include "AviTabBuildSettings.h"
 
 namespace navigraph {
 

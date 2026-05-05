@@ -17,30 +17,23 @@
  */
 #pragma once
 
-#include <string>
-#include <functional>
-#include "../models/navaids/UserFix.h"
-#include "objects/UserFixData.h"
-#include "BaseParser.h"
+#include <memory>
+#include "LoadManager.h"
+#include "World.h"
 
 namespace world {
 
-class UserFixParser {
+struct UserFixData;
+
+class UserFixLoader {
 public:
-    using Acceptor = std::function<void(const UserFixData &)>;
-
-    UserFixParser(const std::string &file);
-    void setAcceptor(Acceptor a);
-    std::string getHeader() const;
-    void loadUserFixes();
+    UserFixLoader(std::shared_ptr<LoadManager> mgr);
+    void load(const std::string &file);
 private:
-    Acceptor acceptor;
-    std::string header;
-    BaseParser parser;
-    int lineNum;
+    std::shared_ptr<LoadManager> const loadMgr;
+    std::shared_ptr<World> world;
 
-    void parseLine();
-    UserFix::Type parseType(std::string& typeString);
+    void onUserFixLoaded(const UserFixData &navaid);
 };
 
 } /* namespace world */

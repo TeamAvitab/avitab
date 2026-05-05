@@ -17,22 +17,26 @@
  */
 #pragma once
 
-#include <string>
 #include <memory>
-#include <nlohmann/json_fwd.hpp>
 
 namespace avitab {
 
-class Config {
-public:
-    Config(const std::string &configFile);
-    Config(const std::string &configFile, const std::string &createDefault);
+// Abstract interface to the AviTab core used by the simulation and windows drivers
+// and the product wrappers.
 
-    std::string getString(const std::string &pointer);
-    bool getBool(const std::string &pointer);
-    int getInt(const std::string &pointer);
-private:
-    std::shared_ptr<nlohmann::json> config;
+class Environment;
+class GUIDriver;
+
+class AviTabCore {
+public:
+    static std::unique_ptr<AviTabCore> CreateAviTabCore(std::shared_ptr<Environment> env, std::shared_ptr<GUIDriver> gui);
+
+    virtual void startApp() = 0;
+    virtual void stopApp() = 0;
+    virtual void toggleTablet() = 0;
+    virtual void onPlaneLoad() = 0;
+
+    virtual ~AviTabCore() { }
 };
 
-} /* namespace avitab */
+} // namespace avitab

@@ -20,7 +20,7 @@
 #include <thread>
 #include <cmath>
 #include "Rasterizer.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace img {
 

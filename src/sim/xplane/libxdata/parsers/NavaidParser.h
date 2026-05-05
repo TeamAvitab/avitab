@@ -20,7 +20,7 @@
 #include <string>
 #include <functional>
 #include "objects/NavaidData.h"
-#include "core/world/parsers/BaseParser.h"
+#include "BaseParser.h"
 
 namespace xdata {
 

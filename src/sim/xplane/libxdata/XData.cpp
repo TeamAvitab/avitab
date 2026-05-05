@@ -25,7 +25,7 @@
 #include "loaders/CIFPLoader.h"
 #include "loaders/MetarLoader.h"
 #include "parsers/CustomSceneryParser.h"
-#include "core/Logger.h"
+#include "Logger.h"
 
 namespace xdata {
 

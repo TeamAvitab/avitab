@@ -19,8 +19,8 @@
 
 #include <memory>
 #include <string>
-#include "core/libimg/stitcher/TileSource.h"
-#include "core/libimg/Rasterizer.h"
+#include "libimg/stitcher/TileSource.h"
+#include "libimg/Rasterizer.h"
 #include "Calibration.h"
 
 namespace maps {

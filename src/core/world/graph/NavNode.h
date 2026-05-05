@@ -20,7 +20,7 @@
 #include <string>
 #include <memory>
 #include <vector>
-#include "core/world/models/Location.h"
+#include "models/Location.h"
 
 namespace world {
 

@@ -17,8 +17,8 @@
  */
 #pragma once
 
-#include "core/libimg/stitcher/TileSource.h"
-#include "core/charts/libnavigraph/NavigraphAPI.h"
+#include "libimg/stitcher/TileSource.h"
+#include "charts/libnavigraph/NavigraphAPI.h"
 
 namespace maps {
 

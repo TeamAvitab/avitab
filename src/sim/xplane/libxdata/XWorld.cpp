@@ -21,8 +21,8 @@
 #include <sstream>
 #include <memory>
 #include "XWorld.h"
-#include "core/world/routing/RouteFinder.h"
-#include "core/Logger.h"
+#include "routing/RouteFinder.h"
+#include "Logger.h"
 #include "platform/Platform.h"
 
 namespace xdata {
