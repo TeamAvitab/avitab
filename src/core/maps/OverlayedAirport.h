@@ -53,8 +53,7 @@ private:
     void drawAirportICAORing();
     void drawAirportICAOGeographicRunways();
     void drawAirportGeographicRunways();
-    void getRunwaysCentre(int zoomLevel, int & xCentre, int & yCentre);
-    int getMaxRunwayDistanceFromCentre(int zoomLevel, int xCentre, int yCentre);
+    int getRunwaysDrawRadius(int zoom = -1);
     void drawRunwayRectangles(float size, uint32_t rectColor);
     bool isBlob();
 

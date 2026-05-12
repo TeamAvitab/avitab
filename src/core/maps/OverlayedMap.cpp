@@ -226,8 +226,8 @@ void OverlayedMap::drawAircraftOverlay() {
         return;
     }
 
-    int px = 0, py = 0;
-    locationToPixel(planeLocations[0], px, py);
+    int py, px;
+    std::tie(py, px) = locationToPixel(planeLocations[0]);
 
     px -= planeIcon.getWidth() / 2;
     py -= planeIcon.getHeight() / 2;
@@ -240,15 +240,14 @@ void OverlayedMap::drawOtherAircraftOverlay() {
         return;
     }
 
-    int px = 0, py = 0;
-
+    int px, py;
     for (size_t i = 1; i < planeLocations.size(); ++i) {
         bool isAbove = (planeLocations[i].alt_metres > (planeLocations[0].alt_metres + 30));
         bool isBelow = (planeLocations[i].alt_metres < (planeLocations[0].alt_metres - 30));
         uint32_t color = (isAbove ? otherAircraftColors[RelativeHeight::above]
                                   : (isBelow ? otherAircraftColors[RelativeHeight::below] 
                                              : otherAircraftColors[RelativeHeight::same]));
-        locationToPixel(planeLocations[i], px, py);
+        std::tie(py, px) = locationToPixel(planeLocations[i]);
         mapImage->drawCircle(px, py, 6, color);
         mapImage->drawCircle(px, py, 7, color);
         double ax, ay, tx, ty, rx, ry;
@@ -399,7 +398,7 @@ void OverlayedMap::drawNavWorldOverlays() {
         }
         if (overlayConfig->drawMyAircraft && !planeLocations.empty()) {
             int x, y;
-            locationToPixel(planeLocations[0], x, y);
+            std::tie(y,x) = locationToPixel(planeLocations[0]);
             highlights[USER_PLANE].activate(x, y);
         }
         highlights[MAP_CENTER].activate(mapImage->getWidth() / 2, mapImage->getHeight() / 2);
@@ -506,12 +505,11 @@ void OverlayedMap::drawCompass() {
     rotatedImage->drawLineAA(cx + xt, cy + yt, cx + xm, cy + ym, img::COLOR_RED);
 }
 
-void OverlayedMap::locationToPixel(const world::Location& loc, int& px, int& py) const {
-    int zoomLevel = stitcher->getZoomLevel();
-    locationToPixel(loc, px, py, zoomLevel);
+std::pair<int, int> OverlayedMap::locationToPixel(const world::Location& loc) const {
+    return locationToPixel(loc, stitcher->getZoomLevel());
 }
 
-void OverlayedMap::locationToPixel(const world::Location& loc, int& px, int& py, int zoomLevel) const {
+std::pair<int, int>  OverlayedMap::locationToPixel(const world::Location& loc, int zoomLevel) const {
     auto mapWidth = tileSource->getPageDimensions(0, zoomLevel).x;
     auto dim = tileSource->getTileDimensions(zoomLevel);
 
@@ -528,8 +526,10 @@ void OverlayedMap::locationToPixel(const world::Location& loc, int& px, int& py,
         tileXY.x += mapWidth;
     }
 
-    px = mapImage->getWidth() / 2 + (tileXY.x - centerXY.x) * dim.x;
-    py = mapImage->getHeight() / 2 + (tileXY.y - centerXY.y) * dim.y;
+    int px = mapImage->getWidth() / 2 + (tileXY.x - centerXY.x) * dim.x;
+    int py = mapImage->getHeight() / 2 + (tileXY.y - centerXY.y) * dim.y;
+
+    return std::make_pair(py, px);
 }
 
 void OverlayedMap::updateMapAttributes()

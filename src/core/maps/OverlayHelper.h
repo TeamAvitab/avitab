@@ -18,6 +18,7 @@
 #pragma once
 
 #include <memory>
+#include <utility>
 #include "OverlayConfig.h"
 #include "libimg/Image.h"
 #include "WorldGeometry.h"
@@ -34,8 +35,8 @@ public:
     virtual std::shared_ptr<img::Image> getMapImage() = 0;
     virtual bool isAreaVisible(int xmin, int ymin, int xmax, int ymax) const = 0;
     virtual void fastPolarToCartesian(float radius, int angleDegrees, double& x, double& y) const = 0;
-    virtual void locationToPixel(const world::Location&, int &px, int &py) const = 0;
-    virtual void locationToPixel(const world::Location&, int &px, int &py, int zoomLevel) const = 0;
+    virtual std::pair<int, int> locationToPixel(const world::Location&) const = 0;
+    virtual std::pair<int, int> locationToPixel(const world::Location&, int zoomLevel) const = 0;
 
     virtual ~IOverlayHelper() = default;
 };

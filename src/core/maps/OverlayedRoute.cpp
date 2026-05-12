@@ -45,7 +45,7 @@ void OverlayedRoute::draw(std::shared_ptr<world::Route> route) {
 
     // Draw last node
     int toX, toY;
-    overlayHelper->locationToPixel(toLoc, toX, toY);
+    std::tie(toY, toX) = overlayHelper->locationToPixel(toLoc);
     overlayHelper->getMapImage()->fillCircle(toX, toY, 3, img::COLOR_BLACK);
 }
 
@@ -65,8 +65,8 @@ void OverlayedRoute::drawLeg(world::Location &from, world::Location &to, double 
     }
 
     int fromX, fromY, midX, midY, toX, toY;
-    overlayHelper->locationToPixel(from, fromX, fromY);
-    overlayHelper->locationToPixel(to, toX, toY);
+    std::tie(fromY, fromX) = overlayHelper->locationToPixel(from);
+    std::tie(toY, toX) = overlayHelper->locationToPixel(to);
 
     std::pair<int, int> legDims(0,0);
     if (!crossingPoint.isValid()) {
@@ -79,12 +79,12 @@ void OverlayedRoute::drawLeg(world::Location &from, world::Location &to, double 
         // separately. additionally the midpoint is most likely not the same as the crossing
         // point and needs to be calculated using the 2 parts of the leg.
         int crossX, crossY;
-        overlayHelper->locationToPixel(crossingPoint, crossX, crossY);
+        std::tie(crossY, crossX) = overlayHelper->locationToPixel(crossingPoint);
         legDims = drawLeg(fromX, fromY, crossX, crossY);
         int deltaX = (crossX - fromX);
         int deltaY = (crossY - fromY);
         crossingPoint.xpos_rad = 0 - crossingPoint.xpos_rad;
-        overlayHelper->locationToPixel(crossingPoint, crossX, crossY);
+        std::tie(crossY, crossX) = overlayHelper->locationToPixel(crossingPoint);
         auto leg2Dims = drawLeg(crossX, crossY, toX, toY);
         legDims.first += leg2Dims.first;
         legDims.second += leg2Dims.second;

@@ -76,8 +76,8 @@ public:
     std::shared_ptr<img::Image> getMapImage() override;
     bool isAreaVisible(int xmin, int ymin, int xmax, int ymax) const override;
     void fastPolarToCartesian(float radius, int angleDegrees, double& x, double& y) const override;
-    void locationToPixel(const world::Location&, int &px, int &py) const override;
-    void locationToPixel(const world::Location&, int &px, int &py, int zoomLevel) const override;
+    std::pair<int, int> locationToPixel(const world::Location&) const override;
+    std::pair<int, int> locationToPixel(const world::Location&, int zoomLevel) const override;
 
 private:
     // Highlighted nodes
