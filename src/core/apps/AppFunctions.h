@@ -20,11 +20,14 @@
 #include <filesystem>
 #include <memory>
 #include <string>
-#include "gui_toolkit/widgets/Container.h"
-#include "World.h"
-#include "routing/Route.h"
+#include "gui/widgets/Container.h"
+#include "Navigation.h"
 #include "charts/ChartService.h"
 #include "Environment.h"
+
+namespace navdb {
+class Route;
+}
 
 namespace avitab {
 
@@ -40,6 +43,9 @@ enum class AppId {
 };
 
 class AppFunctions {
+    // REFACTOR - some of these APIs are simply forwarded to the environment.
+    // they could be removed by passing the environment to apps on creation.
+    // also are they really needed in an abstract API, or could they simply be called directly?
 public:
     virtual void setBrightness(float brightness) = 0;
     virtual float getBrightness() = 0;
@@ -51,11 +57,9 @@ public:
     virtual std::shared_ptr<Container> createGUIContainer() = 0;
     virtual void showGUIContainer(std::shared_ptr<Container> container) = 0;
     virtual void onHomeButton() = 0;
-    virtual std::shared_ptr<world::World> getNavWorld() = 0;
+    virtual std::shared_ptr<navdb::NavDatabase> getNavDatabase() = 0;
     virtual void loadUserFixes(const std::filesystem::path &filename) = 0;
-    virtual world::NavNodeList loadFlightPlan(const std::filesystem::path &filename) = 0;
-    using MagVarMap = std::map<std::pair<double, double>, double>;
-    virtual MagVarMap getMagneticVariations(std::vector<std::pair<double, double>> locations) = 0;
+    virtual std::vector<float> getMagneticVariations(std::vector<world::Location> &locs) = 0;
     virtual std::string getMETARForAirport(const std::string &icao) = 0;
     virtual int getWeatherAtLocation(const world::Location &loc, const float &altitude, std::string &weather) = 0;
     virtual std::string getNearestAirportId() = 0;
@@ -68,9 +72,10 @@ public:
     virtual unsigned int getZuluTimeSeconds() = 0;
     virtual unsigned int getLocalTimeSeconds() = 0;
     virtual std::shared_ptr<Settings> getSettings() = 0;
-    virtual void setRoute(std::shared_ptr<world::Route> route) = 0;
-    virtual std::shared_ptr<world::Route> getRoute() = 0;
-    virtual std::shared_ptr<world::RouteFinder> getRouteFinder() = 0;
+
+    virtual void setRoute(std::shared_ptr<navdb::Route> route) = 0;
+    virtual std::shared_ptr<navdb::Route> getRoute() = 0;
+    
     virtual void updateMapExports(float lat, float lon, int zoom, float vrange) = 0;
     virtual ~AppFunctions() = default;
 };

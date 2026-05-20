@@ -21,8 +21,8 @@
 #include <vector>
 #include <atomic>
 #include "Calibration.h"
-#include "libimg/stitcher/TileSource.h"
-#include "libimg/Rasterizer.h"
+#include "image/stitcher/TileSource.h"
+#include "image/Rasterizer.h"
 #include "charts/Crypto.h"
 #include "charts/ChartService.h"
 

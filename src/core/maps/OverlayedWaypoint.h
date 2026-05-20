@@ -24,7 +24,7 @@ namespace maps {
 class OverlayedWaypoint : public OverlayedFix {
 
 public:
-    OverlayedWaypoint(IOverlayHelper *h, const world::Fix *f);
+    OverlayedWaypoint(IOverlayHelper *h, const navdb::Fix *f);
 
     void drawGraphic() override;
     void drawText(bool detailed) override;

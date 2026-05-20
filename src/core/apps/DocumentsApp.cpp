@@ -216,7 +216,7 @@ void DocumentsApp::loadFile(PageInfo tab, const std::filesystem::path &docPath) 
 
     auto pixMap = tab->pixMap;
     tab->map->setRedrawCallback([pixMap] () { if (pixMap) pixMap->invalidate(); });
-    tab->map->setNavWorld(api().getNavWorld());
+    tab->map->setNavWorld(api().getNavDatabase()); // REFACTOR - add check for status and refresh
     tab->map->updateImage();
 
     setTitle(tab);

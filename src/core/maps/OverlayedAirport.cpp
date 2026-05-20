@@ -20,11 +20,10 @@
 #include <cmath>
 #include <cassert>
 #include "OverlayedAirport.h"
-#include "World.h"
 
 namespace maps {
 
-OverlayedAirport::OverlayedAirport(IOverlayHelper *h, const world::Airport *a):
+OverlayedAirport::OverlayedAirport(IOverlayHelper *h, const navdb::Airport *a):
     OverlayedNode(h, true),
     airport(a)
 {
@@ -33,7 +32,7 @@ OverlayedAirport::OverlayedAirport(IOverlayHelper *h, const world::Airport *a):
 }
 
 std::string OverlayedAirport::getID() const {
-    return airport->getID();
+    return airport->getIdent();
 }
 
 void OverlayedAirport::drawGraphic() {
@@ -75,7 +74,7 @@ void OverlayedAirport::drawText(bool detailed) {
 
     if (detailed) {
         std::string nameAndID = airport->getName() + " (" + airport->getDisplayID() + ")";
-        std::string elevationFeet = std::to_string(airport->getElevation());
+        std::string elevationFeet = std::to_string(airport->getElevationFt());
         int rwyLengthHundredsFeet = (airport->getLongestRunwayLength() * world::M_TO_FT) / 100.0;
         std::string rwyLength = (rwyLengthHundredsFeet == 0) ? "" : (" " + std::to_string(rwyLengthHundredsFeet));
         std::string atcInfo = airport->getInitialATCContactInfo();
@@ -125,7 +124,7 @@ int OverlayedAirport::getRunwaysDrawRadius(int zoom) {
     auto centre = airport->getLocation();
     auto aptYX = overlayHelper->locationToPixel(centre, zoom);
     int maxDistance = 0;
-    airport->forEachRunway([this, zoom, aptYX, &maxDistance] (const std::shared_ptr<world::Runway> rwy) {
+    airport->forEachRunway([this, zoom, aptYX, &maxDistance] (const std::shared_ptr<navdb::Runway> rwy) {
         auto loc = rwy->getLocation();
         auto rwyYX = overlayHelper->locationToPixel(loc, zoom);
         auto dy = (rwyYX.first - aptYX.first);
@@ -141,7 +140,7 @@ void OverlayedAirport::drawAirportICAOGeographicRunways() {
 }
 
 void OverlayedAirport::drawRunwayRectangles(float size, uint32_t rectColor) {
-    airport->forEachRunwayPair([this, size, rectColor](const std::shared_ptr<world::Runway> rwy1, const std::shared_ptr<world::Runway> rwy2) {
+    airport->forEachRunwayPair([this, size, rectColor](const std::shared_ptr<navdb::Runway> rwy1, const std::shared_ptr<navdb::Runway> rwy2) {
         auto loc1 = rwy1->getLocation();
         auto loc2 = rwy2->getLocation();
         int y1, x1, y2, x2;
@@ -180,7 +179,7 @@ void OverlayedAirport::drawAirportICAORing() {
 
 void OverlayedAirport::drawAirportGeographicRunways() {
     // Draw the runways as on the ground, but with slightly exaggerated widths for visibility
-    airport->forEachRunwayPair([this] (const std::shared_ptr<world::Runway> rwy1, const std::shared_ptr<world::Runway> rwy2) {
+    airport->forEachRunwayPair([this] (const std::shared_ptr<navdb::Runway> rwy1, const std::shared_ptr<navdb::Runway> rwy2) {
         auto loc1 = rwy1->getLocation();
         auto loc2 = rwy2->getLocation();
         int px1, py1, px2, py2;
@@ -223,7 +222,7 @@ void OverlayedAirport::drawAirportICAOCircleAndRwyPattern() {
     cy /= scale;
     cx /= scale;
 
-    airport->forEachRunwayPair([this, mapImage, maxZoom, cy, cx, scale](const std::shared_ptr<world::Runway> rwy1, const std::shared_ptr<world::Runway> rwy2) {
+    airport->forEachRunwayPair([this, mapImage, maxZoom, cy, cx, scale](const std::shared_ptr<navdb::Runway> rwy1, const std::shared_ptr<navdb::Runway> rwy2) {
         auto loc1 = rwy1->getLocation();
         auto loc2 = rwy2->getLocation();
         int px1, py1, px2, py2;

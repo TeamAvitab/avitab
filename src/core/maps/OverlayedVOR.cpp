@@ -20,11 +20,11 @@
 
 namespace maps {
 
-OverlayedVOR::OverlayedVOR(IOverlayHelper *h, const world::Fix *f):
+OverlayedVOR::OverlayedVOR(IOverlayHelper *h, const navdb::NavFix *f):
     OverlayedFix(h, f),
-    navVOR(f->getVOR().get())
+    navVOR(f->getVOR())
 {
-    if (fix->getDME()) {
+    if (f->getDME()) {
         linkedDME = std::make_unique<OverlayedDME>(h, f);
     }
 }

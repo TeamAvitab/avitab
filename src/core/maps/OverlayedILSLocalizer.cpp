@@ -24,11 +24,11 @@
 
 namespace maps {
 
-OverlayedILSLocalizer::OverlayedILSLocalizer(IOverlayHelper *h, const world::Fix *f)
+OverlayedILSLocalizer::OverlayedILSLocalizer(IOverlayHelper *h, const navdb::NavFix *f)
 :   OverlayedFix(h, f),
-    navILS(f->getILSLocalizer().get())
+    navILS(f->getILSLocalizer())
 {
-    if (fix->getDME()) {
+    if (f->getDME()) {
         linkedDME = std::make_unique<OverlayedDME>(h, f);
     }
 }

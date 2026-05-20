@@ -19,14 +19,13 @@
 #include "MsfsAddonEnvironment.h"
 #include "Logger.h"
 #include "platform/Platform.h"
-#include "World.h"
+#include "Navigation.h"
+#include "WorldGeometry.h"
 #include <tchar.h>
 #include <stdio.h>
 #include <strsafe.h>
 
 #define MSFS_VERBOSE_LOGGING 0
-
-namespace avitab {
 
 MsfsAddonEnvironment::MsfsAddonEnvironment()
 :   StandAloneEnvironment(),
@@ -63,13 +62,13 @@ void MsfsAddonEnvironment::eventLoop()
     driver.reset();
 }
 
-AircraftID MsfsAddonEnvironment::getActiveAircraftCount()
+avitab::AircraftID MsfsAddonEnvironment::getActiveAircraftCount()
 {
     std::lock_guard<std::mutex> lock(stateMutex);
     return 1 + otherLocations.size();
 }
 
-world::Position MsfsAddonEnvironment::getAircraftPosition(AircraftID id)
+world::Position MsfsAddonEnvironment::getAircraftPosition(avitab::AircraftID id)
 {
     std::lock_guard<std::mutex> lock(stateMutex);
     if (id == 0) {
@@ -185,6 +184,3 @@ void MsfsAddonEnvironment::updateAircraftLocation(SIMCONNECT_RECV_SIMOBJECT_DATA
         }
     }
 }
-
-
-} /* namespace avitab */

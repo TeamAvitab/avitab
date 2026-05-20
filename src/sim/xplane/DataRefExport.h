@@ -21,7 +21,7 @@
 #include <string>
 #include <functional>
 
-namespace avitab {
+namespace xdata {
 
 template<typename T>
 class DataRefExport final {
@@ -39,4 +39,4 @@ private:
 
 };
 
-} // namespace avitab
+} // namespace xdata

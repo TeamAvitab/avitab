@@ -23,12 +23,10 @@
 #include <atomic>
 #include "GUIDriver.h"
 
-namespace avitab {
-
-class GlfwGUIDriver: public GUIDriver {
+class GlfwGUIDriver: public avitab::GUIDriver {
 public:
     void init(int width, int height) override;
-    void createWindow(const std::string &title, const WindowRect &rect) override;
+    void createWindow(const std::string &title, const avitab::WindowRect &rect) override;
     bool hasWindow() override;
     void killWindow() override;
     void setBrightness(float b) override;
@@ -58,5 +56,3 @@ private:
     void render();
     void onQuit();
 };
-
-} /* namespace avitab */

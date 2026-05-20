@@ -28,7 +28,7 @@ int main() {
 
     try {
         // Using the heap so we can debug destructors with log messages
-        auto env = std::make_shared<avitab::StandAloneEnvironment>();
+        auto env = std::make_shared<StandAloneEnvironment>();
         try {
             env->loadConfig();
         } catch (const std::exception &e) {

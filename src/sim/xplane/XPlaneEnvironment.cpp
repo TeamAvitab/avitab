@@ -29,10 +29,7 @@
 #include "XPlaneGUIDriver.h"
 #include "Logger.h"
 #include "platform/Platform.h"
-#include "libxdata/XData.h"
 #include "AviTabBuildSettings.h"
-
-namespace avitab {
 
 XPlaneEnvironment::XPlaneEnvironment() {
     XPLMDebugString("AviTab version " AVITAB_VERSION_STR "\n");
@@ -63,31 +60,31 @@ XPlaneEnvironment::XPlaneEnvironment() {
 
     reloadAircraftPath();
 
-    panelEnabledRef = std::make_unique<DataRefExport<int>>("avitab/panel_enabled", this,
+    panelEnabledRef = std::make_unique<xdata::DataRefExport<int>>("avitab/panel_enabled", this,
         [] (void *self) { return *((reinterpret_cast<XPlaneEnvironment *>(self))->panelEnabled); },
         [] (void *self, int v) { *((reinterpret_cast<XPlaneEnvironment *>(self))->panelEnabled) = v; });
 
-    panelPoweredRef = std::make_unique<DataRefExport<int>>("avitab/panel_powered", this,
+    panelPoweredRef = std::make_unique<xdata::DataRefExport<int>>("avitab/panel_powered", this,
         [] (void *self) { return *((reinterpret_cast<XPlaneEnvironment *>(self))->panelPowered); },
         [] (void *self, int v) { *((reinterpret_cast<XPlaneEnvironment *>(self))->panelPowered) = v; });
 
-    brightnessRef = std::make_unique<DataRefExport<float>>("avitab/brightness", this,
+    brightnessRef = std::make_unique<xdata::DataRefExport<float>>("avitab/brightness", this,
         [] (void *self) { return *((reinterpret_cast<XPlaneEnvironment *>(self))->brightness); },
         [] (void *self, float v) { *((reinterpret_cast<XPlaneEnvironment *>(self))->brightness) = v; });
 
-    isInMenuRef = std::make_unique<DataRefExport<int>>("avitab/is_in_menu", this,
+    isInMenuRef = std::make_unique<xdata::DataRefExport<int>>("avitab/is_in_menu", this,
         [] (void *self) { return (reinterpret_cast<XPlaneEnvironment *>(self))->isInMenu; });
 
-    mapLatitudeRef = std::make_unique<DataRefExport<float>>("avitab/map/latitude", this,
+    mapLatitudeRef = std::make_unique<xdata::DataRefExport<float>>("avitab/map/latitude", this,
         [] (void *self) { return (reinterpret_cast<XPlaneEnvironment *>(self))->getMapLatitude(); });
 
-    mapLongitudeRef = std::make_unique<DataRefExport<float>>("avitab/map/longitude", this,
+    mapLongitudeRef = std::make_unique<xdata::DataRefExport<float>>("avitab/map/longitude", this,
         [] (void *self) { return (reinterpret_cast<XPlaneEnvironment *>(self))->getMapLongitude(); });
 
-    mapZoomRef = std::make_unique<DataRefExport<int>>("avitab/map/zoom", this,
+    mapZoomRef = std::make_unique<xdata::DataRefExport<int>>("avitab/map/zoom", this,
         [] (void *self) { return (reinterpret_cast<XPlaneEnvironment *>(self))->getMapZoom(); });
 
-    mapVerticalRangeRef = std::make_unique<DataRefExport<float>>("avitab/map/vertical_range", this,
+    mapVerticalRangeRef = std::make_unique<xdata::DataRefExport<float>>("avitab/map/vertical_range", this,
         [] (void *self) { return (reinterpret_cast<XPlaneEnvironment *>(self))->getMapVerticalRange(); });
 
     XPLMScheduleFlightLoop(flightLoopId, -1, true);
@@ -134,11 +131,7 @@ XPLMFlightLoopID XPlaneEnvironment::createFlightLoop() {
     return id;
 }
 
-std::shared_ptr<world::LoadManager> XPlaneEnvironment::createParsingWorldManager() {
-    return std::make_shared<xdata::XData>(xplaneRootPath);
-}
-
-std::shared_ptr<GUIDriver> XPlaneEnvironment::createGUIDriver() {
+std::shared_ptr<avitab::GUIDriver> XPlaneEnvironment::createGUIDriver() {
     std::shared_ptr<XPlaneGUIDriver> driver = std::make_shared<XPlaneGUIDriver>();
     driver->setPanelEnabledPtr(panelEnabled);
     driver->setPanelPoweredPtr(panelPowered);
@@ -209,9 +202,9 @@ int XPlaneEnvironment::handleCommand(XPLMCommandRef cmd, XPLMCommandPhase phase,
     CommandCallback f = us->commandHandlers[cmd].callback;
     if (f) {
         switch (phase) {
-        case xplm_CommandBegin:     f(CommandState::START); break;
-        case xplm_CommandContinue:  f(CommandState::CONTINUE); break;
-        case xplm_CommandEnd:       f(CommandState::END); break;
+        case xplm_CommandBegin:     f(avitab::CommandState::START); break;
+        case xplm_CommandContinue:  f(avitab::CommandState::CONTINUE); break;
+        case xplm_CommandEnd:       f(avitab::CommandState::END); break;
         }
     }
 
@@ -250,6 +243,10 @@ std::filesystem::path XPlaneEnvironment::getFlightPlansPath() {
     return xplaneRootPath / "Output"/"FMS Plans";
 }
 
+std::filesystem::path XPlaneEnvironment::getXpNavDataRootPath() {
+    return xplaneRootPath;
+}
+
 float XPlaneEnvironment::onFlightLoop(float elapsedSinceLastCall, float elapseSinceLastLoop, int count) {
     std::vector<world::Position> activeAircraftLocations;
 
@@ -262,7 +259,7 @@ float XPlaneEnvironment::onFlightLoop(float elapsedSinceLastCall, float elapseSi
         tcasPsi = dataCache.getData("sim/cockpit2/tcas/targets/position/psi").floatVector;
         tcasEle = dataCache.getData("sim/cockpit2/tcas/targets/position/ele").floatVector;
 
-        for (AircraftID i = 0; i < tcasAircraftCount; i++) {
+        for (avitab::AircraftID i = 0; i < tcasAircraftCount; i++) {
             world::Position loc;
             loc = world::Position::fromGCSm(tcasLat.at(i), tcasLon.at(i), tcasPsi.at(i), tcasEle.at(i));
             activeAircraftLocations.push_back(loc);
@@ -271,7 +268,7 @@ float XPlaneEnvironment::onFlightLoop(float elapsedSinceLastCall, float elapseSi
 
     // Use old multiplayer scheme
     if (tcasAircraftCount == 1) {
-        for (AircraftID i = 0; i <= otherAircraftCount; ++i) {
+        for (avitab::AircraftID i = 0; i <= otherAircraftCount; ++i) {
             try {
                 world::Position loc;
                 loc = world::Position::fromGCSm(dataCache.getLocationData(i, 0).doubleValue, dataCache.getLocationData(i, 1).doubleValue,
@@ -291,18 +288,18 @@ float XPlaneEnvironment::onFlightLoop(float elapsedSinceLastCall, float elapseSi
         localTimeSecs = static_cast<unsigned int>(dataCache.getData("sim/time/local_time_sec").floatValue);
     }
 
-    setLastFrameTime(dataCache.getData("sim/operation/misc/frame_rate_period").floatValue);
+    lastFrameTime = dataCache.getData("sim/operation/misc/frame_rate_period").floatValue;
 
     runEnvironmentCallbacks();
     return -1;
 }
 
-AircraftID XPlaneEnvironment::getActiveAircraftCount() {
+avitab::AircraftID XPlaneEnvironment::getActiveAircraftCount() {
     std::lock_guard<std::mutex> lock(stateMutex);
     return (otherAircraftCount + 1);
 }
 
-world::Position XPlaneEnvironment::getAircraftPosition(AircraftID id) {
+world::Position XPlaneEnvironment::getAircraftPosition(avitab::AircraftID id) {
     std::lock_guard<std::mutex> lock(stateMutex);
     if (id < aircraftLocations.size()) {
         return aircraftLocations[id];
@@ -311,8 +308,8 @@ world::Position XPlaneEnvironment::getAircraftPosition(AircraftID id) {
     }
 }
 
-EnvData XPlaneEnvironment::getData(const std::string& dataRef) {
-    std::promise<EnvData> dataPromise;
+xdata::EnvData XPlaneEnvironment::getData(const std::string& dataRef) {
+    std::promise<xdata::EnvData> dataPromise;
     auto futureData = dataPromise.get_future();
 
     runInEnvironment([&dataPromise, &dataRef, this] () {
@@ -327,23 +324,22 @@ EnvData XPlaneEnvironment::getData(const std::string& dataRef) {
     return futureData.get();
 }
 
-Environment::MagVarMap XPlaneEnvironment::getMagneticVariations(std::vector<std::pair<double, double>> locations) {
-    std::promise<MagVarMap> dataPromise;
+std::vector<float> XPlaneEnvironment::getMagneticVariations(std::vector<world::Location> &locs) {
+    std::promise<std::vector<float>> dataPromise;
     auto futureData = dataPromise.get_future();
 
     auto startAt = std::chrono::steady_clock::now();
-    runInEnvironment([&dataPromise, &locations] () {
-        MagVarMap magVarMap;
-        for (auto loc : locations) {
-            double variation = XPLMGetMagneticVariation(loc.first, loc.second);
-            magVarMap[loc] = variation;
+    runInEnvironment([&dataPromise, &locs] () {
+        std::vector<float> mvs;
+        for (auto loc : locs) {
+            mvs.push_back(XPLMGetMagneticVariation(loc.latDegrees(), loc.lonDegrees()));
         }
-        dataPromise.set_value(magVarMap);
+        dataPromise.set_value(mvs);
     });
 
     auto res = futureData.get();
     auto duration = std::chrono::steady_clock::now() - startAt;
-    LOG_INFO(0, "Time to get %d magnetic variations: %d millis", locations.size(),
+    LOG_INFO(0, "Time to get %d magnetic variations: %d millis", locs.size(),
              std::chrono::duration_cast<std::chrono::milliseconds>(duration).count());
     return res;
 }
@@ -522,12 +518,6 @@ float XPlaneEnvironment::getMapVerticalRange() {
     return mapVerticalRange;
 }
 
-bool XPlaneEnvironment::canUseNavDb(const std::string simCode) {
-    std::ostringstream expected;
-    expected << "XP" << (xplaneVersion / 100);
-    return (simCode == expected.str());
-}
-
 void XPlaneEnvironment::reloadAircraftPath() {
     std::lock_guard<std::mutex> lock(stateMutex);
     char file[512];
@@ -562,8 +552,8 @@ void XPlaneEnvironment::updatePlaneCount() {
     XPLMCountAircraft(&tmp1, &active, &tmp2);
     if (active > 0) {
         otherAircraftCount = active - 1;
-        if (otherAircraftCount > MAX_AI_AIRCRAFT) {
-            otherAircraftCount = MAX_AI_AIRCRAFT;
+        if (otherAircraftCount > xdata::MAX_AI_AIRCRAFT) {
+            otherAircraftCount = xdata::MAX_AI_AIRCRAFT;
         }
     } else {
         otherAircraftCount = 0;
@@ -573,5 +563,3 @@ void XPlaneEnvironment::updatePlaneCount() {
         otherAircraftCount = tcasAircraftCount - 1;
     }
 }
-
-} /* namespace avitab */

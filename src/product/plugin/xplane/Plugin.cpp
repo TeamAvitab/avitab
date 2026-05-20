@@ -27,7 +27,7 @@
 #include "platform/CrashHandler.h"
 #include "AviTabBuildSettings.h"
 
-std::shared_ptr<avitab::Environment> environment;
+std::shared_ptr<XPlaneEnvironment> environment;
 std::unique_ptr<avitab::AviTabCore> aviTab;
 
 PLUGIN_API int XPluginStart(char *outName, char *outSignature, char *outDescription) {
@@ -40,7 +40,7 @@ PLUGIN_API int XPluginStart(char *outName, char *outSignature, char *outDescript
         XPLMEnableFeature("XPLM_USE_NATIVE_PATHS", 1);
         curl_global_init(CURL_GLOBAL_ALL);
 
-        environment = std::make_shared<avitab::XPlaneEnvironment>();
+        environment = std::make_shared<XPlaneEnvironment>();
         environment->loadConfig();
         logger::setStdOut(environment->getConfig()->getBool("/AviTab/logToStdOut"));
         logger::init(environment->getDataRootPath());

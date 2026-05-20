@@ -18,12 +18,12 @@
 #pragma once
 
 #include "App.h"
-#include "gui_toolkit/widgets/Window.h"
-#include "gui_toolkit/widgets/TextArea.h"
-#include "gui_toolkit/widgets/Keyboard.h"
-#include "gui_toolkit/widgets/PixMap.h"
-#include "gui_toolkit/widgets/Button.h"
-#include "libimg/Image.h"
+#include "gui/widgets/Window.h"
+#include "gui/widgets/TextArea.h"
+#include "gui/widgets/Keyboard.h"
+#include "gui/widgets/PixMap.h"
+#include "gui/widgets/Button.h"
+#include "image/Image.h"
 
 namespace avitab {
 

@@ -19,8 +19,8 @@
 
 #include <memory>
 #include "App.h"
-#include "gui_toolkit/widgets/Window.h"
-#include "gui_toolkit/widgets/Label.h"
+#include "gui/widgets/Window.h"
+#include "gui/widgets/Label.h"
 
 namespace avitab {
 

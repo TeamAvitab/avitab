@@ -18,12 +18,12 @@
 #pragma once
 
 #include "App.h"
-#include "gui_toolkit/widgets/Container.h"
-#include "gui_toolkit/widgets/Label.h"
-#include "gui_toolkit/widgets/Button.h"
-#include "gui_toolkit/widgets/Checkbox.h"
-#include "gui_toolkit/widgets/Slider.h"
-#include "gui_toolkit/Timer.h"
+#include "gui/widgets/Container.h"
+#include "gui/widgets/Label.h"
+#include "gui/widgets/Button.h"
+#include "gui/widgets/Checkbox.h"
+#include "gui/widgets/Slider.h"
+#include "gui/Timer.h"
 #include <array>
 
 namespace avitab {
@@ -33,7 +33,7 @@ public:
     HeaderApp(FuncsPtr appFuncs);
 private:
     static constexpr int HOR_PADDING = 10, VERT_PADDING = 10;
-    std::shared_ptr<Label> clockLabel, fpsLabel;
+    std::shared_ptr<Label> clockLabel, fpsLabel, navLabel;
     std::shared_ptr<Button> homeButton;
     std::shared_ptr<Button> settingsButton;;
 
@@ -77,6 +77,7 @@ private:
     bool onTick();
     unsigned int getElapsedTime();
     void updateClock();
+    void updateNav();
     void updateFPS();
     void pushFPSValue(float fps);
     float getAverageFPS();

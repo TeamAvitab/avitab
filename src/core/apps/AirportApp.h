@@ -20,23 +20,23 @@
 #include <memory>
 #include <vector>
 #include "App.h"
-#include "gui_toolkit/widgets/TextArea.h"
-#include "gui_toolkit/widgets/Keyboard.h"
-#include "gui_toolkit/widgets/TabGroup.h"
-#include "gui_toolkit/widgets/Label.h"
-#include "gui_toolkit/widgets/Page.h"
-#include "gui_toolkit/widgets/Button.h"
-#include "gui_toolkit/widgets/Checkbox.h"
-#include "gui_toolkit/widgets/Container.h"
-#include "gui_toolkit/widgets/PixMap.h"
-#include "gui_toolkit/widgets/DropDownList.h"
-#include "gui_toolkit/widgets/List.h"
-#include "gui_toolkit/widgets/Window.h"
-#include "gui_toolkit/widgets/MessageBox.h"
-#include "gui_toolkit/Timer.h"
-#include "libimg/stitcher/TileSource.h"
+#include "gui/widgets/TextArea.h"
+#include "gui/widgets/Keyboard.h"
+#include "gui/widgets/TabGroup.h"
+#include "gui/widgets/Label.h"
+#include "gui/widgets/Page.h"
+#include "gui/widgets/Button.h"
+#include "gui/widgets/Checkbox.h"
+#include "gui/widgets/Container.h"
+#include "gui/widgets/PixMap.h"
+#include "gui/widgets/DropDownList.h"
+#include "gui/widgets/List.h"
+#include "gui/widgets/Window.h"
+#include "gui/widgets/MessageBox.h"
+#include "gui/Timer.h"
+#include "image/stitcher/TileSource.h"
 #include "maps/OverlayedMap.h"
-#include "libimg/stitcher/Stitcher.h"
+#include "image/stitcher/Stitcher.h"
 
 namespace avitab {
 
@@ -51,7 +51,7 @@ private:
         std::shared_ptr<Window> window;
         std::shared_ptr<Label> label;
         std::shared_ptr<Button> trackButton, nightModeButton;
-        std::shared_ptr<world::Airport> airport;
+        std::shared_ptr<navdb::Airport> airport;
 
         apis::ChartCategory requestedList = apis::ChartCategory::ROOT;
         apis::ChartService::ChartList charts;
@@ -88,24 +88,24 @@ private:
     void removeTab(std::shared_ptr<Page> page);
     void resetLayout();
     void onSearchEntered(const std::string &code);
-    void onAirportSelected(std::shared_ptr<world::Airport> airport);
+    void onAirportSelected(std::shared_ptr<navdb::Airport> airport);
     void clearSearch();
-    void sortSearchResults(std::vector<std::shared_ptr<world::Airport>> &airports);
-    void fillPage(std::shared_ptr<Page> page, std::shared_ptr<world::Airport> airport);
+    void sortSearchResults(std::vector<std::shared_ptr<navdb::Airport>> &airports);
+    void fillPage(std::shared_ptr<Page> page, std::shared_ptr<navdb::Airport> airport);
 
-    std::string getDisplayID(std::shared_ptr<world::Airport> airport);
-    std::tuple<double, double> getNavData(std::shared_ptr<world::Airport> airport);
-    std::string toAptHeader(std::shared_ptr<world::Airport> airport);
-    std::string toATCInfo(std::shared_ptr<world::Airport> airport);
-    std::string toATCString(const std::string &name, std::shared_ptr<world::Airport> airport, world::Airport::ATCFrequency type);
-    std::string toRunwayInfo(std::shared_ptr<world::Airport> airport);
-    std::string toHeliportInfo(std::shared_ptr<world::Airport> airport);
-    std::string toWeatherInfo(std::shared_ptr<world::Airport> airport);
+    std::string getDisplayID(std::shared_ptr<navdb::Airport> airport);
+    std::tuple<double, double> getNavData(std::shared_ptr<navdb::Airport> airport);
+    std::string toAptHeader(std::shared_ptr<navdb::Airport> airport);
+    std::string toATCInfo(std::shared_ptr<navdb::Airport> airport);
+    std::string toATCString(const std::string &name, std::shared_ptr<navdb::Airport> airport, navdb::ATCserviceType type);
+    std::string toRunwayInfo(std::shared_ptr<navdb::Airport> airport);
+    std::string toHeliportInfo(std::shared_ptr<navdb::Airport> airport);
+    std::string toWeatherInfo(std::shared_ptr<navdb::Airport> airport);
 
     TabPage &findPage(std::shared_ptr<Page> page);
 
-    void toggleCharts(std::shared_ptr<Page> page, std::shared_ptr<world::Airport> airport);
-    void fillChartsPage(std::shared_ptr<Page> page, std::shared_ptr<world::Airport> airport);
+    void toggleCharts(std::shared_ptr<Page> page, std::shared_ptr<navdb::Airport> airport);
+    void fillChartsPage(std::shared_ptr<Page> page, std::shared_ptr<navdb::Airport> airport);
     void onChartsLoaded(std::shared_ptr<Page> page, const apis::ChartService::ChartList &charts);
     void onChartLoaded(std::shared_ptr<Page> page);
     void createSettingsContainer();

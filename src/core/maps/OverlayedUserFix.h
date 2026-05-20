@@ -18,7 +18,6 @@
 #pragma once
 
 #include "OverlayedFix.h"
-#include "models/navaids/UserFix.h"
 #include <vector>
 
 namespace maps {
@@ -26,7 +25,7 @@ namespace maps {
 class OverlayedUserFix : public OverlayedFix {
 
 public:
-    OverlayedUserFix(IOverlayHelper *h, const world::Fix *f);
+    OverlayedUserFix(IOverlayHelper *h, const navdb::Fix *f);
 
     void drawGraphic() override;
     void drawText(bool detailed) override;
@@ -35,6 +34,8 @@ private:
     void splitNameToLines();
 
     static void createIcons();
+
+    const navdb::UserFix * const userFix;
 
     static img::Image POIIcon;
     static img::Image VRPIcon;

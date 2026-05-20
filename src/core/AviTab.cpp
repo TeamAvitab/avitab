@@ -15,42 +15,138 @@
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+// REFACTOR - class AviTab is a muddle of core and simulation environment.
+// It needs reworking.
+
 #include <climits>
 #include <future>
 #include <filesystem>
+#include <memory>
+#include "AviTabCore.h"
+#include "apps/AppFunctions.h"
+#include "GUIDriver.h"
+#include "Environment.h"
 #include "platform/Platform.h"
 #include "Logger.h"
 #include "JsonConfig.h"
-#include "AviTab.h"
-#include "gui_toolkit/LVGLToolkit.h"
-#include "libimg/TTFStamper.h"
+#include "gui/LVGLToolkit.h"
+#include "image/TTFStamper.h"
 #include "apps/HeaderApp.h"
 #include "apps/AppLauncher.h"
 #include "AviTabBuildSettings.h"
+#include "nav/NavDbManager.h"
+#include "nav/routing/RouteFinder.h"
+
 
 static const char *defaultMapConfigJson();
+
 namespace avitab {
 
+class AviTab : public AviTabCore, public AppFunctions {
+public:
+    AviTab(std::shared_ptr<Environment> env, std::shared_ptr<GUIDriver> gui);
+    void startApp() override;
+    void toggleTablet() override;
+    void resetWindowPosition();
+    void zoomIn();
+    void zoomOut();
+    void recentre();
+    void panLeft();
+    void panRight();
+    void panUp();
+    void panDown();
+    void stopApp() override;
+    void onPlaneLoad() override;
+
+    // App API
+    void setBrightness(float brightness) override;
+    float getBrightness() override;
+    void executeLater(std::function<void()> func) override;
+    std::filesystem::path getAvitabInstallDir() override;
+    std::filesystem::path getAvitabDataDir() override;
+    std::filesystem::path getAirplanePath() override;
+    std::filesystem::path getFlightPlansPath() override;
+    std::shared_ptr<Container> createGUIContainer() override;
+    void showGUIContainer(std::shared_ptr<Container> container) override;
+    void onHomeButton() override;
+    std::shared_ptr<navdb::NavDatabase> getNavDatabase() override;
+    using MagVarMap = std::map<std::pair<double, double>, double>;
+    std::vector<float> getMagneticVariations(std::vector<world::Location> &locs) override;
+    std::string getMETARForAirport(const std::string &icao) override;
+    int getWeatherAtLocation(const world::Location &loc, const float &altitude, std::string &weather) override;
+    std::string getNearestAirportId() override;
+    void loadUserFixes(const std::filesystem::path &filename) override;
+    void close() override;
+    void setIsInMenu(bool inMenu) override;
+    std::shared_ptr<apis::ChartService> getChartService() override;
+    AircraftID getActiveAircraftCount() override;
+    world::Position getAircraftPosition(AircraftID id) override;
+    float getLastFrameTime() override;
+    std::shared_ptr<Settings> getSettings() override;
+    std::shared_ptr<navdb::Route> getRoute() override;
+    void setRoute(std::shared_ptr<navdb::Route> route) override;
+    void updateMapExports(float lat, float lon, int zoom, float vrange) override;
+    unsigned int getZuluTimeSeconds() override;
+    unsigned int getLocalTimeSeconds() override;
+
+    ~AviTab();
+
+private:
+    bool hideHeader = false;
+    std::shared_ptr<Environment> env;
+    std::shared_ptr<GUIDriver> guiDriver;
+    std::shared_ptr<LVGLToolkit> guiLib;
+
+    std::unique_ptr<navdb::NavDbManager> navManager;
+
+    std::shared_ptr<Label> loadLabel;
+
+    std::shared_ptr<Container> headContainer;
+    std::shared_ptr<Container> centerContainer;
+
+    std::shared_ptr<App> headerApp;
+    std::shared_ptr<AppLauncher> appLauncher;
+    std::shared_ptr<navdb::Route> activeRoute;
+
+    std::shared_ptr<apis::ChartService> chartService;
+    bool resetWindowRect = false;
+
+    void finishInstall();
+
+    void createPanel();
+    void createLayout();
+    void showAppLauncher();
+    void showApp(AppId id);
+    void cleanupLayout();
+
+    void onScreenResize();
+    void handleClickCommand(bool down, bool drag);
+    void handleWheelUpCommand();
+    void handleWheelDownCommand();
+    void changeChartTab(bool next);
+};
+
+// Factory
 std::unique_ptr<AviTabCore> AviTabCore::CreateAviTabCore(std::shared_ptr<Environment> env, std::shared_ptr<GUIDriver> gui) {
     return std::make_unique<AviTab>(env, gui);
 }
 
 AviTab::AviTab(std::shared_ptr<Environment> e, std::shared_ptr<GUIDriver> gd):
     env(e),
-    guiDriver(gd),
-    guiLib(std::make_shared<LVGLToolkit>(gd))
+    guiDriver(gd)
 {
-    // runs in environment thread, called by PluginStart
+    // runs in environment thread, called by XPluginEnable
+    // NOTE order here is important. NAV db must be created before GUI is started.
+    navManager = std::make_unique<navdb::NavDbManager>(env->getXpNavDataRootPath(), env->getMsfsNavDataRootPath());
+    guiLib = std::make_shared<LVGLToolkit>(guiDriver);
     img::TTFStamper::setFontDirectory(env->getFontDirectory());
-    if (env->getConfig()->getBool("/AviTab/loadNavData")) {
-        env->loadNavWorldInBackground();
-    }
     chartService = std::make_shared<apis::ChartService>(env->getDataRootPath());
     env->resumeEnvironmentJobs();
 }
 
 void AviTab::startApp() {
-    // runs in environment thread, called by PluginEnable
+    // runs in environment thread, called by XPluginEnable
     logger::verbose("Starting AviTab %s", AVITAB_VERSION_STR);
 
     finishInstall();
@@ -94,6 +190,10 @@ void AviTab::startApp() {
     });
     createPanel();
     guiLib->executeLater(std::bind(&AviTab::createLayout, this));
+
+    std::string userfixes_file = env->getSettings()->getGeneralSetting<std::string>("userfixes_file");
+    navManager->loadUserFixes(userfixes_file);
+
 }
 
 void AviTab::toggleTablet() {
@@ -290,19 +390,6 @@ void AviTab::createLayout() {
     auto screen = guiLib->screen();
     screen->setOnResize([this] { this->onScreenResize(); });
 
-    if (!env->isNavWorldReady()) {
-        if (!loadLabel) {
-            loadLabel = std::make_shared<Label>(screen, "Loading nav data...");
-            loadLabel->centerInParent();
-        }
-
-        // try again later
-        guiLib->executeLater(std::bind(&AviTab::createLayout, this));
-        return;
-    }
-
-    loadLabel.reset();
-
     if (!hideHeader) {
         if (!headerApp) {
             headerApp = std::make_shared<HeaderApp>(this);
@@ -395,8 +482,8 @@ float AviTab::getBrightness() {
     return guiLib->getBrightness();
 }
 
-std::shared_ptr<world::World> AviTab::getNavWorld() {
-    return env->getNavWorld();
+std::shared_ptr<navdb::NavDatabase> AviTab::getNavDatabase() {
+    return navManager->getNavDatabase();
 }
 
 void AviTab::executeLater(std::function<void()> func) {
@@ -419,8 +506,8 @@ std::filesystem::path AviTab::getAirplanePath() {
     return env->getAirplanePath();
 }
 
-AviTab::MagVarMap AviTab::getMagneticVariations(std::vector<std::pair<double, double>> locations) {
-    return env->getMagneticVariations(locations);
+std::vector<float> AviTab::getMagneticVariations(std::vector<world::Location> &locs) {
+    return env->getMagneticVariations(locs);
 }
 
 std::string AviTab::getMETARForAirport(const std::string &icao) {
@@ -436,27 +523,19 @@ int AviTab::getWeatherAtLocation(const world::Location &loc, const float &altitu
 }
 
 void AviTab::loadUserFixes(const std::filesystem::path &filename) {
-    env->loadUserFixes(filename);
-}
-
-world::NavNodeList AviTab::loadFlightPlan(const std::filesystem::path &filename) {
-    return env->loadFlightPlan(filename);
+    navManager->loadUserFixes(filename);
 }
 
 std::shared_ptr<apis::ChartService> AviTab::getChartService() {
     return chartService;
 }
 
-std::shared_ptr<world::Route> AviTab::getRoute() {
+std::shared_ptr<navdb::Route> AviTab::getRoute() {
     return activeRoute;
 }
 
-void AviTab::setRoute(std::shared_ptr<world::Route> route) {
+void AviTab::setRoute(std::shared_ptr<navdb::Route> route) {
     activeRoute = route;
-}
-
-std::shared_ptr<world::RouteFinder> AviTab::getRouteFinder() {
-    return getNavWorld()->getRouteFinder();
 }
 
 void AviTab::updateMapExports(float lat, float lon, int zoom, float vrange) {
@@ -512,7 +591,7 @@ void AviTab::stopApp() {
     env->getSettings()->saveWindowRect(rect);
 
     // Cancel the loading if it is still running
-    env->cancelNavWorldLoading();
+    navManager->stop();
 
     // Stop the chart APIs so they no longer call the GUI
     chartService->stop();

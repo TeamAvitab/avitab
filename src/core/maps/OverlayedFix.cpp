@@ -20,9 +20,9 @@
 
 namespace maps {
 
-world::Morse OverlayedFix::morse;
+navdb::Morse OverlayedFix::morse;
 
-OverlayedFix::OverlayedFix(IOverlayHelper *h, const world::Fix *f):
+OverlayedFix::OverlayedFix(IOverlayHelper *h, const navdb::Fix *f):
     OverlayedNode(h, false),
     fix(f)
 {
@@ -31,7 +31,7 @@ OverlayedFix::OverlayedFix(IOverlayHelper *h, const world::Fix *f):
 }
 
 std::string OverlayedFix::getID() const {
-    return fix->getID();
+    return fix->getIdent();
 }
 
 void OverlayedFix::drawNavTextBox(const std::string &type, const std::string &id, const std::string &freq, int x, int y, uint32_t color, const std::string &ilsHeadingMagnetic) {

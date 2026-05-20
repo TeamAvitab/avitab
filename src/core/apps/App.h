@@ -19,7 +19,7 @@
 
 #include <memory>
 #include "Environment.h"
-#include "gui_toolkit/widgets/Container.h"
+#include "gui/widgets/Container.h"
 #include "AppFunctions.h"
 
 namespace avitab {

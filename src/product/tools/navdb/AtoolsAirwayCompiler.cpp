@@ -50,7 +50,7 @@ void AtoolsDbAirwayCompiler::startAirway(const std::string &n, const std::string
 
 void AtoolsDbAirwayCompiler::addLeg(int f1, int f2, const std::string &direction)
 {
-    // TODO - handle discontinuities by testing and generating the current vector first, then starting a new one
+    // still need to handle discontinuities by testing and generating the current vector first, then starting a new one
 
     if (direction != "B") {
         // leg is valid in forward direction

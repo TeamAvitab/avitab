@@ -18,8 +18,8 @@
 #pragma once
 
 #include "OverlayedNode.h"
-#include "models/navaids/Fix.h"
-#include "models/navaids/Morse.h"
+#include "Navigation.h"
+#include "nav/other/Morse.h"
 
 namespace maps {
 
@@ -29,7 +29,7 @@ public:
     std::string getID() const override;
 
 protected:
-    OverlayedFix(IOverlayHelper *h, const world::Fix *f);
+    OverlayedFix(IOverlayHelper *h, const navdb::Fix *f);
     virtual ~OverlayedFix() = default;
 
     void drawNavTextBox(const std::string &type, const std::string &id, const std::string &freq,
@@ -37,12 +37,12 @@ protected:
                                 const std::string &ilsHeadingMagnetic = "");
 
 protected:
-    const world::Fix *fix;
+    const navdb::Fix *fix;
 
     static constexpr const int TEXT_SIZE = 10;
 
 private:
-    static world::Morse morse;
+    static navdb::Morse morse;
 
     void drawMorse(int x, int y, std::string text, int size, uint32_t color);
 };

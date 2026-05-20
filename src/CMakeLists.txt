@@ -13,8 +13,6 @@ add_library(avitab_core_lib)
 target_include_directories(avitab_core_lib
     PUBLIC
     "${CMAKE_CURRENT_LIST_DIR}/core/include"
-    "${CMAKE_CURRENT_LIST_DIR}/core/world"                  # REFACTOR - transient until the world NAV data classes are put into their own library
-    "${CMAKE_CURRENT_LIST_DIR}/core/hybrids_to_refactor"    # REFACTOR - transient until the driver interfaces are properly abstarcted
     PRIVATE
     "${CMAKE_CURRENT_LIST_DIR}/core"
     "${CMAKE_CURRENT_LIST_DIR}"

@@ -11,6 +11,6 @@ target_sources(avitab_core_lib PRIVATE
     RESTClient.h
 )
 
-add_subdirectory(libchartfox)
-add_subdirectory(liblocalfile)
-add_subdirectory(libnavigraph)
+add_subdirectory(chartfox)
+add_subdirectory(localfile)
+add_subdirectory(navigraph)

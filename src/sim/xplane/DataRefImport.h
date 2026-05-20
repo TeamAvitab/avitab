@@ -20,7 +20,7 @@
 #include <XPLM/XPLMDataAccess.h>
 #include <string>
 
-namespace avitab {
+namespace xdata {
 
 template<typename T>
 class DataRefImport final {

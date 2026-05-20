@@ -24,7 +24,7 @@ namespace maps {
 class OverlayedNDB : public OverlayedFix {
 
 public:
-    OverlayedNDB(IOverlayHelper *h, const world::Fix *f);
+    OverlayedNDB(IOverlayHelper *h, const navdb::NavFix *f);
 
     void configure(const OverlayConfig &cfg, const world::Location &loc) override;
     void drawGraphic() override;
@@ -33,7 +33,7 @@ public:
     Hotspot getClickHotspot() const override;
 
 private:
-    const world::NDB * const navNDB;
+    const navdb::NDB * const navNDB;
 
     static img::Image ndbIcon;
     static int radius;

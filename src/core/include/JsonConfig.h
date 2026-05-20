@@ -17,8 +17,10 @@
  */
 #pragma once
 
+#include <filesystem>
 #include <string>
 #include <memory>
+#include <filesystem>
 #include <nlohmann/json_fwd.hpp>
 
 namespace avitab {

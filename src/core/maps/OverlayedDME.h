@@ -24,7 +24,7 @@ namespace maps {
 class OverlayedDME : public OverlayedFix {
 
 public:
-    OverlayedDME(IOverlayHelper *h, const world::Fix *f);
+    OverlayedDME(IOverlayHelper *h, const navdb::NavFix *f);
 
     void configure(const OverlayConfig &cfg, const world::Location &loc) override;
     void drawGraphic() override;
@@ -33,7 +33,7 @@ public:
     Hotspot getClickHotspot() const override;
 
 private:
-    const world::DME * const navDME;
+    const navdb::DME * const navDME;
 
     static constexpr const int MARGIN = 60;
 };

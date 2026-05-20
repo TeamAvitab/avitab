@@ -22,42 +22,30 @@
 #include <map>
 #include "ToolEnvironment.h"
 
-namespace avitab {
-
 class StandAloneEnvironment: public ToolEnvironment {
 public:
+    // Must be called from the environment thread - do not call from GUI thread!
     StandAloneEnvironment();
+
+    // avitab::Environment overrides
+
+    std::shared_ptr<avitab::GUIDriver> createGUIDriver() override;
 
     void eventLoop();
 
-    // Must be called from the environment thread - do not call from GUI thread!
-    std::shared_ptr<world::LoadManager> createParsingWorldManager() override;
-    std::shared_ptr<GUIDriver> createGUIDriver() override;
-
     // Can be called from any thread
-    std::filesystem::path getFontDirectory() override;
-    std::filesystem::path getFlightPlansPath() override;
     std::string getMETARForAirport(const std::string &icao) override;
     int getWeatherAtLocation(const world::Location &loc, const float &altitude, std::string &weather) override;
     std::string getNearestAirportId() override;
-    Environment::MagVarMap getMagneticVariations(std::vector<std::pair<double, double>> locations) override;
-    AircraftID getActiveAircraftCount() override;
-    world::Position getAircraftPosition(AircraftID id) override;
+    std::vector<float> getMagneticVariations(std::vector<world::Location> &locs) override;
+    avitab::AircraftID getActiveAircraftCount() override;
+    world::Position getAircraftPosition(avitab::AircraftID id) override;
     unsigned int getZuluTimeSeconds() override;
     unsigned int getLocalTimeSeconds() override;
 
     virtual ~StandAloneEnvironment();
 
 protected:
-    bool canUseNavDb(const std::string simCode) override;
-
-protected:
-    std::filesystem::path xplaneRootPath;
     std::shared_ptr<GlfwGUIDriver> driver;
 
-private:
-
-    std::filesystem::path findXPlaneInstallationPath();
 };
-
-} /* namespace avitab */

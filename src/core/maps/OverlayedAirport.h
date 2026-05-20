@@ -18,14 +18,14 @@
 #pragma once
 
 #include "OverlayedNode.h"
-#include "models/airport/Airport.h"
+#include "Navigation.h"
 
 namespace maps {
 
 class OverlayedAirport : public OverlayedNode {
 
 public:
-    OverlayedAirport(IOverlayHelper *, const world::Airport *);
+    OverlayedAirport(IOverlayHelper *, const navdb::Airport *);
     virtual ~OverlayedAirport() = default;
 
     std::string getID() const override;
@@ -41,7 +41,7 @@ private:
         HELIPORT
     };
 
-    const world::Airport *airport;
+    const navdb::Airport * const airport;
     AerodromeType type = AerodromeType::AIRPORT;
     uint32_t color = 0;
 

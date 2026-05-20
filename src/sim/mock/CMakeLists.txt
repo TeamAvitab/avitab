@@ -5,4 +5,6 @@ target_sources(avitab_glfw_lib PRIVATE
     GlfwGUIDriver.h
     StandAloneEnvironment.cpp
     StandAloneEnvironment.h
+    ToolEnvironment.cpp
+    ToolEnvironment.h
 )
