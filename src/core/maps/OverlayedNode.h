@@ -18,8 +18,8 @@
 #pragma once
 
 #include "OverlayHelper.h"
-#include "graph/NavNode.h"
-#include "libimg/Image.h"
+#include "Navigation.h"
+#include "image/Image.h"
 #include "Logger.h"
 
 namespace maps {

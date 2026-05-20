@@ -72,8 +72,8 @@ void AirportApp::resetLayout() {
     nearestButton = std::make_shared<Button>(searchWindow, "Nearest");
     nearestButton->alignRightOf(searchField, 80);
     nearestButton->setCallback([this] (const Button &) {
-        auto world = api().getNavWorld();
-        std::string id = api().getNearestAirportId();
+        auto world = api().getNavDatabase();
+        std::string id = api().getNearestAirportId(); // REFACTOR - use the nav database for this.
         auto airport = world->findAirportByID(id);
         if (airport != nullptr) {
             onAirportSelected(airport);
@@ -82,9 +82,9 @@ void AirportApp::resetLayout() {
 }
 
 void AirportApp::onSearchEntered(const std::string& code) {
-    auto world = api().getNavWorld();
+    auto world = api().getNavDatabase();
 
-    if (!world) {
+    if (!world) { // TODO-NAVDB - check nav database state instead
         searchLabel->setText("No navigation data available, check AviTab.log");
         return;
     }
@@ -100,8 +100,8 @@ void AirportApp::onSearchEntered(const std::string& code) {
         onAirportSelected(airports.front());
         clearSearch();
         return;
-    } else if (airports.size() >= world::World::MAX_DISPLAY_RESULTS) {
-        searchLabel->setText("Too many results, only showing first " + std::to_string(world::World::MAX_DISPLAY_RESULTS));
+    } else if (airports.size() >= navdb::NavDatabase::MAX_DISPLAY_RESULTS) {
+        searchLabel->setText("Too many results, only showing first " + std::to_string(navdb::NavDatabase::MAX_DISPLAY_RESULTS));
     } else {
         searchLabel->setText("");
     }
@@ -111,7 +111,7 @@ void AirportApp::onSearchEntered(const std::string& code) {
 
     std::vector<std::string> resultStrings;
     for (auto &ap: airports) {
-        resultStrings.push_back(ap->getDisplayID() + " - " + ap->getName());
+        resultStrings.push_back(ap->getDisplayID() + " - " + ap->getIdent());
     }
 
     resultList = std::make_shared<DropDownList>(searchPage, resultStrings);
@@ -129,7 +129,7 @@ void AirportApp::onSearchEntered(const std::string& code) {
     });
 }
 
-void AirportApp::onAirportSelected(std::shared_ptr<world::Airport> airport) {
+void AirportApp::onAirportSelected(std::shared_ptr<navdb::Airport> airport) {
     for (auto tabPage: pages) {
         if (tabPage.airport == airport) {
             tabs->setActiveTab(tabs->getTabIndex(tabPage.page));
@@ -191,11 +191,11 @@ void AirportApp::removeTab(std::shared_ptr<Page> page) {
     }
 }
 
-void AirportApp::sortSearchResults(std::vector<std::shared_ptr<world::Airport>>& airports) {
+void AirportApp::sortSearchResults(std::vector<std::shared_ptr<navdb::Airport>>& airports) {
     auto loc = api().getAircraftPosition(0);
     bool sortOrder = airportConfig->sortAscending;
     std::sort(airports.begin(), airports.end(),
-        [loc, sortOrder] (std::shared_ptr<world::Airport> a, std::shared_ptr<world::Airport> b) {
+        [loc, sortOrder] (std::shared_ptr<navdb::Airport> a, std::shared_ptr<navdb::Airport> b) {
             auto aLoc = a->getLocation();
             auto bLoc = b->getLocation();
             if (! sortOrder) {
@@ -206,7 +206,7 @@ void AirportApp::sortSearchResults(std::vector<std::shared_ptr<world::Airport>>&
     );
 }
 
-void AirportApp::fillPage(std::shared_ptr<Page> page, std::shared_ptr<world::Airport> airport) {
+void AirportApp::fillPage(std::shared_ptr<Page> page, std::shared_ptr<navdb::Airport> airport) {
     std::stringstream str;
 
     if (airport->hasATCFrequencies()) {
@@ -232,40 +232,40 @@ void AirportApp::fillPage(std::shared_ptr<Page> page, std::shared_ptr<world::Air
     tab.label->setVisible(true);
 }
 
-std::tuple<double, double> AirportApp::getNavData(std::shared_ptr<world::Airport> airport) {
+std::tuple<double, double> AirportApp::getNavData(std::shared_ptr<navdb::Airport> airport) {
     auto loc = api().getAircraftPosition(0);
     auto aptLoc = airport->getLocation();
     world::Trajectory tr(loc, aptLoc);
     return std::make_tuple((aptLoc.surfaceDistanceTo(loc) / 1000) * world::KM_TO_NM, tr.hdgDegrees());
 }
 
-std::string AirportApp::toAptHeader(std::shared_ptr<world::Airport> airport) {
+std::string AirportApp::toAptHeader(std::shared_ptr<navdb::Airport> airport) {
     std::stringstream str;
     double distanceNm, bearing;
 
     std::tie(distanceNm, bearing) = getNavData(airport);
-    str << airport->getName() << " (" << airport->getDisplayID() << ", " << std::to_string(airport->getElevation()) << " ft) ";
-    str << std::fixed << std::setprecision(1) << distanceNm << " nm, " << bearing << "° T";
+    str << airport->getIdent() << " (" << airport->getDisplayID() << ", " << std::to_string(airport->getElevationFt()) << " ft) ";
+    str << std::fixed << std::setprecision(1) << distanceNm << " nm, " << bearing << "°T";
     return str.str();
 }
 
-std::string AirportApp::toATCInfo(std::shared_ptr<world::Airport> airport) {
+std::string AirportApp::toATCInfo(std::shared_ptr<navdb::Airport> airport) {
     std::stringstream str;
     str << "ATC Frequencies:\n";
-    str << toATCString("    ATIS", airport, world::Airport::ATCFrequency::RECORDED);
-    str << toATCString("    UniCom", airport, world::Airport::ATCFrequency::UNICOM);
-    str << toATCString("    MultiCom", airport, world::Airport::ATCFrequency::MULTICOM);
-    str << toATCString("    Flight Service", airport, world::Airport::ATCFrequency::FSS);
-    str << toATCString("    Delivery", airport, world::Airport::ATCFrequency::CLD);
-    str << toATCString("    Ground", airport, world::Airport::ATCFrequency::GND);
-    str << toATCString("    Tower", airport, world::Airport::ATCFrequency::TWR);
-    str << toATCString("    Approach", airport, world::Airport::ATCFrequency::APP);
-    str << toATCString("    Departure", airport, world::Airport::ATCFrequency::DEP);
-    str << toATCString("    Centre", airport, world::Airport::ATCFrequency::CTR);
+    str << toATCString("    ATIS", airport, navdb::ATCserviceType::RECORDED);
+    str << toATCString("    UniCom", airport, navdb::ATCserviceType::UNICOM);
+    str << toATCString("    MultiCom", airport, navdb::ATCserviceType::MULTICOM);
+    str << toATCString("    Flight Service", airport, navdb::ATCserviceType::FSS);
+    str << toATCString("    Delivery", airport, navdb::ATCserviceType::CLD);
+    str << toATCString("    Ground", airport, navdb::ATCserviceType::GND);
+    str << toATCString("    Tower", airport, navdb::ATCserviceType::TWR);
+    str << toATCString("    Approach", airport, navdb::ATCserviceType::APP);
+    str << toATCString("    Departure", airport, navdb::ATCserviceType::DEP);
+    str << toATCString("    Centre", airport, navdb::ATCserviceType::CTR);
     return str.str();
 }
 
-std::string AirportApp::toATCString(const std::string &name, std::shared_ptr<world::Airport> airport, world::Airport::ATCFrequency type) {
+std::string AirportApp::toATCString(const std::string &name, std::shared_ptr<navdb::Airport> airport, navdb::ATCserviceType type) {
     std::stringstream str;
     auto &freqs = airport->getATCFrequencies(type);
     for (auto &frq: freqs) {
@@ -274,38 +274,37 @@ std::string AirportApp::toATCString(const std::string &name, std::shared_ptr<wor
     return str.str();
 }
 
-std::string AirportApp::toRunwayInfo(std::shared_ptr<world::Airport> airport) {
+std::string AirportApp::toRunwayInfo(std::shared_ptr<navdb::Airport> airport) {
     std::stringstream str;
     str << std::fixed << std::setprecision(0);
     auto aptLoc = airport->getLocation();
-
-    auto loc = std::make_pair(aptLoc.latDegrees(), aptLoc.lonDegrees());
-    std::vector<std::pair<double, double>> locations;
-    locations.push_back(loc);
-    auto magneticVariation = api().getMagneticVariations(locations)[loc];
+    std::vector<world::Location> loc;
+    loc.push_back(aptLoc);
+    auto magneticVariation = api().getMagneticVariations(loc).front();
 
     str << "Runways:\n";
-    airport->forEachRunwayPair([&str, &magneticVariation] (const std::shared_ptr<world::Runway> rwyF, const std::shared_ptr<world::Runway> rwyS) {
+    airport->forEachRunwayPair([&str, &magneticVariation] (const std::shared_ptr<navdb::Runway> rwyF, const std::shared_ptr<navdb::Runway> rwyS) {
         float width = rwyF->getWidth();
         float length = rwyF->getLength();
-        str << "  " << rwyF->getID() + "/" + rwyS->getID() + " (";
+        str << "  " << rwyF->getIdent() + "/" + rwyS->getIdent() + " (";
         if (!std::isnan(width)) {
             str << std::to_string((int) (width * world::M_TO_FT + 0.5));
         }
         if (!std::isnan(length)) {
             str << " x " << std::to_string((int) (length * world::M_TO_FT + 0.5)) << " ft";
         }
-        str <<  ", " + rwyF->getSurfaceTypeDescription() + ")\n";
+        str <<  ", " << rwyF->getSurfaceTypeDescription() << ")\n";
         for (auto rwy : {rwyF, rwyS} ) {
-            str << "    " + rwy->getID();
-            auto ils = rwy->getILSData();
+            str << "    " + rwy->getIdent();
             int rwHeading = (int)(rwy->getHeading() + magneticVariation + 0.5 + 360.0) % 360;
-            if (ils) {
-                int ilsHeading = (int)(ils->getILSLocalizer()->getRunwayHeading() + magneticVariation + 0.5 + 360.0) % 360;
+            auto na = rwy->getNavaidILS();
+            if (na) {
+                auto ils = na->getILSLocalizer();
+                int ilsHeading = (int)(ils->getRunwayHeading() + magneticVariation + 0.5 + 360.0) % 360;
 
-                str << " " << ils->getILSLocalizer()->getFrequency().getDescription();
-                str << " (ID " << ils->getID();
-                str << " on " << ils->getILSLocalizer()->getFrequency().getFrequencyString();
+                str << " " << ils->getFrequency().getDescription();
+                str << " (ID " << na->getIdent();
+                str << " on " << ils->getFrequency().getFrequencyString();
                 if (ilsHeading != rwHeading) {
                     str << ", CRS " << ilsHeading << "° M";
                 }
@@ -320,30 +319,30 @@ std::string AirportApp::toRunwayInfo(std::shared_ptr<world::Airport> airport) {
     return str.str();
 }
 
-std::string AirportApp::toHeliportInfo(std::shared_ptr<world::Airport> airport) {
+std::string AirportApp::toHeliportInfo(std::shared_ptr<navdb::Airport> airport) {
     std::stringstream str;
     str << std::fixed << std::setprecision(1);
 
     str << "Helipads:\n";
-    airport->forEachHeliport([&str] (const std::shared_ptr<world::Heliport> port) {
-        str << "  " << port->getID() << " (" << port->getLength() * world::M_TO_FT << " x " << port->getWidth() * world::M_TO_FT  << " ft)";
+    airport->forEachHeliport([&str] (const std::shared_ptr<navdb::Heliport> port) {
+        str << "  " << port->getIdent() << " (" << port->getLength() * world::M_TO_FT << " x " << port->getWidth() * world::M_TO_FT  << " ft)";
         str << "\n";
     });
     return str.str();
 }
 
-std::string AirportApp::toWeatherInfo(std::shared_ptr<world::Airport> airport) {
+std::string AirportApp::toWeatherInfo(std::shared_ptr<navdb::Airport> airport) {
     std::string id = airport->getICAOCode();
     if (id.empty()) {
-        id = airport->getID();
+        id = airport->getIdent();
     }
     std::string winfo;
     int detailed;
 
-    detailed = api().getWeatherAtLocation(airport->getLocation(), airport->getElevation() / world::M_TO_FT, winfo);
+    detailed = api().getWeatherAtLocation(airport->getLocation(), airport->getElevationFt() / world::M_TO_FT, winfo);
     winfo = "Weather:\n" + winfo + "\n";
     if (detailed) {
-        std::string metar = api().getMETARForAirport(airport->getID());
+        std::string metar = api().getMETARForAirport(airport->getIdent());
         if (metar.size() > 0) {
             winfo = "METAR:\n" + metar + "\n";
         }
@@ -360,7 +359,7 @@ AirportApp::TabPage &AirportApp::findPage(std::shared_ptr<Page> page) {
     throw std::runtime_error("Unknown page");
 }
 
-void AirportApp::toggleCharts(std::shared_ptr<Page> page, std::shared_ptr<world::Airport> airport) {
+void AirportApp::toggleCharts(std::shared_ptr<Page> page, std::shared_ptr<navdb::Airport> airport) {
     TabPage &tab = findPage(page);
     if (tab.charts.empty()) {
         fillChartsPage(page, airport);
@@ -370,7 +369,7 @@ void AirportApp::toggleCharts(std::shared_ptr<Page> page, std::shared_ptr<world:
     }
 }
 
-void AirportApp::fillChartsPage(std::shared_ptr<Page> page, std::shared_ptr<world::Airport> airport) {
+void AirportApp::fillChartsPage(std::shared_ptr<Page> page, std::shared_ptr<navdb::Airport> airport) {
     auto svc = api().getChartService();
 
     TabPage &tab = findPage(page);
@@ -378,7 +377,7 @@ void AirportApp::fillChartsPage(std::shared_ptr<Page> page, std::shared_ptr<worl
 
     std::string id = airport->getICAOCode();
     if (id.empty()) {
-        id = airport->getID();
+        id = airport->getIdent();
     }
     auto call = svc->getChartsFor(id);
     call->andThen([this, page] (std::future<apis::ChartService::ChartList> res) {
@@ -537,7 +536,7 @@ void AirportApp::onChartLoaded(std::shared_ptr<Page> page) {
         tab.map = std::make_shared<maps::OverlayedMap>(tab.mapStitcher, tab.overlays);
         tab.map->loadOverlayIcons(api().getAvitabInstallDir()/"icons");
         tab.map->setRedrawCallback([this, page] () { redrawPage(page); });
-        tab.map->setNavWorld(api().getNavWorld());
+        tab.map->setNavWorld(api().getNavDatabase());
         tab.map->setGetRouteCallback([this] () { return api().getRoute(); });
 
         tab.trackButton->setToggleState(tab.trackPlane);

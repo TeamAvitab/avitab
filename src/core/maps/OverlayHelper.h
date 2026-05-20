@@ -20,7 +20,7 @@
 #include <memory>
 #include <utility>
 #include "OverlayConfig.h"
-#include "libimg/Image.h"
+#include "image/Image.h"
 #include "WorldGeometry.h"
 
 namespace maps {

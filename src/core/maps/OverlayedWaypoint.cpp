@@ -20,7 +20,7 @@
 
 namespace maps {
 
-OverlayedWaypoint::OverlayedWaypoint(IOverlayHelper *h, const world::Fix *f):
+OverlayedWaypoint::OverlayedWaypoint(IOverlayHelper *h, const navdb::Fix *f):
     OverlayedFix(h, f)
 {
 }
@@ -34,7 +34,7 @@ void OverlayedWaypoint::drawGraphic() {
 
 void OverlayedWaypoint::drawText(bool detailed) {
     auto mapImage = overlayHelper->getMapImage();
-    mapImage->drawText(fix->getID(), 10, posX + 6, posY - 6, color, 0, img::Align::LEFT);
+    mapImage->drawText(fix->getIdent(), 10, posX + 6, posY - 6, color, 0, img::Align::LEFT);
 }
 
 } /* namespace maps */

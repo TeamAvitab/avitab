@@ -167,7 +167,7 @@ world::Location GeoTIFFSource::xyToWorld(double x, double y, int zoom) {
     double lon = x * tileSize / scale;
     double lat = y * tileSize / scale;
 
-    GTIFImageToPCS(gtif, &lon, &lat); // TODO - are lat/lon reversed in these calls?
+    GTIFImageToPCS(gtif, &lon, &lat);
     GTIFProj4ToLatLong(&defn, 1, &lon, &lat);
 
     return world::Location::fromGCS(lat, lon);

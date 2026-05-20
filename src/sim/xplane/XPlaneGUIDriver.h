@@ -28,15 +28,13 @@
 #include "DataRefImport.h"
 #include "DataRefExport.h"
 
-namespace avitab {
-
-class XPlaneGUIDriver: public GUIDriver {
+class XPlaneGUIDriver: public avitab::GUIDriver {
 public:
     XPlaneGUIDriver();
 
     void init(int width, int height) override;
-    void createWindow(const std::string &title, const WindowRect &rect) override;
-    WindowRect getWindowRect() override;
+    void createWindow(const std::string &title, const avitab::WindowRect &rect) override;
+    avitab::WindowRect getWindowRect() override;
     bool hasWindow() override;
     void killWindow() override;
 
@@ -58,10 +56,10 @@ public:
 
     ~XPlaneGUIDriver();
 private:
-    WindowRect lastRect{};
+    avitab::WindowRect lastRect{};
     std::shared_ptr<float> brightness;
-    DataRefImport<bool> isVrEnabled;
-    DataRefImport<float> xplane3dClickX, xplane3dClickY;
+    xdata::DataRefImport<bool> isVrEnabled;
+    xdata::DataRefImport<float> xplane3dClickX, xplane3dClickY;
     XPLMDataRef buttonRef{};
     std::shared_ptr<int> panelPowered, panelEnabled;
     int textureId = -1;
@@ -72,9 +70,9 @@ private:
     std::atomic_int wheelClicks {0};
     std::mutex drawMutex;
     bool needsRedraw = false;
-    std::unique_ptr<DataRefExport<int>> panelLeftRef, panelBottomRef, panelWidthRef, panelHeightRef;
+    std::unique_ptr<xdata::DataRefExport<int>> panelLeftRef, panelBottomRef, panelWidthRef, panelHeightRef;
     int panelLeft = 0, panelBottom = 0, panelWidth = 0, panelHeight = 0;
-    std::unique_ptr<DataRefExport<float>> panelMouseXref, panelMouseYref;
+    std::unique_ptr<xdata::DataRefExport<float>> panelMouseXref, panelMouseYref;
     float panelClickX = std::numeric_limits<float>::quiet_NaN();
     float panelClickY = std::numeric_limits<float>::quiet_NaN();
     std::vector<int> vrTriggerIndices;
@@ -103,5 +101,3 @@ private:
     static int onDraw3D(XPLMDrawingPhase phase, int isBefore, void *ref);
     static int onKeyPress(char c, XPLMKeyFlags flags, char vKey, void *ref);
 };
-
-} /* namespace avitab */

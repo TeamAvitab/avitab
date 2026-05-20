@@ -22,10 +22,10 @@
 #include <vector>
 #include <string>
 #include "apps/App.h"
-#include "gui_toolkit/widgets/Window.h"
-#include "gui_toolkit/widgets/List.h"
+#include "gui/widgets/Window.h"
+#include "gui/widgets/List.h"
 #include "platform/Platform.h"
-#include "gui_toolkit/widgets/Container.h"
+#include "gui/widgets/Container.h"
 #include "FilesysBrowser.h"
 
 namespace avitab {

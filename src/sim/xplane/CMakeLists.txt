@@ -7,6 +7,7 @@ target_sources(avitab_xplane_lib PRIVATE
     DataRefExport.h
     DataRefImport.cpp
     DataRefImport.h
+    EnvData.h
     MonitorBoundsDecider.cpp
     MonitorBoundsDecider.h
     XPlaneEnvironment.cpp
@@ -14,5 +15,3 @@ target_sources(avitab_xplane_lib PRIVATE
     XPlaneGUIDriver.cpp
     XPlaneGUIDriver.h
 )
-
-add_subdirectory(libxdata)

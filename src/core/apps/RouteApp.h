@@ -21,18 +21,18 @@
 #include <vector>
 #include <set>
 #include "App.h"
-//#include "router/Route.h"
+#include "nav/routing/Route.h"
 #include "apps/components/FileChooser.h"
-#include "gui_toolkit/widgets/TabGroup.h"
-#include "gui_toolkit/widgets/Page.h"
-#include "gui_toolkit/widgets/TextArea.h"
-#include "gui_toolkit/widgets/Keyboard.h"
-#include "gui_toolkit/widgets/Label.h"
-#include "gui_toolkit/widgets/Button.h"
-#include "gui_toolkit/widgets/Checkbox.h"
-#include "gui_toolkit/widgets/MessageBox.h"
-#include "gui_toolkit/widgets/Window.h"
-#include "gui_toolkit/widgets/DropDownList.h"
+#include "gui/widgets/TabGroup.h"
+#include "gui/widgets/Page.h"
+#include "gui/widgets/TextArea.h"
+#include "gui/widgets/Keyboard.h"
+#include "gui/widgets/Label.h"
+#include "gui/widgets/Button.h"
+#include "gui/widgets/Checkbox.h"
+#include "gui/widgets/MessageBox.h"
+#include "gui/widgets/Window.h"
+#include "gui/widgets/DropDownList.h"
 
 namespace avitab {
 
@@ -48,16 +48,14 @@ private:
     std::shared_ptr<Keyboard> keys;
     std::shared_ptr<DropDownList> list;
     std::shared_ptr<MessageBox> errorMessage;
+    std::shared_ptr<MessageBox> statusMessage;
     std::shared_ptr<Button> nextButton, cancelButton;
     std::shared_ptr<Checkbox> checkBox;
     std::unique_ptr<FileChooser> fileChooser;
 
-    world::AirwayLevel airwayLevel = world::AirwayLevel::UPPER;
-    std::shared_ptr<world::NavNode> departureNode, arrivalNode;
-    std::shared_ptr<world::Fix> departureFix, arrivalFix;
-    std::shared_ptr<world::Route> route;
-    std::string fmsText;
-    bool fromFMS = false;
+    navdb::AirwayLevel airwayLevel = navdb::AirwayLevel::UPPER;
+    std::shared_ptr<navdb::Node> departureNode, arrivalNode;
+    std::shared_ptr<navdb::Fix> departureFix, arrivalFix;
 
     void showDeparturePage();
     void onDepartureEntered(const std::string &departure);
@@ -65,17 +63,20 @@ private:
     void showArrivalPage();
     void onArrivalEntered(const std::string &arrival);
 
+    std::shared_ptr<navdb::Route> asyncSearchForRoute();
     void showRoute();
 
-    void reset();
     void showError(const std::string &msg);
+    void showStatus(const std::string &msg);
+
+    void reset();
 
     std::string toShortRouteDescription();
     std::string toDetailedRouteDescription();
 
+    std::string fmsRawText;
     void selectFlightPlanFile();
-    std::string getFMSTextFromFile(const std::filesystem::path &fmsFilename);
-    void parseFMS(const std::filesystem::path &fmsFilename);
+    void loadRouteFromFMS(const std::filesystem::path &fmsFilename);
 };
 
 } /* namespace avitab */

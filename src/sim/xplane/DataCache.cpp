@@ -19,7 +19,7 @@
 #include <stdexcept>
 #include "Logger.h"
 
-namespace avitab {
+namespace xdata {
 
 EnvData DataCache::getData(const std::string& dataRef) {
     XPLMDataRef ref = nullptr;
@@ -35,7 +35,7 @@ EnvData DataCache::getData(const std::string& dataRef) {
     return toEnvData(ref);
 }
 
-EnvData DataCache::getLocationData(const AircraftID plane, const LocationPartIndex part) {
+EnvData DataCache::getLocationData(const avitab::AircraftID plane, const LocationPartIndex part) {
 
     if (locationRefCache.empty()) {
         // populate location references first time only
@@ -117,4 +117,4 @@ EnvData DataCache::toEnvData(XPLMDataRef ref) {
     return res;
 }
 
-} /* namespace avitab */
+} /* namespace xdata */

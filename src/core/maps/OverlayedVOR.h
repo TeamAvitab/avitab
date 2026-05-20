@@ -25,7 +25,7 @@ namespace maps {
 class OverlayedVOR : public OverlayedFix {
 
 public:
-    OverlayedVOR(IOverlayHelper *h, const world::Fix *f);
+    OverlayedVOR(IOverlayHelper *h, const navdb::NavFix *f);
 
     void configure(const OverlayConfig &cfg, const world::Location &loc) override;
     void drawGraphic() override;
@@ -34,7 +34,7 @@ public:
     Hotspot getClickHotspot() const override;
 
 private:
-    const world::VOR * const navVOR;
+    const navdb::VOR * const navVOR;
     std::unique_ptr<OverlayedDME> linkedDME;
 
     static constexpr const int CIRCLE_RADIUS = 70;

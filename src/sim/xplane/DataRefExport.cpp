@@ -18,7 +18,7 @@
 
 #include "DataRefExport.h"
 
-namespace avitab {
+namespace xdata {
 
 template <>
 DataRefExport<int>::DataRefExport(const std::string &name, void *ref, std::function<int(void *)> onRd, std::function<void(void *, int)> onWr)
@@ -80,4 +80,4 @@ DataRefExport<T>::~DataRefExport()
 template class DataRefExport<int>;
 template class DataRefExport<float>;
 
-}
+} // namespace xdata

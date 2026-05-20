@@ -51,8 +51,7 @@ ChartService::ChartService(const std::filesystem::path &programPath) {
         scanJsonFiles(calibrationPath);
         logger::info(" Found %d calibration files", jsonFileHashes.size());
     } else {
-        logger::info("Calibration folder does not exist at:");
-        logger::info(" %s", calibrationPath.c_str());
+        logger::info("Calibration folder does not exist: %s", calibrationPath.string().c_str());
     }
 
 }

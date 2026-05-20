@@ -19,9 +19,9 @@
 #pragma once
 
 #include "apps/App.h"
-#include "gui_toolkit/widgets/Container.h"
-#include "gui_toolkit/widgets/List.h"
-#include "gui_toolkit/widgets/Window.h"
+#include "gui/widgets/Container.h"
+#include "gui/widgets/List.h"
+#include "gui/widgets/Window.h"
 #include <string>
 #include <vector>
 

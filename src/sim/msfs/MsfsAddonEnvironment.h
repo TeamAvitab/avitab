@@ -22,8 +22,6 @@
 #include <windows.h>
 #include "SimConnect.h"
 
-namespace avitab {
-
 class MsfsAddonEnvironment : public StandAloneEnvironment
 {
     struct SimObjectLocation
@@ -41,8 +39,8 @@ public:
     
     void eventLoop();
 
-    AircraftID getActiveAircraftCount() override;
-    world::Position getAircraftPosition(AircraftID id) override;
+    avitab::AircraftID getActiveAircraftCount() override;
+    world::Position getAircraftPosition(avitab::AircraftID id) override;
 
 private:
     void resetLocations();
@@ -77,5 +75,3 @@ private:
     };
     static const DWORD REQUEST_DATA_RANGE = 200000; // in metres = 108 nm
 };
-
-} /* namespace avitab */

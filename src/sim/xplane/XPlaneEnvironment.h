@@ -27,19 +27,16 @@
 #include <map>
 #include <thread>
 #include "Environment.h"
+#include "WorldGeometry.h"
 #include "DataCache.h"
 #include "DataRefExport.h"
-#include "WorldGeometry.h"
 
-namespace avitab {
-
-class XPlaneEnvironment: public Environment {
+class XPlaneEnvironment: public avitab::Environment {
 public:
     XPlaneEnvironment();
 
     // Must be called from the environment thread - do not call from GUI thread!
-    std::shared_ptr<world::LoadManager> createParsingWorldManager() override;
-    std::shared_ptr<GUIDriver> createGUIDriver() override;
+    std::shared_ptr<avitab::GUIDriver> createGUIDriver() override;
     void createMenu(const std::string &name) override;
     void addMenuEntry(const std::string &label, MenuCallback cb) override;
     void destroyMenu() override;
@@ -48,28 +45,28 @@ public:
     void onAircraftReload() override;
 
     // Can be called from any thread
-    std::filesystem::path getFontDirectory() override;
     std::filesystem::path getProgramPath() override;
     std::filesystem::path getDataRootPath() override;
     std::filesystem::path getSettingsDir() override;
     std::filesystem::path getAirplanePath() override;
+    std::filesystem::path getFontDirectory() override;
     std::filesystem::path getFlightPlansPath() override;
-    Environment::MagVarMap getMagneticVariations(std::vector<std::pair<double, double>> locations) override;
+    std::filesystem::path getXpNavDataRootPath() override;
+    std::filesystem::path getMsfsNavDataRootPath() override { return ""; }
+
+    std::vector<float> getMagneticVariations(std::vector<world::Location> &locs) override;
     std::string getMETARForAirport(const std::string &icao) override;
     int getWeatherAtLocation(const world::Location &loc, const float &altitude, std::string& weather) override;
     std::string getNearestAirportId() override;
     void enableAndPowerPanel() override;
     void setIsInMenu(bool menu) override;
-    AircraftID getActiveAircraftCount() override;
-    world::Position getAircraftPosition(AircraftID id) override;
+    avitab::AircraftID getActiveAircraftCount() override;
+    world::Position getAircraftPosition(avitab::AircraftID id) override;
     void updateMapExports(float lat, float lon, int zoom, float vrange) override;
     unsigned int getZuluTimeSeconds() override;
     unsigned int getLocalTimeSeconds() override;
 
     ~XPlaneEnvironment();
-
-protected:
-    bool canUseNavDb(const std::string simCode) override;
 
 private:
     // Exported datarefs relating to the overlayed map status
@@ -77,10 +74,10 @@ private:
     float getMapLongitude();
     int getMapZoom();
     float getMapVerticalRange();
-    std::unique_ptr<DataRefExport<float>> mapLatitudeRef;
-    std::unique_ptr<DataRefExport<float>> mapLongitudeRef;
-    std::unique_ptr<DataRefExport<int>> mapZoomRef;
-    std::unique_ptr<DataRefExport<float>> mapVerticalRangeRef;
+    std::unique_ptr<xdata::DataRefExport<float>> mapLatitudeRef;
+    std::unique_ptr<xdata::DataRefExport<float>> mapLongitudeRef;
+    std::unique_ptr<xdata::DataRefExport<int>> mapZoomRef;
+    std::unique_ptr<xdata::DataRefExport<float>> mapVerticalRangeRef;
 
 private:
     using GetMetarPtr = void(*)(const char *id, XPLMFixedString150_t *outMETAR);
@@ -95,7 +92,7 @@ private:
     // Cached data
     GetMetarPtr getMetar{};
     GetWeatherPtr getWeatherAtLoc{};
-    DataCache dataCache;
+    xdata::DataCache dataCache;
     std::filesystem::path pluginPath, xplanePrefsDir, xplaneRootPath;
     int xplaneVersion;
     world::Position nullPosition = world::Position(world::Trajectory(world::Location(0, 0), 0), 0);
@@ -112,6 +109,7 @@ private:
     float mapVerticalRange { 0.0f };
     unsigned int zuluTimeSecs;
     unsigned int localTimeSecs;
+    std::atomic<float> lastFrameTime {};
 
 private:
     std::vector<MenuCallback> menuCallbacks;
@@ -121,8 +119,8 @@ private:
     XPLMMenuID subMenu = nullptr;
     std::shared_ptr<int> panelPowered, panelEnabled;
     std::shared_ptr<float> brightness;
-    std::unique_ptr<DataRefExport<int>> panelPoweredRef, panelEnabledRef, isInMenuRef;
-    std::unique_ptr<DataRefExport<float>> brightnessRef;
+    std::unique_ptr<xdata::DataRefExport<int>> panelPoweredRef, panelEnabledRef, isInMenuRef;
+    std::unique_ptr<xdata::DataRefExport<float>> brightnessRef;
 
     bool isInMenu = false;
 
@@ -132,7 +130,7 @@ private:
     XPLMFlightLoopID createFlightLoop();
     float onFlightLoop(float elapsedSinceLastCall, float elapseSinceLastLoop, int count);
     static int handleCommand(XPLMCommandRef cmd, XPLMCommandPhase phase, void *ref);
-    EnvData getData(const std::string &dataRef);
+    xdata::EnvData getData(const std::string &dataRef);
     void reloadAircraftPath();
 
     enum cloudCoverage {
@@ -162,5 +160,3 @@ private:
 
     void updatePlaneCount();
 };
-
-} /* namespace avitab */

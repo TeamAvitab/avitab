@@ -20,9 +20,9 @@
 
 namespace maps {
 
-OverlayedDME::OverlayedDME(IOverlayHelper *h, const world::Fix *f):
+OverlayedDME::OverlayedDME(IOverlayHelper *h, const navdb::NavFix *f):
     OverlayedFix(h, f),
-    navDME(f->getDME().get())
+    navDME(f->getDME())
 {
 }
 

@@ -256,7 +256,7 @@ void MapApp::selectOnlineMaps(bool interactive) {
     // Parse the config content
     try {
         const auto &mapConfig = nlohmann::json::parse(mapConfigFstream);
-        logger::verbose("Found %u maps in %s", mapConfig.size(), mapConfigPath.c_str());
+        logger::verbose("Found %u maps in %s", mapConfig.size(), mapConfigPath.string().c_str());
 
         uint32_t i = 0;
         for (const auto &item : mapConfig.items()){
@@ -418,7 +418,7 @@ void MapApp::setTileSource(std::shared_ptr<img::TileSource> source) {
     map->loadOverlayIcons(api().getAvitabInstallDir()/"icons");
     map->setRedrawCallback([this] () { onRedrawNeeded(); });
     map->setGetRouteCallback([this] () { return api().getRoute(); });
-    map->setNavWorld(api().getNavWorld());
+    map->setNavWorld(api().getNavDatabase());
 
     keyboard.reset();
     coordsField.reset();
@@ -860,7 +860,7 @@ bool MapApp::handleNonNumericContent(std::string coords)  {
 
     std::string coordsUpper = platform::upper(coords);
 
-    auto airport = api().getNavWorld()->findAirportByID(coordsUpper);
+    auto airport = api().getNavDatabase()->findAirportByID(coordsUpper);
     if (airport) {
         // Replace airport ID in text box with lat,long
         auto airportLoc = airport->getLocation();
@@ -880,13 +880,13 @@ bool MapApp::handleNonNumericContent(std::string coords)  {
     std::string region(coordsUpper.begin(), coordsUpper.begin() + it);
     std::string id(coordsUpper.begin() + it + 1, coordsUpper.end());
     LOG_INFO(1,"Looking for nav fix region='%s', id='%s'", region.c_str(), id.c_str());
-    std::shared_ptr<world::Fix> fix;
+    std::shared_ptr<navdb::Fix> fix;
     if (it == 2) {
         // Two-letter code - try ICAO region
-        fix = api().getNavWorld()->findFixByRegionAndID(region, id);
+        fix = api().getNavDatabase()->findFixByRegionAndID(region, id);
     } else if (it == 4) {
         // Four-letter code - try ICAO airport/terminal
-        auto airport = api().getNavWorld()->findAirportByID(region);
+        auto airport = api().getNavDatabase()->findAirportByID(region);
         if (airport) {
             fix = airport->getTerminalFix(id);
         }

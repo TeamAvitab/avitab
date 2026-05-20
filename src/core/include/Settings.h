@@ -20,6 +20,7 @@
 #include <nlohmann/json_fwd.hpp>
 #include <list>
 #include <memory>
+#include <filesystem>
 #include "GUIDriver.h"
 #include "AirportConfig.h"
 #include "OverlayConfig.h"

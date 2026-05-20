@@ -19,7 +19,7 @@
 #include "DataRefImport.h"
 #include "Logger.h"
 
-namespace avitab {
+namespace xdata {
 
 template<typename T>
 DataRefImport<T>::DataRefImport(const std::string& name) {

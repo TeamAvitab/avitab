@@ -19,9 +19,9 @@
 
 #include <memory>
 #include <functional>
-#include "libimg/stitcher/Stitcher.h"
-#include "World.h"
-#include "libimg/TTFStamper.h"
+#include "image/stitcher/Stitcher.h"
+#include "image/TTFStamper.h"
+#include "nav/routing/Route.h"
 #include "Environment.h"
 #include "OverlayHelper.h"
 #include "OverlayConfig.h"
@@ -34,13 +34,13 @@ namespace maps {
 class OverlayedMap : public IOverlayHelper {
 public:
     using OverlaysDrawnCallback = std::function<void(void)>;
-    using GetRouteCallback = std::function<std::shared_ptr<world::Route>(void)>;
+    using GetRouteCallback = std::function<std::shared_ptr<navdb::Route>(void)>;
 
     OverlayedMap(std::shared_ptr<img::Stitcher> stitchedMap, std::shared_ptr<OverlayConfig> overlays);
     void loadOverlayIcons(const std::filesystem::path &path);
     void setRedrawCallback(OverlaysDrawnCallback cb);
     void setGetRouteCallback(GetRouteCallback cb);
-    void setNavWorld(std::shared_ptr<world::World> world);
+    void setNavWorld(std::shared_ptr<navdb::NavDatabase> world);
 
     bool mouse(int px, int py, bool down);
     void pan(int dx, int dy, int relx = -1, int rely = -1);
@@ -102,7 +102,7 @@ private:
 
     OverlaysDrawnCallback onOverlaysDrawn;
 
-    using NavNodeToOverlayMap = std::map<const world::NavNode *, std::shared_ptr<OverlayedNode>>;
+    using NavNodeToOverlayMap = std::map<const navdb::Node *, std::shared_ptr<OverlayedNode>>;
     std::shared_ptr<NavNodeToOverlayMap> overlayNodeCache;
 
     std::unique_ptr<OverlayedRoute> overlayedRoute;
@@ -111,7 +111,7 @@ private:
     float sinTable[360];
     float cosTable[360];
 
-    std::shared_ptr<world::World> navWorld;
+    std::shared_ptr<navdb::NavDatabase> navWorld;
     std::vector<world::Position> planeLocations;
     img::Image planeIcon;
     enum RelativeHeight { below, same, above, total };
@@ -128,8 +128,8 @@ private:
     void drawCompass();
     void drawRoute();
 
-    std::shared_ptr<OverlayedNode> makeOverlayedNode(const world::NavNode *);
-    bool isOverlayConfigured(const world::NavNode *) const;
+    std::shared_ptr<OverlayedNode> makeOverlayedNode(const navdb::Node *);
+    bool isOverlayConfigured(const navdb::Node *) const;
 
     void updateMapAttributes();
     world::Location pixelToLocation(int px, int py) const;

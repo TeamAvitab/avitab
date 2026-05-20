@@ -23,13 +23,13 @@
 #include <XPLM/XPLMDataAccess.h>
 #include "EnvData.h"
 
-namespace avitab {
+namespace xdata {
 
 // This class may only be used by the environment thread
 class DataCache {
 public:
     EnvData getData(const std::string &dataRef);
-    EnvData getLocationData(const AircraftID plane, const LocationPartIndex part);
+    EnvData getLocationData(const avitab::AircraftID plane, const LocationPartIndex part);
 private:
     std::map<std::string, XPLMDataRef> refCache;
     std::vector<XPLMDataRef> locationRefCache;
@@ -38,4 +38,4 @@ private:
     EnvData toEnvData(XPLMDataRef ref);
 };
 
-} /* namespace avitab */
+} /* namespace xdata */

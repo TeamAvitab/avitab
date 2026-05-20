@@ -18,7 +18,8 @@
 #include <sstream>
 #include <iomanip>
 #include "RouteApp.h"
-#include "routing/RouteFinder.h"
+#include "nav/routing/RouteFinder.h"
+#include "nav/loaders/xplane/FMSLoader.h"
 #include "Logger.h"
 
 namespace avitab {
@@ -71,9 +72,9 @@ void RouteApp::showDeparturePage() {
 
     keys->setOnOk([this] () { api().executeLater([this] () {
         if (checkBox->isChecked()) {
-            airwayLevel = world::AirwayLevel::UPPER;
+            airwayLevel = navdb::AirwayLevel::UPPER;
         } else {
-            airwayLevel = world::AirwayLevel::LOWER;
+            airwayLevel = navdb::AirwayLevel::LOWER;
         }
         onDepartureEntered(departureField->getText());
      });});
@@ -82,11 +83,7 @@ void RouteApp::showDeparturePage() {
 }
 
 void RouteApp::onDepartureEntered(const std::string& departure) {
-    auto navWorld = api().getNavWorld();
-    if (!navWorld) {
-        showError("No navigation data available");
-        return;
-    }
+    auto navWorld = api().getNavDatabase();
 
     auto ap = navWorld->findAirportByID(departure);
     if (!ap) {
@@ -129,7 +126,7 @@ void RouteApp::onArrivalEntered(const std::string& arrival) {
     if (arrival == "") {
         return;
     }
-    auto navWorld = api().getNavWorld();
+    auto navWorld = api().getNavDatabase();
 
     auto ap = navWorld->findAirportByID(arrival);
     if (!ap) {
@@ -137,7 +134,7 @@ void RouteApp::onArrivalEntered(const std::string& arrival) {
         return;
     }
 
-    if (ap->getID() == departureNode->getID()) {
+    if (ap->getIdent() == departureNode->getIdent()) {
         showError("Arrival must be different from departure");
         arrivalField->setText("");
         return;
@@ -145,34 +142,48 @@ void RouteApp::onArrivalEntered(const std::string& arrival) {
 
     arrivalNode = ap;
 
-    auto router = api().getRouteFinder();
-    router->setDeparture(departureNode);
-    router->setArrival(arrivalNode);
-    router->setAirwayLevel(airwayLevel);
-    router->setGetMagVarsCallback([this] (std::vector<std::pair<double, double>> locations) {
-        return api().getMagneticVariations(locations);
+    showStatus("Searching for route");
+    auto f = std::async(std::launch::async, [this] {
+        return asyncSearchForRoute();
     });
-
-    try {
-        route = router->find();
-        fromFMS = false;
+    auto r = f.get();
+    if (r) {
+        api().setRoute(r);
+        fmsRawText = "";
         showRoute();
+    }
+}
+
+std::shared_ptr<navdb::Route> RouteApp::asyncSearchForRoute() {
+    std::shared_ptr<navdb::Route> r;
+    try {
+        auto router = std::make_unique<navdb::RouteFinder>(api().getNavDatabase(), departureNode, arrivalNode, airwayLevel);
+        r = router->find();
+        std::vector<world::Location> wpts;
+        r->iterateLegs([&wpts] (const navdb::Route::RouteNode n, const navdb::Route::RouteLeg, const navdb::Route::RouteNode, float, float, float) {
+            wpts.push_back(n->getLocation());
+        });
+        auto magVars = api().getMagneticVariations(wpts);
+        r->applyMagDecls(magVars);
     } catch (const std::exception &e) {
-        std::string error = std::string("Couldn't find a preliminary route, error: ") + e.what();
+        std::string error = std::string("Couldn't find a route: ") + e.what();
         showError(error);
     }
-    api().setRoute(route);
+    return r;
 }
+
 
 void RouteApp::showRoute() {
     reset();
+
+    auto route = api().getRoute();
 
     std::stringstream desc;
     desc << std::fixed << std::setprecision(0);
 
     std::string shortRoute;
-    if (fromFMS) {
-        shortRoute = fmsText;
+    if (fmsRawText.size()) {
+        shortRoute = fmsRawText;
     } else {
         shortRoute = toShortRouteDescription();
     }
@@ -203,6 +214,7 @@ void RouteApp::showRoute() {
 void RouteApp::reset() {
     checkBox.reset();
     errorMessage.reset();
+    statusMessage.reset();
     list.reset();
     label.reset();
     departureField.reset();
@@ -223,13 +235,19 @@ void RouteApp::showError(const std::string& msg) {
     errorMessage->centerInParent();
 }
 
+void RouteApp::showStatus(const std::string& msg) {
+    statusMessage = std::make_shared<MessageBox>(getUIContainer(), msg);
+    statusMessage->centerInParent();
+}
+
 std::string RouteApp::toShortRouteDescription() {
     std::stringstream desc;
 
-    route->iterateRouteShort([this, &desc] (const std::shared_ptr<world::NavEdge> via, const std::shared_ptr<world::NavNode> to) {
+    auto route = api().getRoute();
+    route->iterateRouteShort([this, &desc] (const std::shared_ptr<navdb::NodeLink> via, const std::shared_ptr<navdb::Node> to) {
         if (via) {
             if (!via->isProcedure()) {
-                desc << " #368BC1 " << via->getID() << "#";
+                desc << " #368BC1 " << via->getIdent() << "#";
             }
         }
 
@@ -238,7 +256,7 @@ std::string RouteApp::toShortRouteDescription() {
                 desc << " #99CC00";
             }
 
-            desc << " " << to->getID();
+            desc << " " << to->getIdent();
 
             if (to == departureNode || to == arrivalNode) {
                 desc << "#";
@@ -251,24 +269,25 @@ std::string RouteApp::toShortRouteDescription() {
 std::string RouteApp::toDetailedRouteDescription() {
     std::stringstream desc;
 
+    auto route = api().getRoute();
     route->iterateLegs([this, &desc] (
-            const std::shared_ptr<world::NavNode> from,
-            const std::shared_ptr<world::NavEdge> via,
-            const std::shared_ptr<world::NavNode> to,
-            double distanceNm,
-            double initialTrueBearing,
-            double initialMagneticBearing) {
+            const std::shared_ptr<navdb::Node> from,
+            const std::shared_ptr<navdb::NodeLink> via,
+            const std::shared_ptr<navdb::Node> to,
+            float distanceNm,
+            float initialTrueBearing,
+            float initialMagneticBearing) {
 
-        std::string from_str = from ? from->getID() : "(no from)";
-        std::string via_str = via ? via->getID() : "-";
-        std::string to_str = to ? to->getID() : "(no to)";
+        std::string from_str = from ? from->getIdent() : "(no from)";
+        std::string via_str = via ? via->getIdent() : "-";
+        std::string to_str = to ? to->getIdent() : "(no to)";
         int showInitialTrueBearing = (int)(initialTrueBearing + 0.5) % 360;
         int showInitialMagneticBearing = (int)(initialMagneticBearing + 0.5) % 360;
 
-        desc << from_str.c_str() << "\n" << "    " << via_str.c_str() << " " <<
-            std::setfill('0') << std::setw(3) << showInitialTrueBearing << "�T" << " " <<
-            std::setfill('0') << std::setw(3) << showInitialMagneticBearing << "�M" <<
-            " " << (int)distanceNm << "nm\n";
+        desc << from_str.c_str() << "\n" << "    " << via_str.c_str() << "  " <<
+            std::setfill('0') << std::setw(3) << showInitialTrueBearing << "°T" << "/" <<
+            std::setfill('0') << std::setw(3) << showInitialMagneticBearing << "°M" <<
+            "  " << (int)distanceNm << "nm\n";
 
         if (to == arrivalNode) {
             desc << to_str.c_str() << "\n";
@@ -287,14 +306,12 @@ void RouteApp::selectFlightPlanFile() {
             try {
                 fileChooser.reset();
                 chooserContainer->setVisible(false);
-                fmsText = getFMSTextFromFile(selectedUTF8);
-                parseFMS(selectedUTF8);
-                fromFMS = true;
+                loadRouteFromFMS(selectedUTF8);
                 showRoute();
             } catch (const std::exception &e) {
                 showDeparturePage();
-                showError("Couldn't load FMS file, see Avitab.log");
                 logger::warn("Couldn't load FMS file '%s': %s", selectedUTF8.c_str(), e.what());
+                showError("Couldn't load FMS file, see Avitab.log");
                 return;
             }
         });
@@ -310,48 +327,34 @@ void RouteApp::selectFlightPlanFile() {
     chooserContainer->setVisible(true);
 }
 
-std::string RouteApp::getFMSTextFromFile(const std::filesystem::path &fmsFilename) {
+void RouteApp::loadRouteFromFMS(const std::filesystem::path &fmsFilename)
+{
+    // load the raw text from the file
     std::ifstream ifs(fmsFilename);
     if (!ifs) {
-        throw std::runtime_error(std::string("Couldn't read FMS file ") + fmsFilename.u8string());
+        throw std::runtime_error(std::string("Couldn't read FMS file ") + fmsFilename.string().c_str());
     }
     std::stringstream ss;
     ss << ifs.rdbuf();
-    return ss.str();
-}
+    fmsRawText = ss.str();
 
-void RouteApp::parseFMS(const std::filesystem::path &fmsFilename) {
-    auto nodes = api().loadFlightPlan(fmsFilename);
-    if (nodes.empty()) {
-        throw std::runtime_error(std::string("Found no waypoints"));
-    }
+    // now use the FMS parser to extract a list of waypoints
+    auto navdb = api().getNavDatabase();
+    xdata::FMSLoader loader(navdb.get());
+    auto route = loader.load(fmsFilename); // throws exception if route has no legs
+    logger::info("Loaded route with %d waypoints from %s", route->size(), fmsFilename.string().c_str());
 
-    logger::info("Loaded %s", fmsFilename.c_str());
+    // Getting magVar from XPlane involves thread context-switch, so process all waypoints together
+    std::vector<world::Location> wpts;
+    route->iterateLegs([&wpts] (const navdb::Route::RouteNode n, const navdb::Route::RouteLeg, const navdb::Route::RouteNode, float, float, float) {
+        wpts.push_back(n->getLocation());
+    });
+    auto magVars = api().getMagneticVariations(wpts);
+    route->applyMagDecls(magVars);
 
-    // Collate magnetic variations for the node locations used in the route
-    // Getting magVar from XPlane is asynchronous and slow, so batch request
-    std::vector<std::pair<double, double>> locations;
-    for (auto node: nodes) {
-        auto loc = node->getLocation();
-        locations.push_back(std::make_pair(loc.latDegrees(), loc.lonDegrees()));
-    }
-    auto magVarMap = api().getMagneticVariations(locations);
+    departureNode = route->front();
+    arrivalNode = route->back();
 
-    std::vector<world::Route::Leg> fmsRoute;
-    std::shared_ptr<world::NavNode> prevNode;
-    for (auto node: nodes) {
-        if (prevNode) {
-            auto prevLoc = prevNode->getLocation();
-            auto magVar = magVarMap[std::make_pair(prevLoc.latDegrees(), prevLoc.lonDegrees())];
-            fmsRoute.push_back(world::Route::Leg(prevNode, nullptr, node, magVar));
-        } else {
-            departureNode = node;
-        }
-        prevNode = node;
-    }
-    arrivalNode = prevNode;
-    route = std::make_shared<world::Route>(api().getNavWorld(), departureNode, arrivalNode);
-    route->loadRoute(fmsRoute);
     api().setRoute(route);
 }
 

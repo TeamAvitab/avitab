@@ -26,8 +26,9 @@ img::Image OverlayedUserFix::VRPIcon;
 img::Image OverlayedUserFix::MarkerIcon;
 std::vector<std::string> OverlayedUserFix::textLines;
 
-OverlayedUserFix::OverlayedUserFix(IOverlayHelper *h, const world::Fix *f):
-    OverlayedFix(h, f){
+OverlayedUserFix::OverlayedUserFix(IOverlayHelper *h, const navdb::Fix *f)
+:   OverlayedFix(h, f), userFix(dynamic_cast<const navdb::UserFix *>(f))
+{
     if (POIIcon.getHeight() == 0) {
         createIcons();
     }
@@ -59,13 +60,13 @@ void OverlayedUserFix::createIcons() {
 }
 
 void OverlayedUserFix::drawGraphic() {
-    auto type = fix->getUserFix()->getType();
+    auto type = userFix->getType();
     auto mapImage = overlayHelper->getMapImage();
-    if (type == world::UserFix::Type::POI) {
+    if (type == navdb::UserFixType::POI) {
         mapImage->blendImage0(POIIcon, posX - RADIUS, posY - RADIUS);
-    } else if (type == world::UserFix::Type::VRP) {
+    } else if (type == navdb::UserFixType::VRP) {
         mapImage->blendImage0(VRPIcon, posX - RADIUS, posY - RADIUS);
-    } else if (type == world::UserFix::Type::MARKER) {
+    } else if (type == navdb::UserFixType::MARKER) {
         mapImage->blendImage0(MarkerIcon, posX - RADIUS, posY - RADIUS);
     }
 }
@@ -74,9 +75,9 @@ void OverlayedUserFix::drawText(bool detailed) {
     if (!detailed) {
         return;
     }
-    auto type = fix->getUserFix()->getType();
-    if ((type != world::UserFix::Type::POI && type != world::UserFix::Type::VRP
-      && type != world::UserFix::Type::MARKER)) {
+    auto type = userFix->getType();
+    if ((type != navdb::UserFixType::POI && type != navdb::UserFixType::VRP
+      && type != navdb::UserFixType::MARKER)) {
         return;
     }
 
@@ -96,13 +97,13 @@ void OverlayedUserFix::drawText(bool detailed) {
 
     std::string typeString;
     uint32_t color;
-    if (type == world::UserFix::Type::POI) {
+    if (type == navdb::UserFixType::POI) {
         typeString = "POI";
         color = POI_TEXT_COLOR;
-    } else if (type == world::UserFix::Type::VRP) {
+    } else if (type == navdb::UserFixType::VRP) {
         typeString = "VRP";
         color = VRP_COLOR;
-    } else if (type == world::UserFix::Type::MARKER) {
+    } else if (type == navdb::UserFixType::MARKER) {
         typeString = "MRK";
         color = MARKER_COLOR;
     } else {
@@ -121,7 +122,7 @@ void OverlayedUserFix::drawText(bool detailed) {
 
 void OverlayedUserFix::splitNameToLines() {
     // Split the description into 1 or 2 lines
-    std::string full_text = fix->getUserFix()->getName();
+    std::string full_text = userFix->getName();
     textLines.clear();
     std::size_t pos = full_text.find_first_of(" ,");
     if (pos == std::string::npos) {

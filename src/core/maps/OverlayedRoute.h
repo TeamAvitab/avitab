@@ -18,17 +18,16 @@
 #pragma once
 
 #include "OverlayHelper.h"
-#include "graph/NavNode.h"
-#include "routing/Route.h"
-#include "libimg/Image.h"
+#include "image/Image.h"
 #include "Logger.h"
+#include "nav/routing/Route.h"
 
 namespace maps {
 
 class OverlayedRoute {
 public:
     OverlayedRoute(IOverlayHelper *h);
-    void draw(std::shared_ptr<world::Route> route);
+    void draw(std::shared_ptr<navdb::Route> route);
 
 private:
     IOverlayHelper * const overlayHelper;

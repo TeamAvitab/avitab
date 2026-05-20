@@ -18,7 +18,7 @@
 #pragma once
 
 #include "DocumentsApp.h"
-#include "gui_toolkit/widgets/MessageBox.h"
+#include "gui/widgets/MessageBox.h"
 
 namespace avitab {
 

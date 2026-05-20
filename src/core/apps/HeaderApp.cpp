@@ -30,19 +30,22 @@ HeaderApp::HeaderApp(FuncsPtr appFuncs):
     savedSettings(appFuncs->getSettings()),
     tickTimer(std::bind(&HeaderApp::onTick, this), TIMER_PERIOD_MS)
 {
+    curClockMode = savedSettings->getGeneralSetting<int>("clock_mode") % NUM_CLOCK_MODES;
+    showFps = savedSettings->getGeneralSetting<bool>("show_fps");
+
     auto container = getUIContainer();
     container->setPosition(0, 0);
     container->setDimensions(container->getWidth(), 30);
+
     clockLabel = std::make_shared<Label>(container, "");
     clockLabel->setClickable(true);
     clockLabel->setClickHandler([this] (int x, int y, bool pr, bool rel) { onClockClick(x, y, pr, rel); });
+    clockLabel->alignRightInParent(HOR_PADDING);
 
     settingsButton = std::make_shared<Button>(container, Widget::Symbol::SETTINGS);
     settingsButton->setCallback([this] (const Button &) { toggleSettings(); });
     settingsButton->alignLeftInParent(HOR_PADDING);
 
-    curClockMode = savedSettings->getGeneralSetting<int>("clock_mode") % NUM_CLOCK_MODES;
-    showFps = savedSettings->getGeneralSetting<bool>("show_fps");
     fpsLabel = std::make_shared<Label>(container, "-- FPS");
     fpsLabel->alignRightOf(settingsButton);
     fpsLabel->setVisible(showFps);
@@ -50,6 +53,9 @@ HeaderApp::HeaderApp(FuncsPtr appFuncs):
     homeButton = std::make_shared<Button>(container, Widget::Symbol::HOME);
     homeButton->setCallback([this] (const Button &) { api().onHomeButton(); });
     homeButton->centerInParent();
+
+    navLabel = std::make_shared<Label>(container, "Loading NAV data");
+    navLabel->alignRightOf(homeButton, 2 * HOR_PADDING);
 
     createSettingsContainer();
 
@@ -131,6 +137,9 @@ bool HeaderApp::onTick() {
     if (--clockUpdateAlarm <= 0) {
         updateClock();
     }
+    if (!(clickTimer % TIMER_TICKS_PER_SEC)) {
+        updateNav();
+    }
     updateFPS();
     return true;
 }
@@ -182,6 +191,15 @@ void HeaderApp::updateClock() {
 
     clockLabel->setText(s);
     clockLabel->alignRightInParent(HOR_PADDING);
+}
+
+void HeaderApp::updateNav() {
+    auto navStat = api().getNavDatabase()->status();
+    if (api().getNavDatabase()->status() == navdb::NavDatabase::NavStatus::RELOADING) {
+        navLabel->setVisible(true);
+    } else {
+        navLabel->setVisible(false);
+    }
 }
 
 void HeaderApp::updateFPS() {

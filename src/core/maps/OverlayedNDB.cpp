@@ -24,9 +24,9 @@ namespace maps {
 img::Image OverlayedNDB::ndbIcon;
 int OverlayedNDB::radius;
 
-OverlayedNDB::OverlayedNDB(IOverlayHelper *h, const world::Fix *f):
+OverlayedNDB::OverlayedNDB(IOverlayHelper *h, const navdb::NavFix *f):
     OverlayedFix(h, f),
-    navNDB(f->getNDB().get())
+    navNDB(f->getNDB())
 {
     if (ndbIcon.getHeight() == 0) {
         createNDBIcon();

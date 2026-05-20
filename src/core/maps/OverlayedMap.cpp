@@ -93,7 +93,7 @@ void OverlayedMap::loadOverlayIcons(const std::filesystem::path& path) {
     }
 }
 
-void OverlayedMap::setNavWorld(std::shared_ptr<world::World> world) {
+void OverlayedMap::setNavWorld(std::shared_ptr<navdb::NavDatabase> world) {
     navWorld = world;
 }
 
@@ -297,16 +297,18 @@ void OverlayedMap::drawCalibrationOverlay() {
 }
 
 void OverlayedMap::drawNavWorldOverlays() {
-    if (!navWorld) {
-        return;
+    // if the navigation database has been superseded then switch to the latest one
+    if (navWorld->status() == navdb::NavDatabase::NavStatus::SUPERSEDED) {
+        navWorld = navWorld->latest();
+        assert(navWorld);
     }
 
     int nodeFilter = 0;
-    nodeFilter |= (overlayConfig->drawAirports) ? world::World::VISIT_TOWERED_AIRPORTS : 0;
-    nodeFilter |= (overlayConfig->drawAirstrips || overlayConfig->drawHeliportsSeaports) ? world::World::VISIT_OTHER_AIRPORTS : 0;
-    nodeFilter |= (overlayConfig->drawWaypoints) ? world::World::VISIT_FIXES : 0;
-    nodeFilter |= (overlayConfig->drawVORs || overlayConfig->drawNDBs || overlayConfig->drawILSs) ? world::World::VISIT_NAVAIDS : 0;
-    nodeFilter |= (overlayConfig->drawPOIs || overlayConfig->drawVRPs || overlayConfig->drawMarkers) ? world::World::VISIT_USER_FIXES : 0;
+    nodeFilter |= (overlayConfig->drawAirports) ? navdb::NavDatabase::VISIT_TOWERED_AIRPORTS : 0;
+    nodeFilter |= (overlayConfig->drawAirstrips || overlayConfig->drawHeliportsSeaports) ? navdb::NavDatabase::VISIT_OTHER_AIRPORTS : 0;
+    nodeFilter |= (overlayConfig->drawWaypoints) ? navdb::NavDatabase::VISIT_FIXES : 0;
+    nodeFilter |= (overlayConfig->drawVORs || overlayConfig->drawNDBs || overlayConfig->drawILSs) ? navdb::NavDatabase::VISIT_NAVAIDS : 0;
+    nodeFilter |= (overlayConfig->drawPOIs || overlayConfig->drawVRPs || overlayConfig->drawMarkers) ? navdb::NavDatabase::VISIT_USER_FIXES : 0;
     if (!nodeFilter) {
         return;
     }
@@ -340,16 +342,16 @@ void OverlayedMap::drawNavWorldOverlays() {
         return;
     }
     if (maxNodeDensity > DENSITY_LIMIT_AIRFIELDS) {
-        nodeFilter &= ~(world::World::VISIT_OTHER_AIRPORTS);
+        nodeFilter &= ~(navdb::NavDatabase::VISIT_OTHER_AIRPORTS);
     }
     if (maxNodeDensity > DENSITY_LIMIT_NAVAIDS) {
-        nodeFilter &= ~(world::World::VISIT_NAVAIDS);
+        nodeFilter &= ~(navdb::NavDatabase::VISIT_NAVAIDS);
     }
     if (maxNodeDensity > DENSITY_LIMIT_FIXES) {
-        nodeFilter &= ~(world::World::VISIT_FIXES);
+        nodeFilter &= ~(navdb::NavDatabase::VISIT_FIXES);
     }
     if (mapWidthNM > MAPWIDTH_LIMIT_USERFIXES) {
-        nodeFilter &= ~(world::World::VISIT_USER_FIXES);
+        nodeFilter &= ~(navdb::NavDatabase::VISIT_USER_FIXES);
     }
     if (!nodeFilter) {
         return;
@@ -363,8 +365,8 @@ void OverlayedMap::drawNavWorldOverlays() {
     std::shared_ptr<NavNodeToOverlayMap> nodes = std::make_shared<NavNodeToOverlayMap>();
 
     navWorld->visitNodes(searchMin, searchMax,
-                        [this, &reusedOverlays, nodes] (const world::NavNode *node) {
-                            // coarse filtering has been done by the NAV world, but
+                        [this, &reusedOverlays, nodes] (const navdb::Node *node) {
+                            // coarse filtering has been done by the NAV database, but
                             // further detailed filtering is needed here
                             if (!isOverlayConfigured(node)) return;
                             // did we already see this NAV item in the previous frame?
@@ -669,47 +671,55 @@ void OverlayedMap::drawRoute() {
     overlayedRoute->draw(route);
 }
 
-bool maps::OverlayedMap::isOverlayConfigured(const world::NavNode *nn) const {
-    if (auto a = dynamic_cast<const world::Airport *>(nn)) {
+bool maps::OverlayedMap::isOverlayConfigured(const navdb::Node *nn) const {
+    // do further filtering of the broader groups returned by the NAV db
+    if (auto a = dynamic_cast<const navdb::Airport *>(nn)) {
         // use config settings to filter heliports/seaports and airfields
         if (a->hasOnlyHeliports() || a->hasOnlyWaterRunways()) {
             return overlayConfig->drawHeliportsSeaports;
         } else if (!a->hasHardRunway()) {
             return overlayConfig->drawAirstrips;
         }
-    } else if (auto f = dynamic_cast<const world::Fix *>(nn)) {
-        // Navaid overlays make their own decision about enablement on each frame
-        if (auto uf = f->getUserFix()) {
-            if (uf->getType() == world::UserFix::Type::VRP) {
-                return overlayConfig->drawVRPs;
-            } else if (uf->getType() == world::UserFix::Type::POI) {
-                return overlayConfig->drawPOIs;
-            } else if (uf->getType() == world::UserFix::Type::MARKER) {
-                return overlayConfig->drawMarkers;
-            }
+    } else if (auto nf = dynamic_cast<const navdb::NavFix *>(nn)) {
+        bool draw = overlayConfig->drawWaypoints;
+        if (nf->hasNavaid()) {
+            draw |= (nf->getNDB() && overlayConfig->drawNDBs);
+            draw |= (nf->getVOR() && overlayConfig->drawVORs);
+            draw |= (nf->getDME() && overlayConfig->drawVORs);
+            draw |= (nf->getILSLocalizer() && overlayConfig->drawILSs);
+        }
+        return draw;
+    } else if (auto uf = dynamic_cast<const navdb::UserFix *>(nn)) {
+        if (uf->getType() == navdb::UserFixType::VRP) {
+            return overlayConfig->drawVRPs;
+        } else if (uf->getType() == navdb::UserFixType::POI) {
+            return overlayConfig->drawPOIs;
+        } else if (uf->getType() == navdb::UserFixType::MARKER) {
+            return overlayConfig->drawMarkers;
         }
     }
-    return true; // coarse filtering has already removed other options
+    return true;
 }
 
-std::shared_ptr<OverlayedNode> OverlayedMap::makeOverlayedNode(world::NavNode const *nn) {
+ // REFACTOR - this needs changing to use shared_ptr before SQL NAV data is introduced.
+std::shared_ptr<OverlayedNode> OverlayedMap::makeOverlayedNode(navdb::Node const *nn) {
     std::shared_ptr<OverlayedNode> on;
-    if (auto a = dynamic_cast<const world::Airport *>(nn)) {
+    if (auto a = dynamic_cast<const navdb::Airport *>(nn)) {
         on = std::make_shared<OverlayedAirport>(static_cast<IOverlayHelper *>(this), a);
-    } else if (auto f = dynamic_cast<const world::Fix *>(nn)) {
-        if (f->getILSLocalizer()) {
-            on = std::make_shared<OverlayedILSLocalizer>(static_cast<IOverlayHelper *>(this), f);
-        } else if (f->getVOR()) {
-            on = std::make_shared<OverlayedVOR>(static_cast<IOverlayHelper *>(this), f);
-        } else if (f->getDME()) {
-            on = std::make_shared<OverlayedDME>(static_cast<IOverlayHelper *>(this), f);
-        } else if (f->getNDB()) {
-            on = std::make_shared<OverlayedNDB>(static_cast<IOverlayHelper *>(this), f);
-        } else if (f->getUserFix()) {
-            on = std::make_shared<OverlayedUserFix>(static_cast<IOverlayHelper *>(this), f);
+    } else if (auto nf = dynamic_cast<const navdb::NavFix *>(nn)) {
+        if (nf->getILSLocalizer()) {
+            on = std::make_shared<OverlayedILSLocalizer>(static_cast<IOverlayHelper *>(this), nf);
+        } else if (nf->getVOR()) {
+            on = std::make_shared<OverlayedVOR>(static_cast<IOverlayHelper *>(this), nf);
+        } else if (nf->getDME()) {
+            on = std::make_shared<OverlayedDME>(static_cast<IOverlayHelper *>(this), nf);
+        } else if (nf->getNDB()) {
+            on = std::make_shared<OverlayedNDB>(static_cast<IOverlayHelper *>(this), nf);
         } else {
-            on = std::make_shared<OverlayedWaypoint>(static_cast<IOverlayHelper *>(this), f);
+            on = std::make_shared<OverlayedWaypoint>(static_cast<IOverlayHelper *>(this), nf);
         }
+    } else if (auto uf = dynamic_cast<const navdb::UserFix *>(nn)) {
+        on = std::make_shared<OverlayedUserFix>(static_cast<IOverlayHelper *>(this), uf);
     }
     return on;
 }

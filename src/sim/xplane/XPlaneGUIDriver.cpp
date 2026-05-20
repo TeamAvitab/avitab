@@ -33,35 +33,33 @@
 #include "MonitorBoundsDecider.h"
 #include "Logger.h"
 
-namespace avitab {
-
 XPlaneGUIDriver::XPlaneGUIDriver():
     brightness(std::make_shared<float>(1.0f)),
     isVrEnabled("sim/graphics/VR/enabled", false),
     xplane3dClickX("sim/graphics/view/click_3d_x_pixels", -1),
     xplane3dClickY("sim/graphics/view/click_3d_y_pixels", -1)
 {
-    panelLeftRef = std::make_unique<DataRefExport<int>>("avitab/panel_left", this,
+    panelLeftRef = std::make_unique<xdata::DataRefExport<int>>("avitab/panel_left", this,
         [] (void *self) { return (reinterpret_cast<XPlaneGUIDriver *>(self))->panelLeft; },
         [] (void *self, int v) { (reinterpret_cast<XPlaneGUIDriver *>(self))->panelLeft = v; });
 
-    panelWidthRef = std::make_unique<DataRefExport<int>>("avitab/panel_width", this,
+    panelWidthRef = std::make_unique<xdata::DataRefExport<int>>("avitab/panel_width", this,
         [] (void *self) { return (reinterpret_cast<XPlaneGUIDriver *>(self))->panelWidth; },
         [] (void *self, int v) { (reinterpret_cast<XPlaneGUIDriver *>(self))->panelWidth = v; });
 
-    panelBottomRef = std::make_unique<DataRefExport<int>>("avitab/panel_bottom", this,
+    panelBottomRef = std::make_unique<xdata::DataRefExport<int>>("avitab/panel_bottom", this,
         [] (void *self) { return (reinterpret_cast<XPlaneGUIDriver *>(self))->panelBottom; },
         [] (void *self, int v) { (reinterpret_cast<XPlaneGUIDriver *>(self))->panelBottom = v; });
 
-    panelHeightRef = std::make_unique<DataRefExport<int>>("avitab/panel_height", this,
+    panelHeightRef = std::make_unique<xdata::DataRefExport<int>>("avitab/panel_height", this,
         [] (void *self) { return (reinterpret_cast<XPlaneGUIDriver *>(self))->panelHeight; },
         [] (void *self, int v) { (reinterpret_cast<XPlaneGUIDriver *>(self))->panelHeight = v; });
 
-    panelMouseXref = std::make_unique<DataRefExport<float>>("avitab/panel_x_click", this,
+    panelMouseXref = std::make_unique<xdata::DataRefExport<float>>("avitab/panel_x_click", this,
         [] (void *self) { return (reinterpret_cast<XPlaneGUIDriver *>(self))->panelClickX; },
         [] (void *self, float x) { (reinterpret_cast<XPlaneGUIDriver *>(self))->panelClickX = x; });
 
-    panelMouseYref = std::make_unique<DataRefExport<float>>("avitab/panel_y_click", this,
+    panelMouseYref = std::make_unique<xdata::DataRefExport<float>>("avitab/panel_y_click", this,
         [] (void *self) { return (reinterpret_cast<XPlaneGUIDriver *>(self))->panelClickY; },
         [] (void *self, float y) { (reinterpret_cast<XPlaneGUIDriver *>(self))->panelClickY = y; });
 }
@@ -116,7 +114,7 @@ void XPlaneGUIDriver::setupVRCapture() {
     }
 }
 
-void XPlaneGUIDriver::createWindow(const std::string &title, const WindowRect &rect) {
+void XPlaneGUIDriver::createWindow(const std::string &title, const avitab::WindowRect &rect) {
     if (hasWindow()) {
         killWindow();
     }
@@ -181,12 +179,12 @@ void XPlaneGUIDriver::createWindow(const std::string &title, const WindowRect &r
     }
 }
 
-WindowRect XPlaneGUIDriver::getWindowRect() {
+avitab::WindowRect XPlaneGUIDriver::getWindowRect() {
     if (!window || !XPLMGetWindowIsVisible(window)) {
         return lastRect;
     }
 
-    WindowRect rect;
+    avitab::WindowRect rect;
     if (XPLMWindowIsPoppedOut(window)) {
         XPLMGetWindowGeometryOS(window, &rect.left, &rect.top, &rect.right, &rect.bottom);
         rect.poppedOut = true;
@@ -680,5 +678,3 @@ XPlaneGUIDriver::~XPlaneGUIDriver() {
         XPLMDestroyWindow(captureWindow);
     }
 }
-
-} /* namespace avitab */

@@ -28,7 +28,7 @@ int main() {
 
     try {
         // Using the stack so we can debug destructors with log messages
-        auto env = std::make_shared<avitab::MsfsAddonEnvironment>();
+        auto env = std::make_shared<MsfsAddonEnvironment>();
         env->loadConfig();
         logger::setStdOut(env->getConfig()->getBool("/AviTab/logToStdOut"));
         logger::init(env->getDataRootPath());

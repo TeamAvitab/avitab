@@ -28,15 +28,15 @@ OverlayedRoute::OverlayedRoute(IOverlayHelper *h):
 {
 }
 
-void OverlayedRoute::draw(std::shared_ptr<world::Route> route) {
+void OverlayedRoute::draw(std::shared_ptr<navdb::Route> route) {
     world::Location toLoc;
     route->iterateLegs([this, &toLoc] (
-            const std::shared_ptr<world::NavNode> from,
-            const std::shared_ptr<world::NavEdge> via,
-            const std::shared_ptr<world::NavNode> to,
-            double distanceNm,
-            double initialTrueBearing,
-            double initialMagneticBearing) {
+            const std::shared_ptr<navdb::Node> from,
+            const std::shared_ptr<navdb::NodeLink> via,
+            const std::shared_ptr<navdb::Node> to,
+            float distanceNm,
+            float initialTrueBearing,
+            float initialMagneticBearing) {
 
         auto fromLoc = from->getLocation();
         toLoc = to->getLocation();

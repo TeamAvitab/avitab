@@ -19,12 +19,12 @@
 
 #include <memory>
 #include "App.h"
-#include "gui_toolkit/widgets/Window.h"
-#include "gui_toolkit/widgets/Button.h"
-#include "gui_toolkit/widgets/Label.h"
-#include "gui_toolkit/widgets/PixMap.h"
-#include "gui_toolkit/widgets/TabGroup.h"
-#include "gui_toolkit/widgets/Checkbox.h"
+#include "gui/widgets/Window.h"
+#include "gui/widgets/Button.h"
+#include "gui/widgets/Label.h"
+#include "gui/widgets/PixMap.h"
+#include "gui/widgets/TabGroup.h"
+#include "gui/widgets/Checkbox.h"
 
 namespace avitab {
 

@@ -20,49 +20,8 @@
 #include "StandAloneEnvironment.h"
 #include "Logger.h"
 #include "platform/Platform.h"
-#include "sim/xplane/libxdata/XData.h"
-
-namespace avitab {
 
 StandAloneEnvironment::StandAloneEnvironment() : ToolEnvironment() {
-    xplaneRootPath = findXPlaneInstallationPath();
-}
-
-std::filesystem::path StandAloneEnvironment::findXPlaneInstallationPath() {
-    std::filesystem::path installFilePath;
-
-    switch (platform::getPlatform()) {
-    case platform::Platform::WINDOWS:
-        installFilePath = std::filesystem::u8path(getenv("LOCALAPPDATA"));
-        break;
-    case platform::Platform::MAC:
-        installFilePath = std::filesystem::u8path(getenv("HOME")) / "Library"/"Preferences";
-        break;
-    case platform::Platform::LINUX:
-        installFilePath = std::filesystem::u8path(getenv("HOME")) / ".x-plane";
-        break;
-    }
-
-    auto installFile = installFilePath / "x-plane_install_12.txt";
-    if (!std::filesystem::exists(installFile.c_str())) {
-        installFile = installFilePath / "x-plane_install_11.txt";
-        if (!std::filesystem::exists(installFile.c_str())) {
-            return "";
-        }
-    }
-
-    std::ifstream file(installFile);
-    std::string installDir;
-    std::getline(file, installDir);
-    return installDir;
-}
-
-std::filesystem::path StandAloneEnvironment::getFontDirectory() {
-    return xplaneRootPath / "Resources"/"fonts";
-}
-
-std::filesystem::path StandAloneEnvironment::getFlightPlansPath() {
-    return xplaneRootPath / "Output"/"FMS Plans";
 }
 
 void StandAloneEnvironment::eventLoop() {
@@ -73,21 +32,17 @@ void StandAloneEnvironment::eventLoop() {
     driver.reset();
 }
 
-std::shared_ptr<world::LoadManager> StandAloneEnvironment::createParsingWorldManager() {
-    return std::make_shared<xdata::XData>(xplaneRootPath);
-}
-
-std::shared_ptr<GUIDriver> StandAloneEnvironment::createGUIDriver() {
+std::shared_ptr<avitab::GUIDriver> StandAloneEnvironment::createGUIDriver() {
     driver = std::make_shared<GlfwGUIDriver>();
     return driver;
 }
 
-Environment::MagVarMap StandAloneEnvironment::getMagneticVariations(std::vector<std::pair<double, double>> locations) {
-    Environment::MagVarMap zeros;
-    for (auto location : locations) {
-        zeros[location] = 0;
+std::vector<float> StandAloneEnvironment::getMagneticVariations(std::vector<world::Location> &locs) {
+    std::vector<float> mvs;
+    for (auto location : locs) {
+        mvs.push_back(((float)std::rand() / RAND_MAX - 0.5) * 10);
     }
-    return zeros;
+    return mvs;
 }
 
 std::string StandAloneEnvironment::getMETARForAirport(const std::string &icao) {
@@ -103,11 +58,11 @@ std::string StandAloneEnvironment::getNearestAirportId() {
     return "EDHL";
 }
 
-AircraftID StandAloneEnvironment::getActiveAircraftCount() {
+avitab::AircraftID StandAloneEnvironment::getActiveAircraftCount() {
     return 4;
 }
 
-world::Position StandAloneEnvironment::getAircraftPosition(AircraftID id) {
+world::Position StandAloneEnvironment::getAircraftPosition(avitab::AircraftID id) {
     static unsigned int t = 0;
     static world::Position loc[4];
     static double vel[4];
@@ -174,10 +129,3 @@ unsigned int StandAloneEnvironment::getLocalTimeSeconds() {
 StandAloneEnvironment::~StandAloneEnvironment() {
     logger::verbose("~StandAloneEnvironment");
 }
-
-bool StandAloneEnvironment::canUseNavDb(const std::string simCode) {
-    // the standalone environment doesn't care where the NAV data originated!
-    return true;
-}
-
-} /* namespace avitab */
