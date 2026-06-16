@@ -37,7 +37,7 @@ public:
 
     void setMouseWheelCallback(MouseWheelCallback cb);
     void createNativeWindow(const std::string &title, const WindowRect &rect);
-    void createPanel(int left, int bottom, int width, int height, bool captureClicks);
+    void createPanel(int left, int bottom, int width, int height, GUIDriver::PanelControlMode mode);
     void hidePanel();
     void pauseNativeWindow();
     bool hasNativeWindow();
@@ -46,7 +46,7 @@ public:
     void destroyNativeWindow();
     void setBrightness(float b);
     float getBrightness();
-    void sendLeftClick(bool down);
+    void handleMouseWheel(int clicks);
 
     std::shared_ptr<Screen> &screen();
 
@@ -68,7 +68,6 @@ private:
     void initDisplayDriver();
     void initInputDriver();
     void guiLoop();
-    void handleMouseWheel();
     void handleKeyboard();
 
     lv_obj_t *searchActiveKeyboard(lv_obj_t *obj);

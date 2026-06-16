@@ -34,8 +34,8 @@ namespace avitab {
 XPlaneGUIDriver::XPlaneGUIDriver():
     brightness(std::make_shared<float>(1)),
     isVrEnabled("sim/graphics/VR/enabled", false),
-    clickX("sim/graphics/view/click_3d_x_pixels", -1),
-    clickY("sim/graphics/view/click_3d_y_pixels", -1)
+    xplane3dClickX("sim/graphics/view/click_3d_x_pixels", -1),
+    xplane3dClickY("sim/graphics/view/click_3d_y_pixels", -1)
 {
     panelLeftRef = std::make_unique<DataRefExport<int>>("avitab/panel_left", this,
         [] (void *self) { return (reinterpret_cast<XPlaneGUIDriver *>(self))->panelLeft; },
@@ -52,6 +52,14 @@ XPlaneGUIDriver::XPlaneGUIDriver():
     panelHeightRef = std::make_unique<DataRefExport<int>>("avitab/panel_height", this,
         [] (void *self) { return (reinterpret_cast<XPlaneGUIDriver *>(self))->panelHeight; },
         [] (void *self, int v) { (reinterpret_cast<XPlaneGUIDriver *>(self))->panelHeight = v; });
+
+    panelMouseXref = std::make_unique<DataRefExport<float>>("avitab/panel_x_click", this,
+        [] (void *self) { return (reinterpret_cast<XPlaneGUIDriver *>(self))->panelClickX; },
+        [] (void *self, float x) { (reinterpret_cast<XPlaneGUIDriver *>(self))->panelClickX = x; });
+
+    panelMouseYref = std::make_unique<DataRefExport<float>>("avitab/panel_y_click", this,
+        [] (void *self) { return (reinterpret_cast<XPlaneGUIDriver *>(self))->panelClickY; },
+        [] (void *self, float y) { (reinterpret_cast<XPlaneGUIDriver *>(self))->panelClickY = y; });
 }
 
 void XPlaneGUIDriver::init(int width, int height) {
@@ -70,6 +78,8 @@ void XPlaneGUIDriver::init(int width, int height) {
 }
 
 void XPlaneGUIDriver::setupVRCapture() {
+    vrTriggerIndices.clear();
+
     int triggerIndex = (ptrdiff_t) XPLMFindCommand("sim/VR/reserved/select");
     if (triggerIndex == 0) {
         logger::warn("Could not setup VR trigger check: command not found");
@@ -81,8 +91,6 @@ void XPlaneGUIDriver::setupVRCapture() {
         logger::warn("Could not setup VR trigger check: assignments ref not found");
         return;
     }
-
-    vrTriggerIndices.clear();
 
     int assignments[3200];
     XPLMGetDatavi(assignmentsRef, assignments, 0, 3200);
@@ -198,13 +206,16 @@ void XPlaneGUIDriver::setBrightnessPtr(std::shared_ptr<float> brightnessPtr) {
     brightness = brightnessPtr;
 }
 
-void XPlaneGUIDriver::createPanel(int left, int bottom, int width, int height, bool captureClicks) {
+void XPlaneGUIDriver::createPanel(int left, int bottom, int width, int height, PanelControlMode mode) {
+    logger::info("Creating panel @ %d,%d size %dx%d mode=%s",
+        left,bottom, width,height,
+        mode == PanelControlMode::CAPTURE_WINDOW ? "capture" : (mode == PanelControlMode::COMMAND_ONLY ? "hybrid" : "managed"));
     if (captureWindow) {
         XPLMDestroyWindow(captureWindow);
         captureWindow = {};
     }
 
-    if (captureClicks) {
+    if (mode == PanelControlMode::CAPTURE_WINDOW) {
         int winLeft, winTop, winRight, winBot;
         XPLMGetScreenBoundsGlobal(&winLeft, &winTop, &winRight, &winBot);
 
@@ -219,7 +230,7 @@ void XPlaneGUIDriver::createPanel(int left, int bottom, int width, int height, b
         params.drawWindowFunc = [] (XPLMWindowID id, void *ref) {
         };
         params.handleMouseClickFunc = [] (XPLMWindowID id, int x, int y, XPLMMouseStatus status, void *ref) -> int {
-            return reinterpret_cast<XPlaneGUIDriver *>(ref)->onClickCapture(x, y, status);
+            return reinterpret_cast<XPlaneGUIDriver *>(ref)->onPanelClick(status);
         };
         params.handleRightClickFunc = [] (XPLMWindowID id, int x, int y, XPLMMouseStatus status, void *ref) -> int {
             return false;
@@ -230,12 +241,14 @@ void XPlaneGUIDriver::createPanel(int left, int bottom, int width, int height, b
             return xplm_CursorDefault;
         };
         params.handleMouseWheelFunc =  [] (XPLMWindowID id, int x, int y, int wheel, int clicks, void *ref) -> int {
-            return reinterpret_cast<XPlaneGUIDriver *>(ref)->onMouseWheelCapture(x, y, wheel, clicks);
+            return reinterpret_cast<XPlaneGUIDriver *>(ref)->onPanelWheel(wheel, clicks);
         };
         params.layer = xplm_WindowLayerFlightOverlay;
         params.decorateAsFloatingWindow = xplm_WindowDecorationNone;
         captureWindow = XPLMCreateWindowEx(&params);
         XPLMSetWindowPositioningMode(captureWindow, xplm_WindowFullScreenOnAllMonitors, -1);
+
+        setupVRCapture();
     }
 
     panelLeft = left;
@@ -243,18 +256,21 @@ void XPlaneGUIDriver::createPanel(int left, int bottom, int width, int height, b
     panelWidth = width;
     panelHeight = height;
 
-    setupVRCapture();
     XPLMRegisterDrawCallback(onDraw3D, xplm_Phase_Gauges, false, this);
-    hasPanel = true;
+    panelClickX = std::numeric_limits<float>::quiet_NaN();
+    panelClickY = std::numeric_limits<float>::quiet_NaN();
+    panelControlMode = mode;
+    isPanelActive = true;
 }
 
 void XPlaneGUIDriver::hidePanel() {
+    logger::info("Removing/hiding panel");
     if (captureWindow) {
         XPLMDestroyWindow(captureWindow);
         captureWindow = {};
     }
     XPLMUnregisterDrawCallback(onDraw3D, xplm_Phase_Gauges, false, this);
-    hasPanel = false;
+    isPanelActive = false;
 }
 
 int XPlaneGUIDriver::onDraw3D(XPLMDrawingPhase phase, int isBefore, void *ref) {
@@ -338,19 +354,21 @@ void XPlaneGUIDriver::onDrawPanel() {
         return;
     }
 
-    bool gotAnyTrigger = false;
-    for (auto idx: vrTriggerIndices) {
-        int triggerVal = 0;
-        XPLMGetDatavi(buttonRef, &triggerVal, idx, 1);
-        if (triggerVal) {
-            onClickCapture(-1, -1, xplm_MouseDown);
-            mouseDownFromTrigger = true;
-            gotAnyTrigger = true;
+    if (isVrEnabled && (panelControlMode == PanelControlMode::CAPTURE_WINDOW)) {
+        bool gotAnyTrigger = false;
+        for (auto idx: vrTriggerIndices) {
+            int triggerVal = 0;
+            XPLMGetDatavi(buttonRef, &triggerVal, idx, 1);
+            if (triggerVal) {
+                onPanelClick(xplm_MouseDown);
+                mouseDownFromTrigger = true;
+                gotAnyTrigger = true;
+            }
         }
-    }
-    if (!gotAnyTrigger && mouseDownFromTrigger) {
-        mousePressed = false;
-        mouseDownFromTrigger = false;
+        if (!gotAnyTrigger && mouseDownFromTrigger) {
+            mousePressed = false;
+            mouseDownFromTrigger = false;
+        }
     }
 
     XPLMBindTexture2d(textureId, 0);
@@ -496,20 +514,20 @@ bool XPlaneGUIDriver::onRightClick(int x, int y, XPLMMouseStatus status) {
     return true;
 }
 
-bool XPlaneGUIDriver::onMouseWheel(int x, int y, int wheel, int clicks) {
+bool XPlaneGUIDriver::onMouseWheel(int x, int y, int, int clicks) {
     int px, py;
     if (boxelToPixel(x, y, px, py)) {
         mouseX = px;
         mouseY = py;
-        mouseWheel = clicks;
+        wheelClicks = clicks;
         return true;
     }
     return false;
 }
 
-int XPlaneGUIDriver::getWheelDirection() {
-    int val = mouseWheel;
-    mouseWheel = 0;
+int XPlaneGUIDriver::getWheelClicks() {
+    int val = wheelClicks;
+    wheelClicks = 0;
     return val;
 }
 
@@ -517,79 +535,92 @@ XPLMCursorStatus XPlaneGUIDriver::getCursor(int x, int y) {
     return xplm_CursorDefault;
 }
 
-bool XPlaneGUIDriver::onClickCapture(int x, int y, XPLMMouseStatus status) {
-    if (*panelEnabled == 0) {
-        return false;
-    }
+void XPlaneGUIDriver::passLeftClick(bool down, bool drag) {
+    onPanelClick(down ? xplm_MouseDown : (drag ? xplm_MouseDrag : xplm_MouseUp));
+}
 
+void XPlaneGUIDriver::passWheel(int clicks) {
+    onPanelWheel(0, clicks);
+}
+
+bool XPlaneGUIDriver::panelClickXYtoAvitabXY(float & px, float & py, int & mx, int & my) {
     int left = panelLeft;
     int top = panelBottom + panelHeight;
     int right = panelLeft + panelWidth;
     int bottom = panelBottom;
     correctRatio(left, top, right, bottom, true);
 
-    float tx = clickX;
-    float ty = clickY;
-
-    bool isInWindow = false;
-    if (tx >= left && tx < right && ty >= bottom && ty < top) {
-        isInWindow = true;
+    if (panelControlMode == PanelControlMode::AIRCRAFT_MANAGED) {
+        // use the avitab mouse position datatrefs in aircraft managed mode
+        px = panelClickX;
+        py = panelClickY;
+    } else {
+        // use the mouse location reported X-Plane's built-in datarefs in the older modes
+        px = xplane3dClickX;
+        py = xplane3dClickY;
     }
+
+    mx = (px - left) / (right - left) * width();
+    my = (top - py) / (top - bottom) * height();
+    bool isInAvitabWindow = (mx >= 0) && (mx < width()) && (my >= 0) && (my < height());
+
+    return isInAvitabWindow;
+}
+
+bool XPlaneGUIDriver::onPanelClick(XPLMMouseStatus status) {
+    // returns true if this mouse event was consumed - only relevant to the capture window
+    if (*panelEnabled == 0) {
+        return false;
+    }
+
+    float px, py;
+    int mx, my;
+    bool isInWindow = panelClickXYtoAvitabXY(px, py, mx, my);
+    mouseX = mx;
+    mouseY = my;
 
     switch (status) {
     case xplm_MouseDown:
         if (isInWindow) {
             mousePressed = true;
+            //logger::verbose("cmd:click_left/down(%d,%d)->(%d,%d)", (int)px, (int)py, mx, my);
+        } else {
+            logger::verbose("cmd:click_left/down(%d,%d)->(%d,%d)off-target", (int)px, (int)py, mx, my);
         }
         break;
     case xplm_MouseDrag:
-        mousePressed = true;
+        //logger::verbose("cmd:click_left/drag(%d,%d)->(%d,%d)", (int)px, (int)py, mx, my);
         break;
     case xplm_MouseUp:
+        //logger::verbose("cmd:click_left/up(%d,%d)->(%d,%d)", (int)px, (int)py, mx, my);
         mousePressed = false;
         break;
     default:
-        isInWindow = false;
+        return false;
     }
 
-    if (isInWindow) {
-        mouseX = (tx - left) / (right - left) * width();
-        mouseY = (top - ty) / (top - bottom) * height();
-        return true;
-    }
-
-    return false;
+    return isInWindow || mousePressed;
 }
 
-void XPlaneGUIDriver::passLeftClick(bool down) {
-    onClickCapture(0, 0, down ? xplm_MouseDown : xplm_MouseUp);
-}
-
-bool XPlaneGUIDriver::onMouseWheelCapture(int x, int y, int wheel, int clicks) {
+bool XPlaneGUIDriver::onPanelWheel(int wheel, int clicks) {
     if (*panelEnabled == 0) {
         return false;
     }
 
-    int left = panelLeft;
-    int top = panelBottom  + panelHeight;
-    int right = panelLeft + panelWidth;
-    int bottom = panelBottom;
-    correctRatio(left, top, right, bottom, true);
+    float px, py;
+    int mx, my;
+    bool isInWindow = panelClickXYtoAvitabXY(px, py, mx, my);
+    mouseX = mx;
+    mouseY = my;
 
-    int guiX, guiY;
-
-    guiX = (float) clickX;
-    guiY = (float) clickY;
-
-    bool isInWindow = false;
-    if (guiX >= left && guiX < right && guiY >= bottom && guiY < top) {
-        isInWindow = true;
+    if (isInWindow) {
+        //logger::verbose("cmd:wheel/%s(%d,%d)->(%d,%d)", (clicks < 0)?"down":"up", (int)px, (int)py, mx, my);
+    } else {
+        logger::verbose("cmd:wheel/%s(%d,%d)->(%d,%d)off-target", (clicks < 0)?"down":"up", (int)px, (int)py, mx, my);
     }
 
     if (isInWindow) {
-        mouseX = (guiX - left) / (right - left) * width();
-        mouseY = (top - guiY) / (top - bottom) * height();
-        mouseWheel = clicks;
+        wheelClicks = clicks;
         return true;
     }
     return false;
@@ -602,7 +633,7 @@ void XPlaneGUIDriver::setupKeyboard() {
 int XPlaneGUIDriver::onKeyPress(char c, XPLMKeyFlags flags, char vKey, void* ref) {
     XPlaneGUIDriver *us = (XPlaneGUIDriver *) ref;
 
-    if (!us->hasWindow() && !us->hasPanel) {
+    if (!us->hasWindow() && !us->isPanelActive) {
         return 1;
     }
 

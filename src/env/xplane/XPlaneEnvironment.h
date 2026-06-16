@@ -38,7 +38,7 @@ public:
 
     // Must be called from the environment thread - do not call from GUI thread!
     std::shared_ptr<world::LoadManager> createParsingWorldManager() override;
-    std::shared_ptr<LVGLToolkit> createGUIToolkit() override;
+    std::shared_ptr<GUIDriver> createGUIDriver() override;
     void createMenu(const std::string &name) override;
     void addMenuEntry(const std::string &label, MenuCallback cb) override;
     void destroyMenu() override;

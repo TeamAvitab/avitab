@@ -25,7 +25,6 @@
 #include <future>
 #include <atomic>
 #include "core/world/LoadManager.h"
-#include "core/gui_toolkit/LVGLToolkit.h"
 #include "EnvData.h"
 #include "Config.h"
 #include "Settings.h"
@@ -60,7 +59,7 @@ public:
     void loadNavWorldInBackground();
     bool isNavWorldReady();
     virtual void onAircraftReload();
-    virtual std::shared_ptr<LVGLToolkit> createGUIToolkit() = 0;
+    virtual std::shared_ptr<GUIDriver> createGUIDriver() = 0;
     virtual void createMenu(const std::string &name) = 0;
     virtual void addMenuEntry(const std::string &label, MenuCallback cb) = 0;
     virtual void destroyMenu() = 0;

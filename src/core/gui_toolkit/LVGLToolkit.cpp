@@ -162,8 +162,8 @@ void LVGLToolkit::pauseNativeWindow() {
     driver->killWindow();
 }
 
-void LVGLToolkit::createPanel(int left, int bottom, int width, int height, bool captureClicks) {
-    driver->createPanel(left, bottom, width, height, captureClicks);
+void LVGLToolkit::createPanel(int left, int bottom, int width, int height, GUIDriver::PanelControlMode mode) {
+    driver->createPanel(left, bottom, width, height, mode);
 }
 
 void LVGLToolkit::hidePanel() {
@@ -233,7 +233,8 @@ void LVGLToolkit::guiLoop() {
                 task();
             }
 
-            handleMouseWheel();
+            // NB mouse handling is done in the input driver callback
+            handleMouseWheel(driver->getWheelClicks());
             handleKeyboard();
         } catch (const std::exception &e) {
             logger::error("Exception in GUI: %s", e.what());
@@ -248,17 +249,12 @@ void LVGLToolkit::guiLoop() {
     logger::verbose("LVGL thread destroyed");
 }
 
-void LVGLToolkit::sendLeftClick(bool down) {
-    driver->passLeftClick(down);
-}
-
-void LVGLToolkit::handleMouseWheel() {
-    int dir = driver->getWheelDirection();
-    if (dir != 0 && onMouseWheel) {
+void LVGLToolkit::handleMouseWheel(int clicks) {
+    if (clicks && onMouseWheel) {
         int x, y;
-        bool pressed;
-        driver->readPointerState(x, y, pressed);
-        onMouseWheel(dir, x, y);
+        bool ignored;
+        driver->readPointerState(x, y, ignored);
+        onMouseWheel(clicks, x, y);
     }
 }
 

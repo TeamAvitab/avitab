@@ -47,7 +47,7 @@ void GUIDriver::resize(int newWidth, int newHeight) {
     }
 }
 
-void GUIDriver::createPanel(int left, int bottom, int width, int height, bool captureClicks) {
+void GUIDriver::createPanel(int left, int bottom, int width, int height, PanelControlMode mode) {
 }
 
 void GUIDriver::hidePanel() {
@@ -111,7 +111,10 @@ uint32_t GUIDriver::popKeyPress() {
     return res;
 }
 
-void GUIDriver::passLeftClick(bool down) {
+void GUIDriver::passLeftClick(bool, bool) {
+}
+
+void GUIDriver::passWheel(int) {
 }
 
 GUIDriver::~GUIDriver() {

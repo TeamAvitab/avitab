@@ -35,7 +35,9 @@ int main() {
         logger::verbose("Main thread has id %d", std::this_thread::get_id());
         env->loadSettings();
 
-        auto aviTab = std::make_unique<avitab::AviTab>(env);
+        auto gd = env->createGUIDriver();
+
+        auto aviTab = std::make_unique<avitab::AviTab>(env, gd);
         aviTab->startApp();
         aviTab->toggleTablet();
 

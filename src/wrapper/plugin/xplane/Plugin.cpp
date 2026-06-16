@@ -63,7 +63,8 @@ PLUGIN_API int XPluginStart(char *outName, char *outSignature, char *outDescript
 PLUGIN_API int XPluginEnable(void) {
     try {
         if (environment) {
-            aviTab = std::make_unique<avitab::AviTab>(environment);
+            auto gd = environment->createGUIDriver();
+            aviTab = std::make_unique<avitab::AviTab>(environment, gd);
             aviTab->startApp();
         }
     } catch (const std::exception &e) {

@@ -43,24 +43,25 @@ public:
     void setPanelEnabledPtr(std::shared_ptr<int> panelEnabledPtr);
     void setPanelPoweredPtr(std::shared_ptr<int> panelPoweredPtr);
     void setBrightnessPtr(std::shared_ptr<float> brightnessPtr);
-    void createPanel(int left, int bottom, int width, int height, bool captureClicks) override;
+    void createPanel(int left, int bottom, int width, int height, PanelControlMode mode) override;
     void hidePanel() override;
 
     void readPointerState(int &x, int &y, bool &pressed) override;
     void blit(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const uint32_t *data) override;
 
-    int getWheelDirection() override;
+    int getWheelClicks() override;
     void setBrightness(float b) override;
     float getBrightness() override;
 
-    void passLeftClick(bool down) override;
+    void passLeftClick(bool down, bool drag) override;
+    void passWheel(int direction) override;
 
     ~XPlaneGUIDriver();
 private:
     WindowRect lastRect{};
     std::shared_ptr<float> brightness;
     DataRefImport<bool> isVrEnabled;
-    DataRefImport<float> clickX, clickY;
+    DataRefImport<float> xplane3dClickX, xplane3dClickY;
     XPLMDataRef buttonRef{};
     std::shared_ptr<int> panelPowered, panelEnabled;
     int textureId = -1;
@@ -68,14 +69,18 @@ private:
     XPLMWindowID window{}, captureWindow{};
     std::atomic_int mouseX {0}, mouseY {0};
     std::atomic_bool mousePressed {false};
-    std::atomic_int mouseWheel {0};
+    std::atomic_int wheelClicks {0};
     std::mutex drawMutex;
     bool needsRedraw = false;
     std::unique_ptr<DataRefExport<int>> panelLeftRef, panelBottomRef, panelWidthRef, panelHeightRef;
     int panelLeft = 0, panelBottom = 0, panelWidth = 0, panelHeight = 0;
+    std::unique_ptr<DataRefExport<float>> panelMouseXref, panelMouseYref;
+    float panelClickX = std::numeric_limits<float>::quiet_NaN();
+    float panelClickY = std::numeric_limits<float>::quiet_NaN();
     std::vector<int> vrTriggerIndices;
     bool mouseDownFromTrigger = false;
-    bool hasPanel = false;
+    bool isPanelActive        = false;
+    PanelControlMode panelControlMode = PanelControlMode::AIRCRAFT_MANAGED;
 
     void onDraw();
     void onDrawPanel();
@@ -89,8 +94,9 @@ private:
     bool boxelToPixel(int bx, int by, int &px, int &py);
 
     void setupVRCapture();
-    bool onClickCapture(int x, int y, XPLMMouseStatus status);
-    bool onMouseWheelCapture(int x, int y, int wheel, int clicks);
+    bool panelClickXYtoAvitabXY(float & px, float & py, int & mx, int & my);
+    bool onPanelClick(XPLMMouseStatus status);
+    bool onPanelWheel(int wheel, int clicks);
 
     void setupKeyboard();
 

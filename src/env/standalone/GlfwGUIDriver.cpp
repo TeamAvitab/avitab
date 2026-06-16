@@ -217,7 +217,7 @@ void GlfwGUIDriver::readPointerState(int &x, int &y, bool &pressed) {
     pressed = mousePressed;
 }
 
-int GlfwGUIDriver::getWheelDirection() {
+int GlfwGUIDriver::getWheelClicks() {
     int dir = wheelDir;
     wheelDir = 0;
     return dir;

@@ -23,6 +23,8 @@
 #include "core/libimg/TTFStamper.h"
 #include "core/Logger.h"
 #include "core/env/Config.h"
+#include "core/env/GUIDriver.h"
+#include "core/gui_toolkit/LVGLToolkit.h"
 #include "core/avitab/apps/HeaderApp.h"
 #include "core/avitab/apps/AppLauncher.h"
 #include "avitab/config.h"
@@ -30,9 +32,10 @@
 static const char *defaultMapConfigJson();
 namespace avitab {
 
-AviTab::AviTab(std::shared_ptr<Environment> environment):
-    env(environment),
-    guiLib(environment->createGUIToolkit())
+AviTab::AviTab(std::shared_ptr<Environment> e, std::shared_ptr<GUIDriver> gd):
+    env(e),
+    guiDriver(gd),
+    guiLib(std::make_shared<LVGLToolkit>(gd))
 {
     // runs in environment thread, called by PluginStart
     img::TTFStamper::setFontDirectory(env->getFontDirectory());
@@ -69,13 +72,15 @@ void AviTab::startApp() {
     env->createCommand("AviTab/app_notes", "Notes App", [this] (CommandState s) { if (s == CommandState::START) showApp(AppId::NOTES); });
     env->createCommand("AviTab/app_navigraph", "Navigraph App", [this] (CommandState s) { if (s == CommandState::START) showApp(AppId::NAVIGRAPH); });
     env->createCommand("AviTab/app_about", "About App", [this] (CommandState s) { if (s == CommandState::START) showApp(AppId::ABOUT); });
-
-    env->createCommand("AviTab/click_left", "Left click", [this] (CommandState s) { handleLeftClick(s != CommandState::END); });
-    env->createCommand("AviTab/wheel_up", "Wheel up", [this] (CommandState s) { if (s == CommandState::START) handleWheel(true); });
-    env->createCommand("AviTab/wheel_down", "Wheel down", [this] (CommandState s) { if (s == CommandState::START) handleWheel(false); });
     env->createCommand("AviTab/chart_tab_next", "Chart tab next", [this] (CommandState s) { if (s == CommandState::START) changeChartTab(true); });
     env->createCommand("AviTab/chart_tab_prev", "Chart tab previous", [this] (CommandState s) { if (s == CommandState::START) changeChartTab(false); });
 
+    // Direct control from panel integrations
+    env->createCommand("AviTab/click_left", "Left click", [this] (CommandState s) { handleClickCommand(s == CommandState::START, s == CommandState::CONTINUE); });
+    env->createCommand("AviTab/wheel_up", "Wheel up", [this] (CommandState s) { if (s == CommandState::START) handleWheelUpCommand(); });
+    env->createCommand("AviTab/wheel_down", "Wheel down", [this] (CommandState s) { if (s == CommandState::START) handleWheelDownCommand(); });
+
+    // X-Plane menu items
     env->addMenuEntry("Toggle Tablet", [this] { toggleTablet(); });
     env->addMenuEntry("Reset Position", [this] { resetWindowPosition(); });
 
@@ -245,6 +250,7 @@ void AviTab::createPanel() {
         int height = cfg.getInt("/panel/height");
         bool enable = false;
         bool disableCaptureWindow = false;
+        bool aircraftManaged = false;
         hideHeader = false;
         try {
             enable = cfg.getBool("/panel/enabled");
@@ -258,8 +264,16 @@ void AviTab::createPanel() {
             disableCaptureWindow = cfg.getBool("/panel/disable_capture_window");
         } catch (...) {
         }
+        try {
+            aircraftManaged = cfg.getBool("/panel/aircraft_managed");
+        } catch (...) {
+        }
 
-        guiLib->createPanel(left, bottom, width, height, !disableCaptureWindow);
+        GUIDriver::PanelControlMode mode = aircraftManaged ? GUIDriver::PanelControlMode::AIRCRAFT_MANAGED
+                                        : (disableCaptureWindow ? GUIDriver::PanelControlMode::COMMAND_ONLY
+                                                                : GUIDriver::PanelControlMode::CAPTURE_WINDOW);
+
+        guiLib->createPanel(left, bottom, width, height, mode);
         if (enable) {
             env->enableAndPowerPanel();
         }
@@ -533,16 +547,19 @@ void AviTab::cleanupLayout() {
     appLauncher.reset();
 }
 
-void AviTab::handleLeftClick(bool down) {
-    guiLib->sendLeftClick(down);
+void AviTab::handleClickCommand(bool down, bool drag) {
+    // called from X-Plane thread, processed in the sim environment
+    guiDriver->passLeftClick(down, drag);
 }
 
-void AviTab::handleWheel(bool up) {
-    guiLib->executeLater([this, up] () {
-        if (appLauncher) {
-            appLauncher->onMouseWheel(up ? 1 : -1, 0, 0);
-        }
-    });
+void AviTab::handleWheelUpCommand() {
+    // called from X-Plane thread, processed in the sim environment
+    guiDriver->passWheel(1);
+}
+
+void AviTab::handleWheelDownCommand() {
+    // called from X-Plane thread, processed in the sim environment
+    guiDriver->passWheel(-1);
 }
 
 void AviTab::changeChartTab(bool next) {

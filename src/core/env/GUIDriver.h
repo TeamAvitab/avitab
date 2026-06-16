@@ -49,20 +49,27 @@ public:
     virtual void killWindow() = 0;
     virtual WindowRect getWindowRect();
 
-    virtual void createPanel(int left, int bottom, int width, int height, bool captureClicks);
+    enum class PanelControlMode {
+        CAPTURE_WINDOW,
+        COMMAND_ONLY,
+        AIRCRAFT_MANAGED
+    };
+
+    virtual void createPanel(int left, int bottom, int width, int height, PanelControlMode mode);
     virtual void hidePanel();
 
     virtual void blit(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const uint32_t *data);
     virtual void readPointerState(int &x, int &y, bool &pressed) = 0;
 
-    virtual int getWheelDirection() = 0;
+    virtual int getWheelClicks() = 0;
     virtual void setWantKeyInput(bool wantKeys);
     virtual uint32_t popKeyPress();
 
     virtual void setBrightness(float b) = 0;
     virtual float getBrightness() = 0;
 
-    virtual void passLeftClick(bool down);
+    virtual void passLeftClick(bool down, bool drag);
+    virtual void passWheel(int direction);
 
     virtual ~GUIDriver();
 protected:
