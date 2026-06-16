@@ -1,5 +1,21 @@
 # Avitab Release Notes
 
+## Avitab v1.1.0 (June 2026)
+
+This is small feature update that adds the **Aircraft Managed** panel integration mode which enables aircraft
+using the latest cockpit digital instrument API for X-Plane 12 to support Avitab in their cockpit or EFB models.
+
+A full description of Avitab's aircraft integration modes and integration guidance for aircraft designers
+is available to read in the [Avitab Wiki](https://github.com/TeamAvitab/avitab/wiki/X%E2%80%90Plane-Aircraft-Integration).
+
+The new panel integration mode needs to be explicitly enabled and supported by the aircraft designer, so there will be
+no immediate change in behaviour with aircraft already installed at the time of this Avitab release. Avitab users
+**cannot** simply switch to the new integration mode, but updating Avitab now will mean that it is ready to support
+new and updated aircraft when they become available.
+
+Existing aircraft that had an Avitab panel integration that stopped working sometime around the transition to X-Plane 12
+will need to be updated to use this new panel integration mode.
+
 ## Avitab v1.0.2 (April 2026)
 
 This is a bugfix/enhancement release to [prefer Navigraph daytime-mode maps](https://github.com/TeamAvitab/avitab/issues/12).
