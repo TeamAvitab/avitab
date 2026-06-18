@@ -20,31 +20,30 @@
 
 namespace avitab {
 
-DocumentsApp::DocumentsApp(FuncsPtr appFuncs, const std::string &title, const std::string &group, const std::string &fileRegex):
+DocumentsApp::DocumentsApp(FuncsPtr appFuncs, const std::string &title, const std::string &group, const std::filesystem::path &dir, const std::string &fileRegex):
     App(appFuncs),
     appTitle(title),
     configGroup(group),
     updateTimer(std::bind(&DocumentsApp::onTimer, this), 200)
 {
+    std::filesystem::create_directories(dir);
+    fsBrowser = std::make_unique<FilesystemBrowser>(dir);
     setFilterRegex(fileRegex);
 }
 
-void DocumentsApp::Run(const std::string &dir) {
+void DocumentsApp::Run() {
     api().getSettings()->loadDocReadingConfig(configGroup, settings);
-    browseStartDirectory = dir;
-    fsBrowser.goTo(browseStartDirectory);
     if (api().getSettings()->getGeneralSetting<bool>("show_overlays_in_charts_app")) {
         overlays = api().getSettings()->getOverlayConfig();
     } else {
         overlays = std::make_shared<maps::OverlayConfig>();
     }
     resetLayout();
-    showDirectory();
+    ChangeBrowseDirectory(fsBrowser->path());
 }
 
-void DocumentsApp::ChangeBrowseDirectory(const std::string &dir) {
-    browseStartDirectory = dir;
-    fsBrowser.goTo(browseStartDirectory);
+void DocumentsApp::ChangeBrowseDirectory(const std::filesystem::path &dir) {
+    fsBrowser->goTo(dir);
     showDirectory();
 }
 
@@ -76,22 +75,22 @@ void DocumentsApp::createBrowseTab() {
 }
 
 void DocumentsApp::showDirectory() {
-    browseWindow->setCaption(appTitle + ": " + fsBrowser.rtrimmed(68 - appTitle.size()));
-    currentEntries = fsBrowser.entries();
+    browseWindow->setCaption(appTitle + ": " + fsBrowser->rtrimmed(68 - appTitle.size()));
+    currentEntries = fsBrowser->entries();
     showCurrentEntries();
 }
 
 void DocumentsApp::setFilterRegex(const std::string ext) {
-    fsBrowser.setFilter(ext);
+    fsBrowser->setFilter(ext);
 }
 
 void DocumentsApp::showCurrentEntries() {
     list->clear();
-    list->add("Up one directory", Window::Symbol::LEFT, -1);
+    list->add(std::string("Up one directory"), Window::Symbol::LEFT, -1);
     for (size_t i = 0; i < currentEntries.size(); i++) {
         auto &entry = currentEntries[i];
         Widget::Symbol smb = entry.isDirectory ? Window::Symbol::DIRECTORY : Window::Symbol::FILE;
-        list->add(entry.utf8Name, smb, i);
+        list->add(platform::pathToDisplayString(entry.utf8Name), smb, i);
     }
 }
 
@@ -123,19 +122,19 @@ void DocumentsApp::onSelect(int data) {
 
     auto &entry = currentEntries.at(data);
     if (entry.isDirectory) {
-        fsBrowser.goDown(entry.utf8Name);
+        fsBrowser->goTo(entry.utf8Name);
         showDirectory();
     } else {
-        createDocumentTab(fsBrowser.path() + entry.utf8Name);
+        createDocumentTab(fsBrowser->path() / entry.utf8Name);
     }
 }
 
 void DocumentsApp::upOneDirectory() {
-    fsBrowser.goUp();
+    fsBrowser->goUp();
     showDirectory();
 }
 
-void DocumentsApp::createDocumentTab(const std::string &docPath) {
+void DocumentsApp::createDocumentTab(const std::filesystem::path &docPath) {
     for (auto tabPage: pages) {
         if (tabPage->path == docPath) {
             tabs->setActiveTab(tabs->getTabIndex(tabPage->page));
@@ -143,7 +142,7 @@ void DocumentsApp::createDocumentTab(const std::string &docPath) {
         }
     }
 
-    std::string name = docPath.substr(docPath.find_last_of("/\\") + 1);
+    auto name = platform::pathToDisplayString(docPath.filename());
     if (name.size() > 12) {
         name = name.substr(0, 9) + "...";
     }
@@ -206,13 +205,13 @@ void DocumentsApp::setupCallbacks(PageInfo tab) {
     tab->window->addSymbol(Widget::Symbol::ROTATE, std::bind(&DocumentsApp::onRotate, this));
 }
 
-void DocumentsApp::loadFile(PageInfo tab, const std::string &docPath) {
+void DocumentsApp::loadFile(PageInfo tab, const std::filesystem::path &docPath) {
     tab->source = std::make_shared<maps::LocalFileSource>(docPath, api().getChartService());
     tab->stitcher = std::make_shared<img::Stitcher>(tab->rasterImage, tab->source);
-    tab->stitcher->setCacheDirectory(api().getDataPath() + "MapTiles/");
+    tab->stitcher->setCacheDirectory(api().getAvitabDataDir()/"MapTiles");
 
     tab->map = std::make_shared<maps::OverlayedMap>(tab->stitcher, overlays);
-    tab->map->loadOverlayIcons(api().getDataPath() + "icons/");
+    tab->map->loadOverlayIcons(api().getAvitabInstallDir()/"icons");
     tab->map->setGetRouteCallback([this] () { return api().getRoute(); });
 
     auto pixMap = tab->pixMap;

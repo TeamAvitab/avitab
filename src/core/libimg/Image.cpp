@@ -61,14 +61,14 @@ Image& Image::operator =(Image&& other) {
     return *this;
 }
 
-void Image::loadImageFile(const std::string& utf8Path) {
+void Image::loadImageFile(const std::filesystem::path& utf8Path) {
     int nChannels = 4;
     int nComponents = 0;
     int imgWidth, imgHeight;
-    uint8_t *decodedData = stbi_load(utf8Path.c_str(), &imgWidth, &imgHeight, &nComponents, nChannels);
+    uint8_t *decodedData = stbi_load(utf8Path.u8string().c_str(), &imgWidth, &imgHeight, &nComponents, nChannels);
 
     if (!decodedData) {
-        throw std::runtime_error("Couldn't load image " + utf8Path + ": " + stbi_failure_reason());
+        throw std::runtime_error("Couldn't load image " + utf8Path.u8string() + ": " + stbi_failure_reason());
     }
 
     setPixels(decodedData, imgWidth, imgHeight);
@@ -114,15 +114,14 @@ void Image::setPixels(uint8_t* data, int srcWidth, int srcHeight) {
     this->height = srcHeight;
 }
 
-void Image::storeAndClearEncodedData(const std::string& utf8Path) {
+void Image::storeAndClearEncodedData(const std::filesystem::path& utf8Path) {
     if (!encodedData) {
         return;
     }
 
-    auto path = platform::getDirNameFromPath(utf8Path);
-    platform::mkpath(path);
-
-    std::ofstream stream(std::filesystem::u8path(utf8Path), std::ios::out | std::ios::binary);
+    std::error_code e;
+    std::filesystem::create_directories(utf8Path.parent_path(), e);
+    std::ofstream stream(utf8Path, std::ios::out | std::ios::binary);
     stream.write(reinterpret_cast<const char *>(encodedData->data()), encodedData->size());
 
     encodedData.reset();

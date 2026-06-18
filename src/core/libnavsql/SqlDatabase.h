@@ -18,6 +18,7 @@
 #pragma once
 
 #include <sqlite3.h>
+#include <filesystem>
 #include <string>
 #include <memory>
 
@@ -31,7 +32,7 @@ class SqlDatabase : public std::enable_shared_from_this<SqlDatabase>
 {
     friend class SqlStatement;
 public:
-    SqlDatabase(const std::string &dbFilePath, bool readonly = false, bool create = false);
+    SqlDatabase(const std::filesystem::path &dbFilePath, bool readonly = false, bool create = false);
     virtual ~SqlDatabase();
 
     std::shared_ptr<SqlStatement> compile(const std::string &statement);

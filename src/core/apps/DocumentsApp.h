@@ -17,6 +17,7 @@
  */
 #pragma once
 
+#include <filesystem>
 #include <memory>
 #include <vector>
 #include "platform/Platform.h"
@@ -40,14 +41,12 @@ namespace avitab {
 
 class DocumentsApp: public App {
 public:
-    DocumentsApp(FuncsPtr appFuncs, const std::string &title, const std::string &group, const std::string &fileRegex);
+    DocumentsApp(FuncsPtr appFuncs, const std::string &title, const std::string &group, const std::filesystem::path &start, const std::string &fileRegex);
     void onMouseWheel(int dir, int x, int y) override;
     void changeChartTab(bool next) override;
 protected:
-    void Run(const std::string &dir);
-    void ChangeBrowseDirectory(const std::string &dir);
-private:
-    std::string browseStartDirectory;
+    void Run();
+    void ChangeBrowseDirectory(const std::filesystem::path &dir);
 private:
     const std::string appTitle;
     const std::string configGroup;
@@ -60,7 +59,7 @@ private:
     std::shared_ptr<Page> browsePage;
     std::shared_ptr<Window> browseWindow;
     std::shared_ptr<List> list;
-    FilesystemBrowser fsBrowser;
+    std::unique_ptr<FilesystemBrowser> fsBrowser;
     std::vector<platform::DirEntry> currentEntries;
     std::shared_ptr<maps::OverlayConfig> overlays;
 
@@ -75,7 +74,7 @@ private:
     void onSelect(int data);
 
     struct DocumentPage {
-        std::string path;
+        std::filesystem::path path;
         std::shared_ptr<Page> page;
         std::shared_ptr<Window> window;
         std::shared_ptr<PixMap> pixMap;
@@ -89,10 +88,10 @@ private:
     using PageInfo = std::shared_ptr<DocumentPage>;
     std::vector<PageInfo> pages;
 
-    void createDocumentTab(const std::string &docPath);
+    void createDocumentTab(const std::filesystem::path &docPath);
     void removeTab(std::shared_ptr<Page> page);
     void setupCallbacks(PageInfo tab);
-    void loadFile(PageInfo tab, const std::string &docPath);
+    void loadFile(PageInfo tab, const std::filesystem::path &docPath);
     void setTitle(PageInfo tab);
     PageInfo getActiveDocPage();
     void onNextPage();

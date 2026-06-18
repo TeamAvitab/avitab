@@ -22,7 +22,7 @@
 
 namespace xdata {
 
-AirportParser::AirportParser(const std::string& file):
+AirportParser::AirportParser(const std::filesystem::path& file):
     parser(file)
 {
     header = parser.parseHeader();

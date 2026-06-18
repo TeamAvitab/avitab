@@ -25,8 +25,8 @@ namespace avitab {
 
 class JsonConfig {
 public:
-    JsonConfig(const std::string &configFile);
-    JsonConfig(const std::string &configFile, const std::string &createDefault);
+    JsonConfig(const std::filesystem::path &configFile);
+    JsonConfig(const std::filesystem::path &configFile, const std::string &createDefault);
 
     std::string getString(const std::string &pointer);
     bool getBool(const std::string &pointer);

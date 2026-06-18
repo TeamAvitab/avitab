@@ -19,9 +19,10 @@
 
 namespace avitab {
 
-FileChooser::FileChooser(App::FuncsPtr appFunctions, const std::string &prefix, bool dirSelect):
+FileChooser::FileChooser(App::FuncsPtr appFunctions, const std::string &prefix, const std::filesystem::path &start, bool dirSelect):
     api(appFunctions),
     captionPrefix(prefix),
+    fsBrowser(start),
     selectDirOnly(dirSelect)
 {
 }
@@ -36,10 +37,6 @@ void FileChooser::setSelectCallback(SelectCallback cb) {
 
 void FileChooser::setFilterRegex(const std::string &regex) {
     fsBrowser.setFilter(regex);
-}
-
-void FileChooser::setBaseDirectory(const std::string& path) {
-    fsBrowser.goTo(path);
 }
 
 void FileChooser::show(std::shared_ptr<Container> parent) {
@@ -79,12 +76,12 @@ void FileChooser::showCurrentEntries() {
     list->clear();
 
     if (!selectDirOnly) {
-        list->add("Up one directory", Window::Symbol::LEFT, -1);
+        list->add(std::string("Up one directory"), Window::Symbol::LEFT, -1);
     }
     for (size_t i = 0; i < currentEntries.size(); i++) {
         auto &entry = currentEntries[i];
         Widget::Symbol smb = entry.isDirectory ? Window::Symbol::DIRECTORY : Window::Symbol::FILE;
-        list->add(entry.utf8Name, smb, i);
+        list->add(platform::pathToDisplayString(entry.utf8Name), smb, i);
     }
 }
 
@@ -96,15 +93,15 @@ void FileChooser::onListSelect(int data) {
 
     auto &entry = currentEntries.at(data);
     if (entry.isDirectory) {
-        fsBrowser.goDown(entry.utf8Name);
+        fsBrowser.goTo(entry.utf8Name);
         if (selectDirOnly) {
-            onSelect(fsBrowser.path(false));
+            onSelect(fsBrowser.path());
         } else {
             showDirectory();
         }
     } else {
         if (onSelect) {
-            onSelect(fsBrowser.path() + entry.utf8Name);
+            onSelect(fsBrowser.path() / entry.utf8Name);
         }
     }
 }

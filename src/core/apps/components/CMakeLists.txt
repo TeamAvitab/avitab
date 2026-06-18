@@ -5,8 +5,6 @@ target_sources(avitab_core_lib PRIVATE
     ContainerWithClickableCustomList.h
     FileChooser.cpp
     FileChooser.h
-    FileSelect.cpp
-    FileSelect.h
     FilesysBrowser.cpp
     FilesysBrowser.h
 )

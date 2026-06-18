@@ -17,6 +17,7 @@
  */
 #pragma once
 
+#include <filesystem>
 #include <memory>
 #include <string>
 #include "gui_toolkit/widgets/Container.h"
@@ -43,16 +44,16 @@ public:
     virtual void setBrightness(float brightness) = 0;
     virtual float getBrightness() = 0;
     virtual void executeLater(std::function<void()> func) = 0;
-    virtual std::string getDataPath() = 0;
-    virtual std::string getEarthTexturePath() = 0;
-    virtual std::string getAirplanePath() = 0;
-    virtual std::string getFlightPlansPath() = 0;
+    virtual std::filesystem::path getAvitabInstallDir() = 0;
+    virtual std::filesystem::path getAvitabDataDir() = 0;
+    virtual std::filesystem::path getAirplanePath() = 0;
+    virtual std::filesystem::path getFlightPlansPath() = 0;
     virtual std::shared_ptr<Container> createGUIContainer() = 0;
     virtual void showGUIContainer(std::shared_ptr<Container> container) = 0;
     virtual void onHomeButton() = 0;
     virtual std::shared_ptr<world::World> getNavWorld() = 0;
-    virtual void loadUserFixes(std::string filename) = 0;
-    virtual world::NavNodeList loadFlightPlan(const std::string filename) = 0;
+    virtual void loadUserFixes(const std::filesystem::path &filename) = 0;
+    virtual world::NavNodeList loadFlightPlan(const std::filesystem::path &filename) = 0;
     using MagVarMap = std::map<std::pair<double, double>, double>;
     virtual MagVarMap getMagneticVariations(std::vector<std::pair<double, double>> locations) = 0;
     virtual std::string getMETARForAirport(const std::string &icao) = 0;

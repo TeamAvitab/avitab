@@ -280,10 +280,9 @@ std::string RouteApp::toDetailedRouteDescription() {
 
 void RouteApp::selectFlightPlanFile() {
     reset();
-    fileChooser = std::make_unique<FileChooser>(&api(), "Flight Plan: ");
-    fileChooser->setBaseDirectory(api().getFlightPlansPath());
+    fileChooser = std::make_unique<FileChooser>(&api(), "Flight Plan: ", api().getFlightPlansPath());
     fileChooser->setFilterRegex("\\.fms$");
-    fileChooser->setSelectCallback([this] (const std::string &selectedUTF8) {
+    fileChooser->setSelectCallback([this] (const std::filesystem::path &selectedUTF8) {
         api().executeLater([this, selectedUTF8] () {
             try {
                 fileChooser.reset();
@@ -311,17 +310,17 @@ void RouteApp::selectFlightPlanFile() {
     chooserContainer->setVisible(true);
 }
 
-std::string RouteApp::getFMSTextFromFile(const std::string &fmsFilename) {
-    std::ifstream ifs(std::filesystem::u8path(fmsFilename));
+std::string RouteApp::getFMSTextFromFile(const std::filesystem::path &fmsFilename) {
+    std::ifstream ifs(fmsFilename);
     if (!ifs) {
-        throw std::runtime_error(std::string("Couldn't read FMS file") + fmsFilename);
+        throw std::runtime_error(std::string("Couldn't read FMS file ") + fmsFilename.u8string());
     }
     std::stringstream ss;
     ss << ifs.rdbuf();
     return ss.str();
 }
 
-void RouteApp::parseFMS(const std::string &fmsFilename) {
+void RouteApp::parseFMS(const std::filesystem::path &fmsFilename) {
     auto nodes = api().loadFlightPlan(fmsFilename);
     if (nodes.empty()) {
         throw std::runtime_error(std::string("Found no waypoints"));

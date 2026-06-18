@@ -27,7 +27,7 @@ NavaidLoader::NavaidLoader(std::shared_ptr<world::LoadManager> mgr):
 {
 }
 
-void NavaidLoader::load(const std::string& file) {
+void NavaidLoader::load(const std::filesystem::path& file) {
     NavaidParser parser(file);
     parser.setAcceptor([this] (const NavaidData &data) {
         try {

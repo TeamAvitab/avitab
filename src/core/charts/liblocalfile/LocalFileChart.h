@@ -17,6 +17,7 @@
  */
 #pragma once
 
+#include <filesystem>
 #include <vector>
 #include <string>
 #include "charts/Chart.h"
@@ -25,7 +26,7 @@ namespace localfile {
 
 class LocalFileChart: public apis::Chart {
 public:
-    LocalFileChart(const std::string dir, const std::string name, const std::string &icao, size_t idx);
+    LocalFileChart(const std::filesystem::path dir, const std::filesystem::path name, const std::string &icao, size_t idx);
     virtual ~LocalFileChart() = default;
 
     std::string getICAO() const override;
@@ -37,7 +38,7 @@ public:
     void changeNightMode(std::shared_ptr<img::TileSource> src, bool nightMode) override;
     void setCalibrationMetadata(std::string metadata) override;
 
-    std::string getPath() const;
+    std::filesystem::path getPath() const;
 
 private:
     void attachData(const std::vector<uint8_t> &data);
@@ -48,7 +49,7 @@ private:
     size_t index;
     apis::ChartCategory category;
     std::string identifier;
-    std::string path;
+    std::filesystem::path path;
     std::string calibrationMetadata = "";
 };
 

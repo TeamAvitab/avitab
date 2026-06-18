@@ -26,9 +26,9 @@ namespace avitab {
 
 class missing_file : public std::exception { };
 
-inline static std::shared_ptr<nlohmann::json> ReadConfig(const std::string& configFile) {
+inline static std::shared_ptr<nlohmann::json> ReadConfig(const std::filesystem::path& configFile) {
     // Raises an exception if file does not exist, or if there is a json format error when reading
-    std::ifstream configStream(std::filesystem::u8path(configFile));
+    std::ifstream configStream(configFile);
     if (!configStream) {
         throw missing_file();
     }
@@ -37,12 +37,12 @@ inline static std::shared_ptr<nlohmann::json> ReadConfig(const std::string& conf
     return cfg;
 }
 
-JsonConfig::JsonConfig(const std::string& configFile) {
+JsonConfig::JsonConfig(const std::filesystem::path& configFile) {
     // No recovery from any exceptions raised, just let them propogate.
     config = ReadConfig(configFile);
 }
 
-JsonConfig::JsonConfig(const std::string& configFile, const std::string &createDefault) {
+JsonConfig::JsonConfig(const std::filesystem::path& configFile, const std::string &createDefault) {
     try {
         // First attempt to read a json config from the file.
         config = ReadConfig(configFile);
@@ -52,7 +52,7 @@ JsonConfig::JsonConfig(const std::string& configFile, const std::string &createD
         // The installation packages no longer include files that might be updated by
         // the user, because we don't want subsequent installations to overwrite these.
         // Attempt to create the default file if missing and try again.
-        std::ofstream configStream(std::filesystem::u8path(configFile));
+        std::ofstream configStream(configFile);
         configStream << createDefault;
     }
 

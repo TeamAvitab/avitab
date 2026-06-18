@@ -39,7 +39,7 @@ public:
     bool RSASHA256(const std::string &base64in, const std::string &sig, const std::string &n, const std::string &e);
     std::string aesEncrypt(const std::string &in, const std::string &key);
     std::string aesDecrypt(const std::string &in, const std::string &key);
-    std::string getFileSha256(const std::string &utf8Path) const;
+    std::string getFileSha256(const std::filesystem::path &utf8Path) const;
     virtual ~Crypto();
 private:
     mbedtls_aes_context aesCtx {};

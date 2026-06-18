@@ -30,11 +30,11 @@ bool LoadManager::shouldCancelLoading() const {
     return loadCancelled;
 }
 
-void LoadManager::setUserFixesFilename(std::string &filename) {
+void LoadManager::setUserFixesFilename(const std::filesystem::path &filename) {
     userFixesFilename = filename;
 }
 
-void LoadManager::loadUserFixes(std::string &userFixesFilename) {
+void LoadManager::loadUserFixes(const std::filesystem::path &userFixesFilename) {
     try {
         UserFixLoader loader(shared_from_this());
         loader.load(userFixesFilename);
@@ -55,7 +55,7 @@ void LoadManager::loadUserFixes() {
     }
 }
 
-world::NavNodeList LoadManager::loadFlightPlan(const std::string filename)
+world::NavNodeList LoadManager::loadFlightPlan(const std::filesystem::path filename)
 {
     try {
         FMSLoader loader(getWorld());

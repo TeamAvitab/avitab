@@ -26,25 +26,23 @@ namespace avitab {
 
 class FilesystemBrowser {
 public:
-    FilesystemBrowser(const std::string &path);
-    FilesystemBrowser();
+    FilesystemBrowser(const std::filesystem::path & start);
 
     void goUp();
-    void goDown(const std::string &sdir);
-    void goTo(const std::string &tdir);
+    void goTo(const std::filesystem::path &dir);
 
     void setFilter(const std::string &regex);
 
-    std::string path(bool addSeparator = true);
+    std::filesystem::path path();
     std::string rtrimmed(const size_t max);
     std::vector<platform::DirEntry> entries(bool applyFilter = true, bool sort = true);
 
 private:
-    bool validate(const std::string &path);
     void filterEntries();
     void sortEntries();
 
-    std::string cwd;
+    const std::filesystem::path start;
+    std::filesystem::path cwd;
     std::regex filterRegex;
     std::vector<platform::DirEntry> items;
 };

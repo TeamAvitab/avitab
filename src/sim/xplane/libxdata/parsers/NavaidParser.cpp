@@ -21,7 +21,7 @@
 
 namespace xdata {
 
-NavaidParser::NavaidParser(const std::string& file):
+NavaidParser::NavaidParser(const std::filesystem::path& file):
     parser(file)
 {
     header = parser.parseHeader();

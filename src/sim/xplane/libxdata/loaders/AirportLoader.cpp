@@ -94,7 +94,7 @@ AirportLoader::AirportLoader(std::shared_ptr<world::LoadManager> mgr):
 {
 }
 
-void AirportLoader::load(const std::string& file) const {
+void AirportLoader::load(const std::filesystem::path& file) const {
     AirportParser parser(file);
     parser.setAcceptor([this] (const AirportData &data) {
         try {

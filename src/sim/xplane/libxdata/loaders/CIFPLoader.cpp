@@ -29,7 +29,7 @@ CIFPLoader::CIFPLoader(std::shared_ptr<world::LoadManager> mgr):
 {
 }
 
-void CIFPLoader::load(std::shared_ptr<world::Airport> airport, const std::string& file) {
+void CIFPLoader::load(std::shared_ptr<world::Airport> airport, const std::filesystem::path& file) {
     CIFPParser parser(file);
     parser.setAcceptor([this, airport] (const CIFPData &cifp) {
         try {

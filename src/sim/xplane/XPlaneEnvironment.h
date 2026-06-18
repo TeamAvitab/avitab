@@ -48,13 +48,12 @@ public:
     void onAircraftReload() override;
 
     // Can be called from any thread
-    std::string getFontDirectory() override;
-    std::string getProgramPath() override;
-    std::string getDataRootPath() override;
-    std::string getSettingsDir() override;
-    std::string getEarthTexturePath() override;
-    std::string getAirplanePath() override;
-    std::string getFlightPlansPath() override;
+    std::filesystem::path getFontDirectory() override;
+    std::filesystem::path getProgramPath() override;
+    std::filesystem::path getDataRootPath() override;
+    std::filesystem::path getSettingsDir() override;
+    std::filesystem::path getAirplanePath() override;
+    std::filesystem::path getFlightPlansPath() override;
     Environment::MagVarMap getMagneticVariations(std::vector<std::pair<double, double>> locations) override;
     std::string getMETARForAirport(const std::string &icao) override;
     int getWeatherAtLocation(const world::Location &loc, const float &altitude, std::string& weather) override;
@@ -97,14 +96,14 @@ private:
     GetMetarPtr getMetar{};
     GetWeatherPtr getWeatherAtLoc{};
     DataCache dataCache;
-    std::string pluginPath, xplanePrefsDir, xplaneRootPath;
+    std::filesystem::path pluginPath, xplanePrefsDir, xplaneRootPath;
     int xplaneVersion;
     world::Position nullPosition = world::Position(world::Trajectory(world::Location(0, 0), 0), 0);
 
 private:
     // State updated/accessed by multiple threads, mutex protected
     std::mutex stateMutex;
-    std::string aircraftPath;
+    std::filesystem::path aircraftPath;
     std::vector<world::Position> aircraftLocations;
     unsigned int otherAircraftCount;
     float mapLatitude { 0.0f };
@@ -127,9 +126,9 @@ private:
 
     bool isInMenu = false;
 
-    std::string getXPlanePath();
-    std::string getPluginPath();
-    std::string findPreferencesDir();
+    std::filesystem::path getXPlanePath();
+    std::filesystem::path getPluginPath();
+    std::filesystem::path findPreferencesDir();
     XPLMFlightLoopID createFlightLoop();
     float onFlightLoop(float elapsedSinceLastCall, float elapseSinceLastLoop, int count);
     static int handleCommand(XPLMCommandRef cmd, XPLMCommandPhase phase, void *ref);

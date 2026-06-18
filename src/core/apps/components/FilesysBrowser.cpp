@@ -20,60 +20,32 @@
 
 namespace avitab {
 
-FilesystemBrowser::FilesystemBrowser(const std::string &path) {
-    try {
-        cwd = platform::realPath(path);
-        if (!validate(cwd)) {
-            cwd = platform::realPath(platform::getProgramPath());
-        }
-    } catch (...) {
-        cwd = platform::FS_ROOT;
+FilesystemBrowser::FilesystemBrowser(const std::filesystem::path & s) :
+    start(s)
+{
+    if (!std::filesystem::exists(start)) {
+        logger::error("File browser started in non-existent directory %s", start.u8string().c_str());
     }
-}
-
-FilesystemBrowser::FilesystemBrowser() {
-    try {
-        cwd = platform::realPath(platform::getProgramPath());
-    } catch (...) {
-        cwd = platform::FS_ROOT;
-    }
+    goTo(start);
 }
 
 void FilesystemBrowser::goUp() {
     try {
-        std::string up(platform::realPath(platform::parentPath(cwd)));
-        if (validate(up)) {
+        auto up = std::filesystem::canonical(cwd.parent_path());
+        if (std::filesystem::exists(up)) {
             cwd = up;
-        } else {
-            cwd = platform::FS_ROOT;
         }
     } catch (...) {
-        // if going up fails, go to the filesystem root!
-        cwd = platform::FS_ROOT;
+        // if going up fails, go back to the start
+        cwd = start;
     }
 }
 
-void FilesystemBrowser::goDown(const std::string &sdir) {
+void FilesystemBrowser::goTo(const std::filesystem::path &dir) {
     try {
-        std::string down;
-        if (cwd != platform::FS_ROOT) {
-            down = platform::realPath(cwd + "/" + sdir);
-        } else {
-            down = platform::realPath(cwd + sdir + "/");
-        }
-        if (validate(down)) {
-            cwd = down;
-        }
-    } catch (...) {
-        // leave current directory unchanged
-    }
-}
-
-void FilesystemBrowser::goTo(const std::string &tdir) {
-    try {
-        std::string target(platform::realPath(tdir));
-        if (validate(target)) {
-            cwd = target;
+        auto nd = dir.has_root_path() ? dir : cwd / dir;
+        if (std::filesystem::exists(nd)) {
+            cwd = std::filesystem::canonical(nd);
         }
     } catch (...) {
         // leave current directory unchanged
@@ -84,18 +56,16 @@ void FilesystemBrowser::setFilter(const std::string &regex) {
     filterRegex = std::regex(regex, std::regex_constants::ECMAScript | std::regex_constants::icase);
 }
 
-std::string FilesystemBrowser::path(bool addSeparator) {
-    if (addSeparator && (cwd.back() != platform::FS_SEP)) {
-        return cwd + platform::FS_SEP;
-    }
+std::filesystem::path FilesystemBrowser::path() {
     return cwd;
 }
 
 std::string FilesystemBrowser::rtrimmed(const size_t max) {
-    if (cwd.size() <= max) {
-        return cwd;
+    auto s = platform::pathToDisplayString(cwd);
+    if (s.size() <= max) {
+        return s;
     }
-    return std::string("...") + cwd.substr(cwd.size() - (max - 3));
+    return std::string("...") + s.substr(s.size() - (max - 3));
 }
 
 std::vector<platform::DirEntry> FilesystemBrowser::entries(bool applyFilter, bool sort) {
@@ -109,19 +79,10 @@ std::vector<platform::DirEntry> FilesystemBrowser::entries(bool applyFilter, boo
             sortEntries();
         }
     } catch (const std::exception &e) {
-        logger::verbose("Couldn't read directory %s: %s", cwd.c_str(), e.what());
+        logger::error("Couldn't read directory %s: %s", cwd.c_str(), e.what());
     }
 
     return items;
-}
-
-bool FilesystemBrowser::validate(const std::string &path) {
-    try {
-        return platform::fileExists(path);
-    } catch (const std::exception &e) {
-        logger::verbose("validate(%s) failed: %s", path.c_str(), e.what());
-    }
-    return false;
 }
 
 void FilesystemBrowser::filterEntries() {
@@ -129,7 +90,7 @@ void FilesystemBrowser::filterEntries() {
         if (a.isDirectory) {
             return false;
         }
-        return !std::regex_search(a.utf8Name, filterRegex);
+        return !std::regex_search(a.utf8Name.u8string(), filterRegex);
     });
     items.erase(iter, std::end(items));
 }

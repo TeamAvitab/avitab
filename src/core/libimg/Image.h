@@ -20,6 +20,7 @@
 #include <memory>
 #include <vector>
 #include <cstdint>
+#include <filesystem>
 #include <string>
 #include <map>
 
@@ -57,12 +58,12 @@ public:
 
     // Reset content
     void resize(int newWidth, int newHeight, uint32_t color);
-    void loadImageFile(const std::string &utf8Path);
+    void loadImageFile(const std::filesystem::path &utf8Path);
     void loadEncodedData(const std::vector<uint8_t> &encodedImage, bool keepData);
     void setPixels(uint8_t *data, int srcWidth, int srcHeight);
 
     // No effect if not loaded via loadEncodedData!
-    void storeAndClearEncodedData(const std::string &utf8Path);
+    void storeAndClearEncodedData(const std::filesystem::path &utf8Path);
 
     int getWidth() const;
     int getHeight() const;

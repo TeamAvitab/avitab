@@ -25,11 +25,11 @@
 
 namespace maps {
 
-GeoTIFFSource::GeoTIFFSource(const std::string &utf8File) {
+GeoTIFFSource::GeoTIFFSource(const std::filesystem::path &utf8File) {
     tiff.loadTIFF(utf8File);
     gtif = GTIFNew(tiff.getXtiffHandle());
     if (!gtif) {
-        throw std::runtime_error("Not a GeoTIFF: " + utf8File);
+        throw std::runtime_error("Not a GeoTIFF: " + utf8File.u8string());
     }
 
     if (!GTIFGetDefn(gtif, &defn)) {

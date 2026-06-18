@@ -35,10 +35,8 @@ public:
     std::shared_ptr<GUIDriver> createGUIDriver() override;
 
     // Can be called from any thread
-    std::string getDataRootPath() override;
-    std::string getFontDirectory() override;
-    std::string getEarthTexturePath() override;
-    std::string getFlightPlansPath() override;
+    std::filesystem::path getFontDirectory() override;
+    std::filesystem::path getFlightPlansPath() override;
     std::string getMETARForAirport(const std::string &icao) override;
     int getWeatherAtLocation(const world::Location &loc, const float &altitude, std::string &weather) override;
     std::string getNearestAirportId() override;
@@ -54,12 +52,12 @@ protected:
     bool canUseNavDb(const std::string simCode) override;
 
 protected:
-    std::string xplaneRootPath;
+    std::filesystem::path xplaneRootPath;
     std::shared_ptr<GlfwGUIDriver> driver;
 
 private:
 
-    std::string findXPlaneInstallationPath();
+    std::filesystem::path findXPlaneInstallationPath();
 };
 
 } /* namespace avitab */

@@ -32,14 +32,11 @@ bool ChartFoxAPI::isSupported() {
     return (strlen(CHARTFOX_CLIENT_ID) > 0);
 }
 
-ChartFoxAPI::ChartFoxAPI(const std::string &cacheDirectory):
+ChartFoxAPI::ChartFoxAPI(const std::filesystem::path &cacheDirectory):
     cacheDirectory(cacheDirectory),
     oauth(std::make_shared<ChartFoxOAuth2Client>(CHARTFOX_CLIENT_ID))
 {
-    if (!platform::fileExists(cacheDirectory)) {
-        platform::mkdir(cacheDirectory);
-    }
-
+    std::filesystem::create_directories(cacheDirectory);
     oauth->setCacheDirectory(cacheDirectory);
 }
 

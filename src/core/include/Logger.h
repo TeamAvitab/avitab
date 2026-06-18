@@ -17,6 +17,7 @@
  */
 #pragma once
 
+#include <filesystem>
 #include <string>
 
 #define LOG_VERBOSE(enable_expression, ...) logger::log_verbose(enable_expression, __FILE__,__FUNCTION__,__LINE__,__VA_ARGS__)
@@ -25,7 +26,7 @@
 #define LOG_ERROR(...) logger::log_error(__FILE__,__FUNCTION__,__LINE__,__VA_ARGS__)
 
 namespace logger {
-    void init(const std::string &path);
+    void init(const std::filesystem::path &path);
     void setStdOut(bool logToStdOut);
 
     void verbose(const std::string format, ...);

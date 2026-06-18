@@ -27,7 +27,7 @@ namespace sqlnav {
 
 bool SqlDatabase::sqlite3_initialized = false;
 
-SqlDatabase::SqlDatabase(const std::string &dbFilePath, bool readonly, bool create)
+SqlDatabase::SqlDatabase(const std::filesystem::path &dbFilePath, bool readonly, bool create)
 :   dbHandle(nullptr)
 {
     if (!sqlite3_initialized) {
@@ -45,7 +45,7 @@ SqlDatabase::SqlDatabase(const std::string &dbFilePath, bool readonly, bool crea
         }
     }
     int flags = readonly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
-    int r = sqlite3_open_v2(dbFilePath.c_str(), &dbHandle, flags, 0);
+    int r = sqlite3_open_v2(dbFilePath.u8string().c_str(), &dbHandle, flags, 0);
     if (r == SQLITE_OK) {
         logger::info("Opened SQL database file %s for %s", dbFilePath.c_str(), readonly ? "reading" : "read/write");
     } else {

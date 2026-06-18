@@ -27,7 +27,7 @@
 
 namespace localfile {
 
-LocalFileAPI::LocalFileAPI(const std::string chartsPath) {
+LocalFileAPI::LocalFileAPI(const std::filesystem::path chartsPath) {
     this->chartsPath = chartsPath;
     this->filter = std::regex("\\.(pdf|png|jpeg|jpg|bmp)$", std::regex::icase);
 }
@@ -38,9 +38,9 @@ bool LocalFileAPI::isSupported() {
 
 std::vector<std::shared_ptr<apis::Chart>> LocalFileAPI::getChartsFor(const std::string &icao) {
     std::vector<std::shared_ptr<apis::Chart>> charts;
-    std::string path = chartsPath + icao + "/";
+    auto path = chartsPath / std::filesystem::u8path(icao);
 
-    if (!platform::fileExists(path)) {
+    if (!std::filesystem::exists(path)) {
         return charts;
     }
 
@@ -53,7 +53,7 @@ std::vector<std::shared_ptr<apis::Chart>> LocalFileAPI::getChartsFor(const std::
         });
 
         for (auto item: entries) {
-            if (item.isDirectory || !std::regex_search(item.utf8Name, filter)) {
+            if (item.isDirectory || !std::regex_search(item.utf8Name.u8string(), filter)) {
                 continue;
             }
 

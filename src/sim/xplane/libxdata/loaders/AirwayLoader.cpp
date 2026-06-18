@@ -26,7 +26,7 @@ AirwayLoader::AirwayLoader(std::shared_ptr<world::LoadManager> mgr):
 {
 }
 
-void AirwayLoader::load(const std::string& file) {
+void AirwayLoader::load(const std::filesystem::path& file) {
     AirwayParser parser(file);
     parser.setAcceptor([this] (const AirwayData &data) {
         try {

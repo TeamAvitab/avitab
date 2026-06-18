@@ -27,15 +27,12 @@
 
 namespace navigraph {
 
-NavigraphAPI::NavigraphAPI(const std::string &cacheDirectory):
+NavigraphAPI::NavigraphAPI(const std::filesystem::path &cacheDirectory):
     cacheDirectory(cacheDirectory),
     oidc(std::make_shared<OIDCClient>("charts-avitab", NAVIGRAPH_CLIENT_SECRET)),
     stamper("DejaVuSans.ttf")
 {
-    if (!platform::fileExists(cacheDirectory)) {
-        platform::mkdir(cacheDirectory);
-    }
-
+    std::filesystem::create_directories(cacheDirectory);
     oidc->setCacheDirectory(cacheDirectory);
 }
 
@@ -136,18 +133,18 @@ bool NavigraphAPI::canUseTiles() const {
 void NavigraphAPI::loadAirports() {
     long timestamp = oidc->getTimestamp("https://charts.api.navigraph.com/1/airports");
 
-    std::string dir = cacheDirectory;
-    std::string airportFileName = dir + "/airports_" + std::to_string(timestamp) + ".json";
+    auto dir = cacheDirectory;
+    auto airportFileName = dir / ("airports_" + std::to_string(timestamp) + ".json");
 
-    if (!platform::fileExists(airportFileName)) {
+    if (!std::filesystem::exists(airportFileName)) {
         auto jsonData = oidc->get("https://charts.api.navigraph.com/1/airports");
         nlohmann::json tmpJson = nlohmann::json::parse(jsonData);
 
-        std::ofstream jsonStream(std::filesystem::u8path(airportFileName));
+        std::ofstream jsonStream(airportFileName);
         jsonStream << std::setw(4) << tmpJson;
     }
 
-    std::ifstream jsonStream(std::filesystem::u8path(airportFileName));
+    std::ifstream jsonStream(airportFileName);
     airportJson = std::make_shared<nlohmann::json>();
     jsonStream >> *airportJson;
 }

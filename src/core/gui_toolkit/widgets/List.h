@@ -17,6 +17,7 @@
  */
 #pragma once
 
+#include <filesystem>
 #include <string>
 #include <functional>
 #include "Widget.h"

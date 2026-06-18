@@ -26,7 +26,7 @@ namespace localfile {
 
 class LocalFileAPI {
 public:
-    LocalFileAPI(const std::string chartsPath);
+    LocalFileAPI(const std::filesystem::path chartsPath);
     ~LocalFileAPI();
 
     bool isSupported();
@@ -35,7 +35,7 @@ public:
     void loadChart(std::shared_ptr<LocalFileChart> chart);
 
 private:
-    std::string chartsPath;
+    std::filesystem::path chartsPath;
     std::regex filter;
 };
 

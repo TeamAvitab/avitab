@@ -28,7 +28,7 @@ namespace world {
 class BaseParser {
 public:
     using LineFunctor = std::function<void()>;
-    BaseParser(const std::string &file);
+    BaseParser(const std::filesystem::path &file);
 
     std::string parseHeader();
     void eachLine(LineFunctor f);

@@ -408,7 +408,7 @@ void AirportApp::onChartsLoaded(std::shared_ptr<Page> page, const apis::ChartSer
         tab.chartSelect->add("Reference (" + std::to_string(countCharts(charts, apis::ChartCategory::REF)) + ")", -5);
         tab.chartSelect->add("Other (" + std::to_string(countCharts(charts, apis::ChartCategory::OTHER)) + ")", -6);
     } else {
-        tab.chartSelect->add("Back", Widget::Symbol::LEFT, -7);
+        tab.chartSelect->add(std::string("Back"), Widget::Symbol::LEFT, -7);
         for (size_t i = 0; i < charts.size(); i++) {
             if (charts[i]->getCategory() == tab.requestedList) {
                 tab.chartSelect->add(charts[i]->getIndex() + ": " + charts[i]->getName(), i);
@@ -535,7 +535,7 @@ void AirportApp::onChartLoaded(std::shared_ptr<Page> page) {
         tab.mapSource = tab.chart->createTileSource(nightMode);
         tab.mapStitcher = std::make_shared<img::Stitcher>(tab.mapImage, tab.mapSource);
         tab.map = std::make_shared<maps::OverlayedMap>(tab.mapStitcher, tab.overlays);
-        tab.map->loadOverlayIcons(api().getDataPath() + "icons/");
+        tab.map->loadOverlayIcons(api().getAvitabInstallDir()/"icons");
         tab.map->setRedrawCallback([this, page] () { redrawPage(page); });
         tab.map->setNavWorld(api().getNavWorld());
         tab.map->setGetRouteCallback([this] () { return api().getRoute(); });

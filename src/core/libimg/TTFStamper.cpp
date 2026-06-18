@@ -17,23 +17,25 @@
  */
 #include <stdexcept>
 #include <cmath>
+#include <filesystem>
 #include "TTFStamper.h"
 #include "Logger.h"
 #include "platform/Platform.h"
 
 namespace {
-std::string fontDir;
+std::filesystem::path fontDir;
 }
 
 namespace img {
 
-TTFStamper::TTFStamper(const std::string &fontName) {
+TTFStamper::TTFStamper(const std::filesystem::path &fontName) {
     auto error = FT_Init_FreeType(&ft);
     if (error) {
         throw std::runtime_error("Couldn't init freetype");
     }
 
-    error = FT_New_Face(ft, platform::UTF8ToACP(fontDir + fontName).c_str(), 0, &fontFace);
+    auto fontFile = fontDir / fontName;
+    error = FT_New_Face(ft, fontFile.u8string().c_str(), 0, &fontFace);
     if (error) {
         logger::verbose("Couldn't load desired font, using fallback font");
         loadInternalFont();
@@ -41,7 +43,7 @@ TTFStamper::TTFStamper(const std::string &fontName) {
     setSize(fontSize);
 }
 
-void TTFStamper::setFontDirectory(const std::string& dir) {
+void TTFStamper::setFontDirectory(const std::filesystem::path& dir) {
     fontDir = dir;
 }
 

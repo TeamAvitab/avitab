@@ -29,7 +29,7 @@ namespace maps {
 
 class GeoTIFFSource: public img::TileSource {
 public:
-    GeoTIFFSource(const std::string &utf8File);
+    GeoTIFFSource(const std::filesystem::path &utf8File);
 
     int getMinZoomLevel() override;
     int getMaxZoomLevel() override;

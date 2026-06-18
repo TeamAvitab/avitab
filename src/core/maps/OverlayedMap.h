@@ -37,7 +37,7 @@ public:
     using GetRouteCallback = std::function<std::shared_ptr<world::Route>(void)>;
 
     OverlayedMap(std::shared_ptr<img::Stitcher> stitchedMap, std::shared_ptr<OverlayConfig> overlays);
-    void loadOverlayIcons(const std::string &path);
+    void loadOverlayIcons(const std::filesystem::path &path);
     void setRedrawCallback(OverlaysDrawnCallback cb);
     void setGetRouteCallback(GetRouteCallback cb);
     void setNavWorld(std::shared_ptr<world::World> world);

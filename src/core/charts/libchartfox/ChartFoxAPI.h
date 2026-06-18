@@ -39,7 +39,7 @@ public:
 
     using ChartsList = std::vector<std::shared_ptr<apis::Chart>>;
 
-    ChartFoxAPI(const std::string &cacheDirectory);
+    ChartFoxAPI(const std::filesystem::path &cacheDirectory);
     virtual ~ChartFoxAPI() = default;
 
     bool isAuthenticated();
@@ -55,7 +55,7 @@ private:
     std::string encodeUrl(std::string url);
 
 private:
-    std::string cacheDirectory;
+    std::filesystem::path cacheDirectory;
     std::shared_ptr<ChartFoxOAuth2Client> oauth;
 
     std::multimap<std::string, std::shared_ptr<ChartFoxChart>> charts;

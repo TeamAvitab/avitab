@@ -26,7 +26,7 @@ FixLoader::FixLoader(std::shared_ptr<world::LoadManager> mgr):
 {
 }
 
-void FixLoader::load(const std::string& file) {
+void FixLoader::load(const std::filesystem::path& file) {
     FixParser parser(file);
     parser.setAcceptor([this] (const FixData &data) {
         try {

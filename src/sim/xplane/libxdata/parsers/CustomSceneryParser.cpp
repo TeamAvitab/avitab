@@ -19,7 +19,7 @@
 
 namespace xdata {
 
-CustomSceneryParser::CustomSceneryParser(const std::string &file):
+CustomSceneryParser::CustomSceneryParser(const std::filesystem::path &file):
     parser(file)
 {
 }

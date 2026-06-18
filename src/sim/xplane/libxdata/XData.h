@@ -28,19 +28,19 @@ namespace xdata {
 
 class XData : public world::LoadManager {
 public:
-    XData(const std::string &dataRootPath);
+    XData(const std::filesystem::path &dataRootPath);
     virtual ~XData() = default;
     std::shared_ptr<world::World> getWorld() override;
     void discoverSceneries() override;
     void load() override;
 private:
-    std::string xplaneRoot;
-    std::string navDataPath;
+    std::filesystem::path xplaneRoot;
+    std::filesystem::path navDataPath;
     std::shared_ptr<xdata::XWorld> xworld;
-    std::vector<std::string> customSceneries;
-    std::string userFixesFilename;
+    std::vector<std::filesystem::path> customSceneries;
+    std::filesystem::path userFixesFilename;
 
-    std::string determineNavDataPath();
+    std::filesystem::path determineNavDataPath();
 
     void loadAirports();
     void loadFixes();

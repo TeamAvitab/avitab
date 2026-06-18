@@ -24,8 +24,8 @@ namespace maps {
 
 class LocalFileSource: public DocumentSource {
 public:
-    LocalFileSource(const std::string& file, std::string calibrationMetadata);
-    LocalFileSource(const std::string& file, std::shared_ptr<apis::ChartService> chartService);
+    LocalFileSource(const std::filesystem::path& file, std::string calibrationMetadata);
+    LocalFileSource(const std::filesystem::path& file, std::shared_ptr<apis::ChartService> chartService);
 
     void attachCalibration1(double x, double y, double lat, double lon, int zoom) override;
     void attachCalibration2(double x, double y, double lat, double lon, int zoom) override;
@@ -37,7 +37,7 @@ private:
     void storeCalibration();
 
 private:
-    std::string utf8FileName;
+    std::filesystem::path utf8FileName;
     std::shared_ptr<apis::ChartService> chartService;
     apis::Crypto crypto;
 

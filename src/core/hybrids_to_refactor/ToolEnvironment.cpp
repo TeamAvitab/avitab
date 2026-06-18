@@ -21,7 +21,7 @@
 namespace avitab {
 
 ToolEnvironment::ToolEnvironment() : Environment() {
-    ourPath = platform::getProgramPath();
+    ourPath = platform::getExectuablePath();
 }
 
 void ToolEnvironment::createMenu(const std::string& name) {
@@ -39,23 +39,23 @@ void ToolEnvironment::createCommand(const std::string& name, const std::string& 
 void ToolEnvironment::destroyCommands() {
 }
 
-std::string ToolEnvironment::getAirplanePath() {
-    return "";
-}
-
-std::string ToolEnvironment::getProgramPath() {
+std::filesystem::path ToolEnvironment::getAirplanePath() {
     return ourPath;
 }
 
-std::string ToolEnvironment::getSettingsDir() {
+std::filesystem::path ToolEnvironment::getProgramPath() {
     return ourPath;
 }
 
-std::string ToolEnvironment::getFontDirectory() {
+std::filesystem::path ToolEnvironment::getDataRootPath() {
     return ourPath;
 }
 
-std::string ToolEnvironment::getEarthTexturePath() {
+std::filesystem::path ToolEnvironment::getSettingsDir() {
+    return ourPath;
+}
+
+std::filesystem::path ToolEnvironment::getFontDirectory() {
     return ourPath;
 }
 

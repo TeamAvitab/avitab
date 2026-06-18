@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <vector>
+#include <filesystem>
 #include "graph/NavNode.h"
 #include "World.h"
 #include "FlightPlanNodeData.h"
@@ -28,7 +29,7 @@ namespace world {
 class FMSLoader {
 public:
     FMSLoader(std::shared_ptr<World> worldPtr);
-    NavNodeList load(const std::string &fmsFilename);
+    NavNodeList load(const std::filesystem::path &fmsFilename);
 private:
     void onFMSLoaded(const FlightPlanNodeData &node);
     void appendDeparture();

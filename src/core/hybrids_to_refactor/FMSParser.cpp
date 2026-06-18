@@ -23,7 +23,7 @@
 
 namespace world {
 
-FMSParser::FMSParser(const std::string& fmsFilename):
+FMSParser::FMSParser(const std::filesystem::path& fmsFilename):
     parser(fmsFilename)
 {
     parsingEnRouteBlock = false;

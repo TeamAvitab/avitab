@@ -39,7 +39,7 @@ public:
     using AuthCallback = std::function<void()>;
 
     OIDCClient(const std::string &clientId, const std::string &cryptedClientSecret);
-    void setCacheDirectory(const std::string &dir);
+    void setCacheDirectory(const std::filesystem::path &dir);
 
     bool canRelogin() const;
 
@@ -58,8 +58,8 @@ public:
     virtual ~OIDCClient();
 
 private:
-    std::string cacheDir;
-    std::string tokenFile;
+    std::filesystem::path cacheDir;
+    std::filesystem::path tokenFile;
     std::string accountName;
 
     apis::RESTClient restClient;

@@ -27,7 +27,7 @@
 int main(int argc, char *argv[])
 {
     std::cout << "Avitab NAVigation database builder" << std::endl;
-    std::string cwd(std::filesystem::current_path().string());
+    std::string cwd(std::filesystem::current_path().u8string());
     logger::init(cwd + "/");
 
     std::cout << "WD is " << cwd << std::endl;

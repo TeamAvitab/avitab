@@ -24,11 +24,11 @@
 
 namespace world {
 
-BaseParser::BaseParser(const std::string& file) {
-    stream.open(std::filesystem::u8path(file));
+BaseParser::BaseParser(const std::filesystem::path& file) {
+    stream.open(file);
 
     if (!stream) {
-        throw std::runtime_error("Couldn't open file: " + file);
+        throw std::runtime_error("Couldn't open file: " + file.u8string());
     }
 }
 

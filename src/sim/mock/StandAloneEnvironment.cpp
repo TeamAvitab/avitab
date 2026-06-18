@@ -28,51 +28,41 @@ StandAloneEnvironment::StandAloneEnvironment() : ToolEnvironment() {
     xplaneRootPath = findXPlaneInstallationPath();
 }
 
-std::string StandAloneEnvironment::findXPlaneInstallationPath() {
-    std::string installFilePath;
+std::filesystem::path StandAloneEnvironment::findXPlaneInstallationPath() {
+    std::filesystem::path installFilePath;
 
     switch (platform::getPlatform()) {
     case platform::Platform::WINDOWS:
-        installFilePath = getenv("LOCALAPPDATA");
+        installFilePath = std::filesystem::u8path(getenv("LOCALAPPDATA"));
         break;
     case platform::Platform::MAC:
-        installFilePath = getenv("HOME");
-        installFilePath += "/Library/Preferences";
+        installFilePath = std::filesystem::u8path(getenv("HOME")) / "Library"/"Preferences";
         break;
     case platform::Platform::LINUX:
-        installFilePath = getenv("HOME");
-        installFilePath += "/.x-plane";
+        installFilePath = std::filesystem::u8path(getenv("HOME")) / ".x-plane";
         break;
     }
 
-    std::string installFile = installFilePath + "/x-plane_install_12.txt";
-    if (!platform::fileExists(installFile.c_str())) {
-        installFile = installFilePath + "/x-plane_install_11.txt";
-        if (!platform::fileExists(installFile.c_str())) {
+    auto installFile = installFilePath / "x-plane_install_12.txt";
+    if (!std::filesystem::exists(installFile.c_str())) {
+        installFile = installFilePath / "x-plane_install_11.txt";
+        if (!std::filesystem::exists(installFile.c_str())) {
             return "";
         }
     }
 
-    std::ifstream file(std::filesystem::u8path(installFile));
+    std::ifstream file(installFile);
     std::string installDir;
     std::getline(file, installDir);
     return installDir;
 }
 
-std::string StandAloneEnvironment::getDataRootPath() {
-    return xplaneRootPath;
+std::filesystem::path StandAloneEnvironment::getFontDirectory() {
+    return xplaneRootPath / "Resources"/"fonts";
 }
 
-std::string StandAloneEnvironment::getEarthTexturePath() {
-    return xplaneRootPath + "/Resources/bitmaps/Earth Orbit Textures/";
-}
-
-std::string StandAloneEnvironment::getFontDirectory() {
-    return xplaneRootPath + "/Resources/fonts/";
-}
-
-std::string StandAloneEnvironment::getFlightPlansPath() {
-    return xplaneRootPath + "/Output/FMS Plans/";
+std::filesystem::path StandAloneEnvironment::getFlightPlansPath() {
+    return xplaneRootPath / "Output"/"FMS Plans";
 }
 
 void StandAloneEnvironment::eventLoop() {

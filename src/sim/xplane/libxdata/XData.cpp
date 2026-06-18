@@ -28,34 +28,34 @@
 
 namespace xdata {
 
-XData::XData(const std::string& dataRootPath):
+XData::XData(const std::filesystem::path& dataRootPath):
     xplaneRoot(dataRootPath),
     xworld(std::make_shared<xdata::XWorld>())
 {
     navDataPath = determineNavDataPath();
 }
 
-std::string XData::determineNavDataPath() {
-    if (platform::fileExists(xplaneRoot + "Custom Data/earth_nav.dat")) {
-        return xplaneRoot + "Custom Data/";
+std::filesystem::path XData::determineNavDataPath() {
+    if (std::filesystem::exists(xplaneRoot / "Custom Data"/"earth_nav.dat")) {
+        return xplaneRoot / "Custom Data";
     } else {
-        return xplaneRoot + "Resources/default data/";
+        return xplaneRoot / "Resources"/"default data";
     }
 }
 
 void XData::discoverSceneries() {
     logger::verbose("Discovering user sceneries...");
     try {
-        CustomSceneryParser parser(xplaneRoot + "Custom Scenery/scenery_packs.ini");
+        CustomSceneryParser parser(xplaneRoot / "Custom Scenery"/"scenery_packs.ini");
         parser.setAcceptor([this](const std::string &entry) {
-            std::string aptFilePath;
+            std::filesystem::path aptFilePath;
             if (entry.find(":") != std::string::npos || (!entry.empty() && entry[0] == '/')) {
-                aptFilePath = entry + "/Earth nav data/apt.dat";
+                aptFilePath = std::filesystem::u8path(entry) / "Earth nav data"/"apt.dat";
             } else {
-                aptFilePath = xplaneRoot + entry + "/Earth nav data/apt.dat";
+                aptFilePath = xplaneRoot / std::filesystem::u8path(entry) / "Earth nav data"/"apt.dat";
             }
 
-            if (!platform::fileExists(aptFilePath)) {
+            if (!std::filesystem::exists(aptFilePath)) {
                 return;
             }
 
@@ -100,12 +100,12 @@ void XData::loadAirports() {
 
     logger::verbose("Loading default apt.dat");
 
-    std::string x11Path = xplaneRoot + "Resources/default scenery/default apt dat/Earth nav data/apt.dat";
-    std::string x12Path = xplaneRoot + "Global Scenery/Global Airports/Earth nav data/apt.dat";
+    auto x11Path = xplaneRoot / "Resources"/"default scenery"/"default apt dat"/"Earth nav data"/"apt.dat";
+    auto x12Path = xplaneRoot / "Global Scenery"/"Global Airports"/"Earth nav data"/"apt.dat";
 
-    if (platform::fileExists(x11Path)) {
+    if (std::filesystem::exists(x11Path)) {
         loader.load(x11Path);
-    } else if (platform::fileExists(x12Path)) {
+    } else if (std::filesystem::exists(x12Path)) {
         loader.load(x12Path);
     } else {
         logger::error("Couldn't find apt.dat");
@@ -125,24 +125,24 @@ void XData::loadCustomScenery(const AirportLoader& loader) {
 
 void XData::loadFixes() {
     FixLoader loader(shared_from_this());
-    loader.load(navDataPath + "earth_fix.dat");
+    loader.load(navDataPath / "earth_fix.dat");
 }
 
 void XData::loadNavaids() {
     NavaidLoader loader(shared_from_this());
-    loader.load(navDataPath + "earth_nav.dat");
+    loader.load(navDataPath / "earth_nav.dat");
 }
 
 void XData::loadAirways() {
     AirwayLoader loader(shared_from_this());
-    loader.load(navDataPath + "earth_awy.dat");
+    loader.load(navDataPath / "earth_awy.dat");
 }
 
 void XData::loadProcedures() {
     CIFPLoader loader(shared_from_this());
     xworld->forEachAirport([this, &loader] (std::shared_ptr<world::Airport> ap) {
         try {
-            loader.load(ap, navDataPath + "CIFP/" + ap->getID() + ".dat");
+            loader.load(ap, navDataPath / ("CIFP" + ap->getID() + ".dat"));
         } catch (const std::exception &e) {
             // many airports do not have CIFP data, so ignore silently
         }

@@ -63,7 +63,8 @@ MapApp::MapApp(FuncsPtr funcs):
     chooserContainer->setVisible(false);
 
     setMapSource(MapSource::ONLINE_TILES, true);
-    mercatorDir = api().getDataPath() + "/MapTiles/Mercator/";
+    mercatorDir = api().getAvitabDataDir() / "MapTiles" / "Mercator";
+    std::filesystem::create_directories(mercatorDir);
 
     mapWidget->draw(*mapImage);
     onTimer();
@@ -152,10 +153,11 @@ void MapApp::setMapSource(MapSource style, bool init) {
 }
 
 void MapApp::selectGeoTIFF() {
-    fileChooser = std::make_unique<FileChooser>(&api(), "GeoTIFF: ");
-    fileChooser->setBaseDirectory(api().getDataPath() + "/MapTiles/GeoTIFFs/");
+    auto startDir = api().getAvitabDataDir()/"MapTiles"/"GeoTIFFs";
+    std::filesystem::create_directories(startDir);
+    fileChooser = std::make_unique<FileChooser>(&api(), "GeoTIFF: ", startDir);
     fileChooser->setFilterRegex("\\.(tif|tiff)$");
-    fileChooser->setSelectCallback([this] (const std::string &selectedUTF8) {
+    fileChooser->setSelectCallback([this] (const std::filesystem::path &selectedUTF8) {
         api().executeLater([this, selectedUTF8] () {
             try {
                 auto geoSource = std::make_shared<maps::GeoTIFFSource>(selectedUTF8);
@@ -178,10 +180,9 @@ void MapApp::selectGeoTIFF() {
 }
 
 void MapApp::selectMercator() {
-    fileChooser = std::make_unique<FileChooser>(&api(), "Mercator: ");
-    fileChooser->setBaseDirectory(mercatorDir);
+    fileChooser = std::make_unique<FileChooser>(&api(), "Mercator: ", mercatorDir);
     fileChooser->setFilterRegex("\\.(pdf|png|jpg|jpeg|bmp)$");
-    fileChooser->setSelectCallback([this] (const std::string &selectedUTF8) {
+    fileChooser->setSelectCallback([this] (const std::filesystem::path &selectedUTF8) {
         api().executeLater([this, selectedUTF8] () {
             try {
                 auto docSource = std::make_shared<maps::LocalFileSource>(selectedUTF8, api().getChartService());
@@ -193,7 +194,7 @@ void MapApp::selectMercator() {
                 } else if (map->isCalibrated()) {
                     finalizeCalibration("Chart is georeferenced");
                 }
-                mercatorDir = platform::getDirNameFromPath(selectedUTF8);
+                mercatorDir = selectedUTF8.parent_path();
             } catch (const std::exception &e) {
                 logger::warn("Couldn't open Mercator %s: %s", selectedUTF8.c_str(), e.what());
             }
@@ -210,9 +211,10 @@ void MapApp::selectMercator() {
 }
 
 void MapApp::selectEPSG() {
-    fileChooser = std::make_unique<FileChooser>(&api(), "EPSG: ", true);
-    fileChooser->setBaseDirectory(api().getDataPath() + "/MapTiles/EPSG-3857/");
-    fileChooser->setSelectCallback([this] (const std::string &selectedUTF8) {
+    auto startDir = api().getAvitabDataDir()/"MapTiles"/"EPSG-3857";
+    std::filesystem::create_directories(startDir);
+    fileChooser = std::make_unique<FileChooser>(&api(), "EPSG: ", startDir, true);
+    fileChooser->setSelectCallback([this] (const std::filesystem::path &selectedUTF8) {
         api().executeLater([this, selectedUTF8] () {
             try {
                 auto epsgSource = std::make_shared<maps::EPSGSource>(selectedUTF8);
@@ -239,15 +241,15 @@ void MapApp::selectOnlineMaps(bool interactive) {
     std::vector<std::string> slippyMapNames;
 
     // Read the config
-    std::string mapConfigPath(api().getDataPath() + "online-maps/mapconfig.json");
-    std::ifstream mapConfigFstream(std::filesystem::u8path(mapConfigPath));
+    auto mapConfigPath(api().getAvitabDataDir() /"online-maps"/"mapconfig.json");
+    std::ifstream mapConfigFstream(mapConfigPath);
 
     if (!mapConfigFstream) {
         logger::error("No mapconfig.json file found in '%s'",
-                mapConfigPath.c_str());
+                mapConfigPath.u8string().c_str());
         reportErrorAndSelectOnlineFallback(std::vector<std::string>{
                 "cannot load mapconfig.json from path:",
-                mapConfigPath});
+                mapConfigPath.u8string()});
         return;
     }
 
@@ -410,10 +412,10 @@ void MapApp::setTileSource(std::shared_ptr<img::TileSource> source) {
     trackPlane = true;
 
     mapStitcher = std::make_shared<img::Stitcher>(mapImage, tileSource);
-    mapStitcher->setCacheDirectory(api().getDataPath() + "MapTiles/");
+    mapStitcher->setCacheDirectory(api().getAvitabDataDir() /"MapTiles");
 
     map = std::make_shared<maps::OverlayedMap>(mapStitcher, overlayConf);
-    map->loadOverlayIcons(api().getDataPath() + "icons/");
+    map->loadOverlayIcons(api().getAvitabInstallDir()/"icons");
     map->setRedrawCallback([this] () { onRedrawNeeded(); });
     map->setGetRouteCallback([this] () { return api().getRoute(); });
     map->setNavWorld(api().getNavWorld());
@@ -591,23 +593,21 @@ void MapApp::showOverlaySettings() {
 
 void MapApp::selectUserFixesFile() {
     resetWidgets();
-    fileChooser = std::make_unique<FileChooser>(&api(), "Fixes: ");
-    std::string userfixes_file = savedSettings->getGeneralSetting<std::string>("userfixes_file");
-    if ((userfixes_file == "") || !platform::fileExists(platform::getDirNameFromPath(userfixes_file))) {
-        fileChooser->setBaseDirectory(api().getDataPath());
+    std::filesystem::path userfixes_file = savedSettings->getGeneralSetting<std::string>("userfixes_file");
+    if ((userfixes_file == "") || !std::filesystem::exists(userfixes_file.parent_path())) {
+        fileChooser = std::make_unique<FileChooser>(&api(), "Fixes: ", api().getAvitabDataDir());
     } else {
-        std::string dirName = platform::getDirNameFromPath(userfixes_file);
-        fileChooser->setBaseDirectory(dirName + "/");
+        fileChooser = std::make_unique<FileChooser>(&api(), "Fixes: ", userfixes_file.parent_path());
     }
     fileChooser->setFilterRegex("\\.csv$");
-    fileChooser->setSelectCallback([this] (const std::string &selectedUTF8) {
+    fileChooser->setSelectCallback([this] (const std::filesystem::path &selectedUTF8) {
         api().executeLater([this, selectedUTF8] () {
             try {
                 api().loadUserFixes(selectedUTF8);
                 fileChooser.reset();
                 chooserContainer->setVisible(false);
                 showOverlaySettings();
-                savedSettings->setGeneralSetting<std::string>("userfixes_file", selectedUTF8);
+                savedSettings->setGeneralSetting<std::string>("userfixes_file", selectedUTF8.u8string());
             } catch (const std::exception &e) {
                 logger::warn("Couldn't open user fix file '%s': %s", selectedUTF8.c_str(), e.what());
             }

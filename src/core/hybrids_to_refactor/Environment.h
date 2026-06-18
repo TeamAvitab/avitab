@@ -76,12 +76,11 @@ public:
      * @param cb the callback to enqueue
      */
     void runInEnvironment(EnvironmentCallback cb);
-    virtual std::string getFontDirectory() = 0;
-    virtual std::string getProgramPath() = 0;
-    virtual std::string getDataRootPath() = 0;
-    virtual std::string getSettingsDir() = 0;
-    virtual std::string getFlightPlansPath() = 0;
-    virtual std::string getEarthTexturePath() = 0;
+    virtual std::filesystem::path getProgramPath() = 0;
+    virtual std::filesystem::path getDataRootPath() = 0;
+    virtual std::filesystem::path getSettingsDir() = 0;
+    virtual std::filesystem::path getFlightPlansPath() = 0;
+    virtual std::filesystem::path getFontDirectory() = 0;
     // Getting magVar from XPlane is asynchronous and slow, so batch request
     using MagVarMap = std::map<std::pair<double, double>, double>;
     virtual MagVarMap getMagneticVariations(std::vector<std::pair<double, double>> locations) = 0;
@@ -89,10 +88,10 @@ public:
     virtual int getWeatherAtLocation(const world::Location &loc, const float &altitude, std::string &weather) = 0;
     virtual std::string getNearestAirportId() = 0;
     std::shared_ptr<world::World> getNavWorld();
-    virtual std::string getAirplanePath() = 0;
+    virtual std::filesystem::path getAirplanePath() = 0;
     void cancelNavWorldLoading();
-    world::NavNodeList loadFlightPlan(const std::string filename);
-    void loadUserFixes(std::string filename);
+    void loadUserFixes(const std::filesystem::path &filename);
+    world::NavNodeList loadFlightPlan(const std::filesystem::path &filename);
     virtual void enableAndPowerPanel();
     virtual void setIsInMenu(bool menu);
     virtual AircraftID getActiveAircraftCount() = 0;
