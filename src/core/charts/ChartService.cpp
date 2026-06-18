@@ -25,19 +25,29 @@
 
 namespace apis {
 
-ChartService::ChartService(const std::string &programPath) {
-    navigraph = std::make_shared<navigraph::NavigraphAPI>(programPath + "/Navigraph/");
-    if (chartfox::ChartFoxAPI::isSupported()) {
-        chartFox = std::make_shared<chartfox::ChartFoxAPI>(programPath + "/ChartFox/");
-        useChartFox = chartFox->isAuthenticated();
+ChartService::ChartService(const std::filesystem::path &programPath) {
+    try {
+        navigraph = std::make_shared<navigraph::NavigraphAPI>(programPath / "Navigraph");
+        useNavigraph = true;
+    } catch (...) {
+        logger::error("Exception thrown during Navigraph service construction");
     }
-    localFile= std::make_shared<localfile::LocalFileAPI>(programPath + "/charts/");
+
+    if (chartfox::ChartFoxAPI::isSupported()) {
+        try {
+            chartFox = std::make_shared<chartfox::ChartFoxAPI>(programPath / "ChartFox");
+            useChartFox = chartFox->isAuthenticated();
+        } catch (...) {
+            logger::error("Exception thrown during ChartFox service construction");
+        }
+    }
+    localFile= std::make_shared<localfile::LocalFileAPI>(programPath / "charts");
 
     keepAlive = true;
     apiThread = std::make_unique<std::thread>(&ChartService::workLoop, this);
 
-    std::string calibrationPath = programPath + "/MapTiles/Mercator/Calibration";
-    if (platform::fileExists(calibrationPath)) {
+    auto calibrationPath = programPath /"MapTiles"/"Mercator"/"Calibration";
+    if (std::filesystem::exists(calibrationPath)) {
         scanJsonFiles(calibrationPath);
         logger::info(" Found %d calibration files", jsonFileHashes.size());
     } else {
@@ -45,7 +55,6 @@ ChartService::ChartService(const std::string &programPath) {
         logger::info(" %s", calibrationPath.c_str());
     }
 
-    setUseNavigraph(true);
 }
 
 void ChartService::setUseNavigraph(bool use) {
@@ -208,15 +217,15 @@ void ChartService::stop() {
     }
 }
 
-void ChartService::scanJsonFiles(std::string dir) {
+void ChartService::scanJsonFiles(std::filesystem::path dir) {
     auto items = platform::readDirectory(dir);
     for (auto &entry: items) {
-        std::string fullPath = dir + "/" + entry.utf8Name;
+        auto fullPath = dir / entry.utf8Name;
         if (entry.isDirectory) {
             // Recurse
             scanJsonFiles(fullPath);
-        } else if (entry.utf8Name.find(".json") != std::string::npos) {
-            std::ifstream jsonFile(std::filesystem::u8path(fullPath));
+        } else if (entry.utf8Name.u8string().find(".json") != std::string::npos) {
+            std::ifstream jsonFile(fullPath);
             if (jsonFile.fail()) {
                 continue;
             }
@@ -236,15 +245,15 @@ void ChartService::scanJsonFiles(std::string dir) {
     }
 }
 
-std::string ChartService::getCalibrationMetadataForFile(std::string utf8ChartFileName) const {
+std::string ChartService::getCalibrationMetadataForFile(std::filesystem::path utf8ChartFileName) const {
     std::string hash = crypto.getFileSha256(utf8ChartFileName);
     return getCalibrationMetadataForHash(hash);
 }
 
 std::string ChartService::getCalibrationMetadataForHash(std::string hash) const {
     if (jsonFileHashes.count(hash) == 1) {
-        std::string calibrationFilename = jsonFileHashes.at(hash);
-        std::ifstream hashedJsonFile(std::filesystem::u8path(calibrationFilename));
+        auto calibrationFilename = jsonFileHashes.at(hash);
+        std::ifstream hashedJsonFile(calibrationFilename);
         if (hashedJsonFile.good()) {
             std::string jsonStr((std::istreambuf_iterator<char>(hashedJsonFile)),
                                  std::istreambuf_iterator<char>());

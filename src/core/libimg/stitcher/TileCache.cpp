@@ -30,11 +30,10 @@ TileCache::TileCache(std::shared_ptr<TileSource> source):
     loaderThread = std::make_unique<std::thread>(&TileCache::loadLoop, this);
 }
 
-void TileCache::setCacheDirectory(const std::string& utf8Path) {
+void TileCache::setCacheDirectory(const std::filesystem::path& utf8Path) {
+    std::error_code e;
+    std::filesystem::create_directories(utf8Path, e);
     cacheDir = utf8Path;
-    if (!platform::fileExists(cacheDir)) {
-        platform::mkdir(cacheDir);
-    }
 }
 
 std::shared_ptr<Image> TileCache::getTile(int page, int x, int y, int zoom) {
@@ -85,8 +84,8 @@ std::shared_ptr<Image> TileCache::getFromMemory(int page, int x, int y, int zoom
 
 std::shared_ptr<Image> TileCache::getFromDisk(int page, int x, int y, int zoom) {
     // gets called with locked mutex
-    std::string fileName = cacheDir + "/" + tileSource->getUniqueTileName(page, x, y, zoom);
-    if (!platform::fileExists(fileName)) {
+    auto fileName = cacheDir / std::filesystem::u8path(tileSource->getUniqueTileName(page, x, y, zoom));
+    if (!std::filesystem::exists(fileName)) {
         return nullptr;
     }
 
@@ -171,11 +170,13 @@ void TileCache::loadAndCacheTile(int page, int x, int y, int zoom) {
         return;
     }
 
-    std::string fileName = tileSource->getUniqueTileName(page, x, y, zoom);
-
-    std::lock_guard<std::mutex> lock(cacheMutex);
-    enterMemoryCache(page, x, y, zoom, image);
-    image->storeAndClearEncodedData(cacheDir + "/" + fileName);
+    try {
+        std::string fileName = tileSource->getUniqueTileName(page, x, y, zoom);
+        std::lock_guard<std::mutex> lock(cacheMutex);
+        enterMemoryCache(page, x, y, zoom, image);
+        image->storeAndClearEncodedData(cacheDir / fileName);
+    } catch (...) {
+    }
 }
 
 void TileCache::enterMemoryCache(int page, int x, int y, int zoom, std::shared_ptr<Image> img) {

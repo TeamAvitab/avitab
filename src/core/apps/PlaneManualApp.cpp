@@ -22,24 +22,24 @@
 namespace avitab {
 
 PlaneManualApp::PlaneManualApp(FuncsPtr appFuncs):
-    DocumentsApp(appFuncs, "Manuals", "manualsapp", "\\.(pdf|png|jpg|jpeg|bmp)$")
+    DocumentsApp(appFuncs, "Manuals", "manualsapp", appFuncs->getAirplanePath(), "\\.(pdf|png|jpg|jpeg|bmp)$")
 {
-    Run(api().getAirplanePath());
+    Run();
 }
 
 void PlaneManualApp::onPlaneLoad() {
-    std::string aircraftPath = api().getAirplanePath();
-    std::string manualsPath;
+    auto aircraftPath = api().getAirplanePath();
+    std::filesystem::path manualsPath;
 
     std::array<std::string, 6> subdirs = { "manuals", "docs", "handbook", "manual", "documentation", "doc" };
     for (auto sd = subdirs.begin(); sd != subdirs.end(); ++sd) {
-        if (platform::fileExists(aircraftPath + *sd)) {
-            manualsPath = aircraftPath + *sd;
+        if (std::filesystem::exists(aircraftPath / *sd)) {
+            manualsPath = aircraftPath / *sd;
             logger::info("Aircraft manuals path is %s", manualsPath.c_str());
         }
     }
 
-    bool foundManualsDir = manualsPath.length() > 0;
+    bool foundManualsDir = !manualsPath.u8string().empty();
     ChangeBrowseDirectory(foundManualsDir ? manualsPath : aircraftPath);
     if (!foundManualsDir) {
         api().executeLater([this] () { ShowMessage(); });

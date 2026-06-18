@@ -43,7 +43,7 @@ PLUGIN_API int XPluginStart(char *outName, char *outSignature, char *outDescript
         environment = std::make_shared<avitab::XPlaneEnvironment>();
         environment->loadConfig();
         logger::setStdOut(environment->getConfig()->getBool("/AviTab/logToStdOut"));
-        logger::init(environment->getProgramPath());
+        logger::init(environment->getDataRootPath());
         logger::info("AviTab version " AVITAB_VERSION_STR);
         environment->loadSettings();
         strncpy(outDescription, "A tablet to help in VR.", 255);

@@ -100,7 +100,7 @@ private:
 
     int panPosX = 0, panPosY = 0;
     bool wasTrackingPlaneAtPanStart;
-    std::string mercatorDir;
+    std::filesystem::path mercatorDir;
 
     void createSettingsLayout();
     void showOverlaySettings();

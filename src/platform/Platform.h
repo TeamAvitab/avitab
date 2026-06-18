@@ -27,7 +27,7 @@
 namespace platform {
 
 struct DirEntry {
-    std::string utf8Name;
+    std::filesystem::path utf8Name;
     bool isDirectory;
 };
 
@@ -45,36 +45,17 @@ enum class Platform {
 
 Platform getPlatform();
 
-#ifdef _WIN32
-int64_t measureTime();
-int getElapsedMillis(int64_t startAt);
-#else
 std::chrono::time_point<std::chrono::steady_clock> measureTime();
 int getElapsedMillis(std::chrono::time_point<std::chrono::steady_clock> startAt);
-#endif
 
-constexpr size_t getMaxPathLen();
-std::string UTF8ToACP(const std::string &utf8);
 std::wstring strToWstr(const std::string &str);
 
-#ifdef _WIN32
-constexpr const char *FS_ROOT = "";
-constexpr const char FS_SEP = '\\';
-#else
-constexpr const char *FS_ROOT = "/";
-constexpr const char FS_SEP = '/';
-#endif
+constexpr size_t getMaxPathLen();
+std::filesystem::path getExectuablePath();
+std::filesystem::path getFallbackPath();
 
-std::string getProgramPath();
-std::vector<DirEntry> readDirectory(const std::string &utf8Path);
-std::string parentPath(const std::string &utf8Path);
-std::string realPath(const std::string &utf8Path);
-std::string getFileNameFromPath(const std::string &utf8Path);
-std::string getDirNameFromPath(const std::string &utf8Path);
-bool fileExists(const std::string &utf8Path);
-void mkdir(const std::string &utf8Path);
-void mkpath(const std::string &utf8Path);
-void removeFile(const std::string &utf8Path);
+std::string pathToDisplayString(const std::filesystem::path &utf8Path);
+std::vector<DirEntry> readDirectory(const std::filesystem::path &utf8Path);
 
 std::string getLocalTime(const std::string &format);
 std::string getClipboardContent();

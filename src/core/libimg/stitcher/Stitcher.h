@@ -31,7 +31,7 @@ public:
     using PreRotateCallback = std::function<void(void)>;
 
     Stitcher(std::shared_ptr<Image> dstImage, std::shared_ptr<TileSource> source);
-    void setCacheDirectory(const std::string &utf8Path);
+    void setCacheDirectory(const std::filesystem::path &utf8Path);
     void setPreRotateCallback(PreRotateCallback cb);
     void setRedrawCallback(RedrawCallback cb);
 

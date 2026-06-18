@@ -26,7 +26,7 @@ namespace img {
 class XTiffImage: public Image {
 public:
     // only loads the meta data
-    void loadTIFF(const std::string &utf8Path);
+    void loadTIFF(const std::filesystem::path &utf8Path);
 
     // return internal XTIFF handle
     void *getXtiffHandle();

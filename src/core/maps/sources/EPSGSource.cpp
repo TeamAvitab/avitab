@@ -23,7 +23,7 @@
 
 namespace maps {
 
-EPSGSource::EPSGSource(const std::string& tilePathUTF8):
+EPSGSource::EPSGSource(const std::filesystem::path& tilePathUTF8):
     tilePath(tilePathUTF8)
 {
     auto dir = platform::readDirectory(tilePathUTF8);
@@ -126,7 +126,7 @@ std::string EPSGSource::getUniqueTileName(int page, int x, int y, int zoom) {
 
 std::unique_ptr<img::Image> EPSGSource::loadTileImage(int page, int x, int y, int zoom) {
     auto img = std::make_unique<img::Image>();
-    img->loadImageFile(tilePath + "/" + getUniqueTileName(page, x, y, zoom));
+    img->loadImageFile(tilePath / std::filesystem::u8path(getUniqueTileName(page, x, y, zoom)));
 
     return img;
 }

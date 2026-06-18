@@ -21,7 +21,7 @@
 
 namespace xdata {
 
-AirwayParser::AirwayParser(const std::string& file):
+AirwayParser::AirwayParser(const std::filesystem::path& file):
     parser(file)
 {
     parser.parseHeader();

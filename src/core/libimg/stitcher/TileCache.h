@@ -35,7 +35,7 @@ namespace img {
 class TileCache {
 public:
     TileCache(std::shared_ptr<TileSource> source);
-    void setCacheDirectory(const std::string &utf8Path);
+    void setCacheDirectory(const std::filesystem::path &utf8Path);
     std::shared_ptr<Image> getTile(int page, int x, int y, int zoom);
     void cancelPendingRequests();
     void invalidate();
@@ -47,7 +47,7 @@ private:
     using MemCacheEntry = std::tuple<std::shared_ptr<Image>, TimeStamp>;
 
     std::shared_ptr<TileSource> tileSource;
-    std::string cacheDir;
+    std::filesystem::path cacheDir;
     std::unique_ptr<std::thread> loaderThread;
 
     std::shared_ptr<Image> errorTile;

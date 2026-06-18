@@ -23,7 +23,7 @@
 
 namespace maps {
 
-DocumentSource::DocumentSource(const std::string& file)
+DocumentSource::DocumentSource(const std::filesystem::path& file)
 :   rasterizer(file)
 {
 }

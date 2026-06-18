@@ -39,7 +39,7 @@ public:
     using AuthCallback = std::function<void()>;
 
     ChartFoxOAuth2Client(const std::string &clientId);
-    void setCacheDirectory(const std::string &dir);
+    void setCacheDirectory(const std::filesystem::path &dir);
 
     std::string startAuth(AuthCallback cb);
     void cancelAuth();
@@ -54,8 +54,8 @@ public:
 
 private:
     std::string const clientId;
-    std::string cacheDir;
-    std::string tokenFile;
+    std::filesystem::path cacheDir;
+    std::filesystem::path tokenFile;
 
     apis::RESTClient restClient;
     ChartFoxAuthServer server;

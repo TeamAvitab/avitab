@@ -29,7 +29,7 @@ namespace avitab {
 
 static const int PREFS_VERSION = 3;
 
-Settings::Settings(const std::string &settingsFile)
+Settings::Settings(const std::filesystem::path &settingsFile)
 :   filePath(settingsFile)
 {
     colorTable.push_back({"BLACK",  0xFF000000});
@@ -141,7 +141,7 @@ void Settings::init() {
 void Settings::load() {
     json filedata;
     try {
-        std::ifstream fin(std::filesystem::u8path(filePath));
+        std::ifstream fin(filePath);
         fin >> filedata;
     } catch (const std::exception &e) {
         LOG_WARN("Could not load user settings from %s, using defaults", filePath.c_str());
@@ -266,7 +266,7 @@ void Settings::saveAll() {
         saveOverlayConfig();
         saveAirportConfig();
         saveMapConfig();
-        std::ofstream fout(std::filesystem::u8path(filePath));
+        std::ofstream fout(filePath);
         fout << std::setw(4) << *database;
     } catch (const std::exception &e) {
         LOG_ERROR("Could not save user settings to %s", filePath.c_str());

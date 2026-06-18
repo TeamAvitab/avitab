@@ -93,25 +93,25 @@ XPlaneEnvironment::XPlaneEnvironment() {
     XPLMScheduleFlightLoop(flightLoopId, -1, true);
 }
 
-std::string XPlaneEnvironment::getXPlanePath() {
+std::filesystem::path XPlaneEnvironment::getXPlanePath() {
     char buf[2048];
     XPLMGetSystemPath(buf);
-    return buf;
+    return std::filesystem::u8path(buf);
 }
 
-std::string XPlaneEnvironment::getPluginPath() {
+std::filesystem::path XPlaneEnvironment::getPluginPath() {
     XPLMPluginID ourId = XPLMGetMyID();
     char pathBuf[2048];
     XPLMGetPluginInfo(ourId, nullptr, pathBuf, nullptr, nullptr);
     char *filePart = XPLMExtractFileAndPath(pathBuf);
-    return std::string(pathBuf, 0, filePart - pathBuf) + "/../";
+    return std::filesystem::u8path(std::string(pathBuf, 0, filePart - pathBuf)).parent_path();
 }
 
-std::string XPlaneEnvironment::findPreferencesDir() {
+std::filesystem::path XPlaneEnvironment::findPreferencesDir() {
     char pathBuf[2048];
     XPLMGetPrefsPath(pathBuf);
     char *filePart = XPLMExtractFileAndPath(pathBuf);
-    return std::string(pathBuf, 0, filePart - pathBuf);
+    return std::filesystem::u8path(std::string(pathBuf, 0, filePart - pathBuf));
 }
 
 XPLMFlightLoopID XPlaneEnvironment::createFlightLoop() {
@@ -225,33 +225,29 @@ void XPlaneEnvironment::destroyCommands() {
     commandHandlers.clear();
 }
 
-std::string XPlaneEnvironment::getAirplanePath() {
+std::filesystem::path XPlaneEnvironment::getAirplanePath() {
     std::lock_guard<std::mutex> lock(stateMutex);
     return aircraftPath;
 }
 
-std::string XPlaneEnvironment::getProgramPath() {
+std::filesystem::path XPlaneEnvironment::getProgramPath() {
     return pluginPath;
 }
 
-std::string XPlaneEnvironment::getDataRootPath() {
-    return xplaneRootPath;
+std::filesystem::path XPlaneEnvironment::getDataRootPath() {
+    return pluginPath;
 }
 
-std::string XPlaneEnvironment::getSettingsDir() {
+std::filesystem::path XPlaneEnvironment::getSettingsDir() {
     return xplanePrefsDir;
 }
 
-std::string XPlaneEnvironment::getEarthTexturePath() {
-    return xplaneRootPath + "/Resources/bitmaps/Earth Orbit Textures/";
+std::filesystem::path XPlaneEnvironment::getFontDirectory() {
+    return xplaneRootPath / "Resources"/"fonts";
 }
 
-std::string XPlaneEnvironment::getFontDirectory() {
-    return xplaneRootPath + "/Resources/fonts/";
-}
-
-std::string XPlaneEnvironment::getFlightPlansPath() {
-    return xplaneRootPath + "/Output/FMS Plans/";
+std::filesystem::path XPlaneEnvironment::getFlightPlansPath() {
+    return xplaneRootPath / "Output"/"FMS Plans";
 }
 
 float XPlaneEnvironment::onFlightLoop(float elapsedSinceLastCall, float elapseSinceLastLoop, int count) {
@@ -537,7 +533,8 @@ void XPlaneEnvironment::reloadAircraftPath() {
     char file[512];
     char path[512];
     XPLMGetNthAircraftModel(0, file, path);
-    aircraftPath = platform::getDirNameFromPath(path) + "/";
+    std::filesystem::path acf(path);
+    aircraftPath = acf.parent_path();
 }
 
 void XPlaneEnvironment::onAircraftReload() {

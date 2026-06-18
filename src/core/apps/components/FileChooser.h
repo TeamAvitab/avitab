@@ -36,14 +36,13 @@ class FileChooser {
     // currently used by MapApp only
 public:
     using CancelCallback = std::function<void(void)>;
-    using SelectCallback = std::function<void(const std::string &)>;
+    using SelectCallback = std::function<void(const std::filesystem::path &)>;
 
-    FileChooser(App::FuncsPtr appFunctions, const std::string &prefix, bool dirSelect = false);
+    FileChooser(App::FuncsPtr appFunctions, const std::string &prefix, const std::filesystem::path &start, bool dirSelect = false);
 
     void setCancelCallback(CancelCallback cb);
     void setSelectCallback(SelectCallback cb);
     void setFilterRegex(const std::string &regex);
-    void setBaseDirectory(const std::string &path);
     void show(std::shared_ptr<Container> parent);
 private:
     App::FuncsPtr api{};

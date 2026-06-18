@@ -26,14 +26,14 @@
 
 namespace localfile {
 
-LocalFileChart::LocalFileChart(const std::string dir, const std::string name, const std::string &icao, size_t idx):
+LocalFileChart::LocalFileChart(const std::filesystem::path dir, const std::filesystem::path name, const std::string &icao, size_t idx):
     icao(icao),
     index(idx)
 {
-    this->path = dir + name;
+    this->path = dir / name;
 
     // Prettify the file name by replacing underscores in the file stem
-    std::string id = std::filesystem::path(path).stem().string();
+    auto id = std::filesystem::path(path).stem().u8string();
     std::replace(id.begin(), id.end(), '_', ' ');
 
     this->category = apis::ChartCategory::OTHER;
@@ -67,7 +67,7 @@ void LocalFileChart::setCalibrationMetadata(std::string metadata) {
     calibrationMetadata = metadata;
 }
 
-std::string LocalFileChart::getPath() const {
+std::filesystem::path LocalFileChart::getPath() const {
     return path;
 }
 

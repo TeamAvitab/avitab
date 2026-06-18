@@ -201,7 +201,7 @@ std::string Crypto::aesDecrypt(const std::string& in, const std::string& key) {
     return std::string((char *) plain.data());
 }
 
-std::string Crypto::getFileSha256(const std::string &utf8Path) const {
+std::string Crypto::getFileSha256(const std::filesystem::path &utf8Path) const {
     std::ifstream ifs (utf8Path, std::ios::in|std::ios::binary|std::ios::ate);
     if (!ifs.is_open()) {
         LOG_ERROR("Unable to open file '%s'", utf8Path.c_str());

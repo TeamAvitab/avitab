@@ -27,13 +27,13 @@ namespace img {
 
 class TTFStamper {
 public:
-    TTFStamper(const std::string &fontName);
+    TTFStamper(const std::filesystem::path &fontName);
     void setSize(float size);
     void setText(const std::string &newText);
     void setColor(uint32_t textColor);
     void applyStamp(Image &dst, int angle);
     void applyStamp(Image &dst, int x, int y);
-    static void setFontDirectory(const std::string &dir);
+    static void setFontDirectory(const std::filesystem::path &dir);
     size_t getTextWidth(const std::string &in);
     ~TTFStamper();
 private:

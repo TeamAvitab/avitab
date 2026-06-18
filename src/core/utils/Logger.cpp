@@ -61,8 +61,8 @@ void log(const std::string format, va_list args) {
 
 }
 
-void logger::init(const std::string &path) {
-    logFile.open(std::filesystem::u8path(path + "AviTab.log"));
+void logger::init(const std::filesystem::path &path) {
+    logFile.open(path /"AviTab.log");
     info("AviTab logger initialized, this is " AVITAB_VERSION_STR " [" AVITAB_COMMIT_ID "]");
 }
 

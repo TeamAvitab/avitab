@@ -45,7 +45,7 @@ AviTab::AviTab(std::shared_ptr<Environment> e, std::shared_ptr<GUIDriver> gd):
     if (env->getConfig()->getBool("/AviTab/loadNavData")) {
         env->loadNavWorldInBackground();
     }
-    chartService = std::make_shared<apis::ChartService>(env->getProgramPath());
+    chartService = std::make_shared<apis::ChartService>(env->getDataRootPath());
     env->resumeEnvironmentJobs();
 }
 
@@ -231,11 +231,9 @@ void AviTab::panDown() {
 void AviTab::finishInstall() {
     // create any user-modifiable files, only if they do not already exist
     try {
-        std::string mapConfigDir(getDataPath() + "online-maps");
-        if (!platform::fileExists(mapConfigDir)) {
-            platform::mkdir(mapConfigDir);
-        }
-        std::string mapConfigPath(mapConfigDir + "/mapconfig.json");
+        auto mapConfigDir(getAvitabDataDir() /"online-maps");
+        std::filesystem::create_directories(mapConfigDir);
+        auto mapConfigPath(mapConfigDir /"mapconfig.json");
         (void)std::make_unique<JsonConfig>(mapConfigPath, defaultMapConfigJson());
     } catch (const std::exception &e) {
         // report to the log, but not totally fatal
@@ -244,7 +242,7 @@ void AviTab::finishInstall() {
 }
 
 void AviTab::createPanel() {
-    auto cfgFile = getAirplanePath() + "/AviTab.json";
+    auto cfgFile = getAirplanePath() /"AviTab.json";
     try {
         JsonConfig cfg(cfgFile);
         int left = cfg.getInt("/panel/left");
@@ -405,19 +403,19 @@ void AviTab::executeLater(std::function<void()> func) {
     guiLib->executeLater(func);
 }
 
-std::string AviTab::getDataPath() {
+std::filesystem::path AviTab::getAvitabInstallDir() {
     return env->getProgramPath();
 }
 
-std::string AviTab::getFlightPlansPath() {
+std::filesystem::path AviTab::getAvitabDataDir() {
+    return env->getDataRootPath();
+}
+
+std::filesystem::path AviTab::getFlightPlansPath() {
     return env->getFlightPlansPath();
 }
 
-std::string AviTab::getEarthTexturePath() {
-    return env->getEarthTexturePath();
-}
-
-std::string AviTab::getAirplanePath() {
+std::filesystem::path AviTab::getAirplanePath() {
     return env->getAirplanePath();
 }
 
@@ -437,11 +435,11 @@ int AviTab::getWeatherAtLocation(const world::Location &loc, const float &altitu
     return env->getWeatherAtLocation(loc, altitude, weather);
 }
 
-void AviTab::loadUserFixes(std::string filename) {
+void AviTab::loadUserFixes(const std::filesystem::path &filename) {
     env->loadUserFixes(filename);
 }
 
-world::NavNodeList AviTab::loadFlightPlan(const std::string filename) {
+world::NavNodeList AviTab::loadFlightPlan(const std::filesystem::path &filename) {
     return env->loadFlightPlan(filename);
 }
 

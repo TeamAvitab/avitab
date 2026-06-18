@@ -29,7 +29,7 @@ class CIFPParser {
 public:
     using Acceptor = std::function<void(const CIFPData &)>;
 
-    CIFPParser(const std::string &file);
+    CIFPParser(const std::filesystem::path &file);
     void setAcceptor(Acceptor a);
     void loadCIFP();
 

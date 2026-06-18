@@ -29,7 +29,7 @@ class UserFixParser {
 public:
     using Acceptor = std::function<void(const UserFixData &)>;
 
-    UserFixParser(const std::string &file);
+    UserFixParser(const std::filesystem::path &file);
     void setAcceptor(Acceptor a);
     std::string getHeader() const;
     void loadUserFixes();

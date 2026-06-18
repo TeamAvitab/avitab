@@ -30,7 +30,7 @@ namespace maps {
 
 class DocumentSource: public img::TileSource {
 public:
-    DocumentSource(const std::string& file);
+    DocumentSource(const std::filesystem::path& file);
     DocumentSource(const std::vector<uint8_t> &data, const std::string type);
 
     int getMinZoomLevel() override;

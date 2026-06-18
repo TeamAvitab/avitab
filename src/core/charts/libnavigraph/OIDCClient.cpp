@@ -39,9 +39,9 @@ OIDCClient::OIDCClient(const std::string &clientId, const std::string &cryptedCl
     }
 }
 
-void OIDCClient::setCacheDirectory(const std::string& dir) {
-    tokenFile = dir + "/login.avicrypt";
-    if (platform::fileExists(tokenFile)) {
+void OIDCClient::setCacheDirectory(const std::filesystem::path& dir) {
+    tokenFile = dir / "login.avicrypt";
+    if (std::filesystem::exists(tokenFile)) {
         loadTokens();
     }
 }
@@ -206,7 +206,7 @@ std::string OIDCClient::getAccountName() const {
 }
 
 void OIDCClient::logout() {
-    platform::removeFile(tokenFile);
+    std::filesystem::remove(tokenFile);
     accessToken.clear();
     idToken.clear();
     refreshToken.clear();
@@ -270,7 +270,7 @@ void OIDCClient::tryWithRelogin(std::function<void()> f) {
 void OIDCClient::loadTokens() {
     auto key = clientSecret + platform::getMachineID();
 
-    std::ifstream fileStream(std::filesystem::u8path(tokenFile));
+    std::ifstream fileStream(tokenFile);
     std::string line;
     std::getline(fileStream, line);
 
@@ -299,7 +299,7 @@ void OIDCClient::storeTokens() {
         {"id_token", idToken},
     };
 
-    std::ofstream fileStream(std::filesystem::u8path(tokenFile));
+    std::ofstream fileStream(tokenFile);
     fileStream << crypto.aesEncrypt(tokenStream.str(), key);
 }
 

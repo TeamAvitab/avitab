@@ -20,9 +20,9 @@
 namespace avitab {
 
 ChartsApp::ChartsApp(FuncsPtr appFuncs):
-    DocumentsApp(appFuncs, "Charts", "chartsapp", "\\.(pdf|png|jpg|jpeg|bmp)$")
+    DocumentsApp(appFuncs, "Charts", "chartsapp", appFuncs->getAvitabDataDir()/"charts", "\\.(pdf|png|jpg|jpeg|bmp)$")
 {
-    Run(api().getDataPath() + "charts");
+    Run();
 }
 
 } /* namespace avitab */

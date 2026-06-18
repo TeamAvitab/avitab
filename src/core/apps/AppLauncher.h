@@ -50,7 +50,7 @@ private:
     std::shared_ptr<App> activeApp;
 
     template<typename T>
-    void addEntry(const std::string &name, const std::string &icon, AppId id);
+    void addEntry(const std::string &name, const std::filesystem::path &icon, AppId id);
 };
 
 } /* namespace avitab */

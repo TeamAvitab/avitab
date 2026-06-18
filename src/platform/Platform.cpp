@@ -23,6 +23,9 @@
 #   include <unistd.h>
 #   include <uuid/uuid.h>
 #endif
+#if defined(__APPLE__)
+#include <mach-o/dyld.h>
+#endif
 
 #include <locale>
 #include <codecvt>
@@ -33,7 +36,8 @@
 #include <algorithm>
 #include <regex>
 #include <fstream>
-#include <algorithm>
+#include <cstring>
+#include <cassert>
 #include "Platform.h"
 #include "Logger.h"
 
@@ -66,27 +70,6 @@ platform::Platform getPlatform() {
 #endif
 }
 
-#ifdef _WIN32
-int64_t measureTime() {
-    LARGE_INTEGER counter;
-    QueryPerformanceCounter(&counter);
-    return counter.QuadPart;
-}
-
-int getElapsedMillis(int64_t startAt)  {
-    LARGE_INTEGER endAt, frq;
-    QueryPerformanceCounter(&endAt);
-    QueryPerformanceFrequency(&frq);
-
-    int64_t elapsed = endAt.QuadPart - startAt;
-
-    elapsed *= 1000;
-    elapsed /= frq.QuadPart;
-
-    return elapsed;
-}
-
-#else
 std::chrono::time_point<std::chrono::steady_clock> measureTime() {
     return std::chrono::steady_clock::now();
 }
@@ -95,14 +78,13 @@ int getElapsedMillis(std::chrono::time_point<std::chrono::steady_clock> startAt)
     auto endAt = measureTime();
     return std::chrono::duration_cast<std::chrono::milliseconds>(endAt - startAt).count();
 }
-#endif
 
 constexpr size_t getMaxPathLen() {
     return AVITAB_PATH_LEN_MAX;
 }
 
-#ifdef _WIN32
-std::string getProgramPath() {
+#if defined(_WIN32)
+std::filesystem::path getExectuablePath() {
     wchar_t buf[AVITAB_PATH_LEN_MAX];
     DWORD size = AVITAB_PATH_LEN_MAX;
     HANDLE proc = GetCurrentProcess();
@@ -111,35 +93,85 @@ std::string getProgramPath() {
     auto u16str = std::wstring(buf);
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convert;
     auto u8str = convert.to_bytes(buf);
-
-    return getDirNameFromPath(u8str) + "/";
+    auto exe = std::filesystem::path(u8str);
+    return exe.parent_path();
 }
-#else
-std::string getProgramPath() {
-    char buf[AVITAB_PATH_LEN_MAX];
-    if (!getcwd(buf, sizeof(buf))) {
-        throw std::runtime_error("Couldn't get current directory");
+#elif defined(__linux__)
+std::filesystem::path getExectuablePath() {
+    char dest[AVITAB_PATH_LEN_MAX];
+    memset(dest,0,sizeof(dest));
+    if (readlink("/proc/self/exe", dest, AVITAB_PATH_LEN_MAX) == -1) {
+        return getFallbackPath();
     }
-    std::string path = std::string(buf) + "/";
-    return path;
+    auto exe = std::filesystem::u8path(dest);
+    return std::filesystem::canonical(exe.parent_path());
+}
+#elif defined(__APPLE__)
+std::filesystem::path getExectuablePath() {
+    char path[AVITAB_PATH_LEN_MAX];
+    uint32_t size = sizeof(path);
+    if (_NSGetExecutablePath(path, &size) != 0) {
+        return getFallbackPath();
+    }
+    auto exe = std::filesystem::u8path(path);
+    return std::filesystem::canonical(exe.parent_path());
 }
 #endif
 
-#ifdef _WIN32
-std::string UTF8ToACP(const std::string& utf8) {
-    wchar_t buf[AVITAB_PATH_LEN_MAX];
-    char res[AVITAB_PATH_LEN_MAX];
-
-    MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, buf, sizeof(buf));
-    WideCharToMultiByte(CP_ACP, 0, buf, -1, res, sizeof(res), nullptr, nullptr);
-    return res;
+#if defined(_WIN32)
+std::filesystem::path getFallbackPath() {
+    auto h = std::filesystem::path(getenv("USERPROFILE"));
+    if (!std::filesystem::exists(h)) {
+        h = "C:\\";
+    }
+    return h;
 }
 #else
-std::string UTF8ToACP(const std::string& utf8) {
-    return utf8;
+std::filesystem::path getFallbackPath() {
+    auto h = std::filesystem::path(getenv("HOME"));
+    if (!std::filesystem::exists(h)) {
+        h = "/";
+    }
+    return h;
 }
 #endif
 
+std::string pathToDisplayString(const std::filesystem::path &utf8Path) {
+    static const char *hex = "0123456789abcdef";
+    std::string a;
+    auto u8s = utf8Path.u8string();
+    auto i = u8s.begin();
+    while (i != u8s.end()) {
+        auto m = u8s.end() - i;
+        uint32_t c = *i++ & 0xff;
+        if (c < 0x80) {
+            // simple ascii
+            a.push_back(c);
+        } else if (((c & 0xe0) == 0xc0) && (m >= 2)) {
+            // 2-byte sequence
+            i += 1;
+            a.push_back('?');
+        } else if (((c & 0xf0) == 0xe0) && (m >= 3)) {
+            // 3-byte sequence
+            i += 2;
+            a.push_back('?');
+        } else if (((c & 0xf0) == 0xf0) && (m >= 4)) {
+            // 4-byte sequence
+            i += 3;
+            a.push_back('?');
+        } else {
+            // did we lose sync? bit weird, but let's pick it up again
+            while (i != u8s.end()) {
+                if ((*i & 0xc0) != 0x80)
+                    break;
+                ++i;
+            }
+        }
+    }
+    return a;
+}
+
+// This is only used by the TTFStamper for overlaying copyright messages
 std::wstring strToWstr(const std::string& str) {
     size_t size = std::mbstowcs(nullptr, str.c_str(), 0); // Get required size
     std::wstring u16str(size, L'\0'); // Create wstring with required size
@@ -147,17 +179,17 @@ std::wstring strToWstr(const std::string& str) {
     return u16str;
 }
 
-std::vector<DirEntry> readDirectory(const std::string& utf8Path) {
+std::vector<DirEntry> readDirectory(const std::filesystem::path& utf8Path) {
     std::vector<DirEntry> entries;
 
 #ifdef _WIN32
-    // this fragment deals with a notional filesystem root directory which allows
-    // traversal to other drives
-    if (utf8Path == FS_ROOT) {
+    // this fragment supports moving to other drives by adding extra
+    // entries when browsing the current drive's root directory.
+    if (utf8Path == utf8Path.root_path()) {
         auto ldbitmap = GetLogicalDrives();
-        std::string drive("A:");
+        std::string drive("A:\\");
         while (ldbitmap) {
-            if (ldbitmap & 0b1) {
+            if ((ldbitmap & 0b1) && (utf8Path.string() != drive)) {
                 if (GetDiskFreeSpaceExA(drive.c_str(), NULL, NULL, NULL)) {
                     DirEntry entry;
                     entry.utf8Name = drive;
@@ -168,86 +200,23 @@ std::vector<DirEntry> readDirectory(const std::string& utf8Path) {
             ldbitmap >>= 1;
             ++drive[0];
         }
-        return entries; // return list of drives only, no further enumeration
     }
 #endif
-    auto path = std::filesystem::u8path(utf8Path);
-    for (auto &e: std::filesystem::directory_iterator(path)) {
-        std::string name = e.path().filename().string();
+
+    for (auto &e: std::filesystem::directory_iterator(utf8Path)) {
+        auto name = e.path().filename().u8string();
 
         if (name.empty() || name[0] == '.') {
             continue;
         }
 
         DirEntry entry;
-        entry.utf8Name = name;
+        entry.utf8Name = e.path().filename();
         entry.isDirectory = e.is_directory();
         entries.push_back(entry);
     }
 
     return entries;
-}
-
-std::string realPath(const std::string& utf8Path) {
-    auto path = std::filesystem::u8path(utf8Path);
-    return std::filesystem::canonical(path).string();
-}
-
-std::string parentPath(const std::string &utf8Path) {
-    auto path = std::filesystem::u8path(utf8Path);
-    auto here_clean = std::filesystem::canonical(path).string();
-#ifdef _WIN32
-    if (here_clean.back() == '\\') {    // drive root directory
-        return FS_ROOT;    // notional filesystem root containing all drives
-    }
-    auto parent = std::filesystem::u8path(here_clean + "\\..");
-    return std::filesystem::canonical(parent).string() + "\\";
-#else
-    auto parent = std::filesystem::u8path(here_clean + "/..");
-    return std::filesystem::canonical(parent).string() + "/";
-#endif
-}
-
-std::string getFileNameFromPath(const std::string& utf8Path) {
-    auto path = std::filesystem::u8path(utf8Path);
-    if (path.has_filename()) {
-        return path.filename().string();
-    } else {
-        return path.parent_path().filename().string();
-    }
-}
-
-std::string getDirNameFromPath(const std::string& utf8Path) {
-    auto path = std::filesystem::u8path(utf8Path);
-    return path.parent_path().string();
-}
-
-bool fileExists(const std::string& utf8Path) {
-    auto path = std::filesystem::u8path(utf8Path);
-    return std::filesystem::exists(path);
-}
-
-void mkdir(const std::string& utf8Path) {
-    auto path = std::filesystem::u8path(utf8Path);
-    try {
-        std::filesystem::create_directory(path);
-    } catch (const std::exception &e) {
-        LOG_ERROR("%s", e.what());
-    }
-}
-
-void mkpath(const std::string& utf8Path) {
-    auto path = std::filesystem::u8path(utf8Path);
-    try {
-        std::filesystem::create_directories(path);
-    } catch (const std::exception &e) {
-        LOG_ERROR("%s", e.what());
-    }
-}
-
-void removeFile(const std::string& utf8Path) {
-    auto path = std::filesystem::u8path(utf8Path);
-    std::filesystem::remove(path);
 }
 
 std::string getLocalTime(const std::string &format) {
@@ -338,6 +307,11 @@ std::string getMachineID() {
     DWORD bufSiz = sizeof(buf);
     RegGetValueA(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Cryptography", "MachineGuid", RRF_RT_REG_SZ, nullptr, buf, &bufSiz);
     return std::string(buf);
+#elif defined(__linux__)
+    std::ifstream idStream("/var/lib/dbus/machine-id");
+    std::string id;
+    idStream >> id;
+    return id;
 #elif defined(__APPLE__)
     uuid_t id;
     timespec wait;
@@ -347,11 +321,6 @@ std::string getMachineID() {
     char buf[48];
     uuid_unparse(id, buf);
     return std::string(buf);
-#else
-    std::ifstream idStream("/var/lib/dbus/machine-id");
-    std::string id;
-    idStream >> id;
-    return id;
 #endif
 }
 

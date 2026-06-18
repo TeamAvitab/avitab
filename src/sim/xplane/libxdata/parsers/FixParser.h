@@ -28,7 +28,7 @@ class FixParser {
 public:
     using Acceptor = std::function<void(const FixData &)>;
 
-    FixParser(const std::string &file);
+    FixParser(const std::filesystem::path &file);
     void setAcceptor(Acceptor a);
     std::string getHeader() const;
     void loadFixes();

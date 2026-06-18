@@ -28,7 +28,7 @@ struct UserFixData;
 class UserFixLoader {
 public:
     UserFixLoader(std::shared_ptr<LoadManager> mgr);
-    void load(const std::string &file);
+    void load(const std::filesystem::path &file);
 private:
     std::shared_ptr<LoadManager> const loadMgr;
     std::shared_ptr<World> world;

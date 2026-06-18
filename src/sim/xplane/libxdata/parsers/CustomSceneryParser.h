@@ -27,7 +27,7 @@ class CustomSceneryParser {
 public:
     using Acceptor = std::function<void(const std::string &)>;
 
-    CustomSceneryParser(const std::string &file);
+    CustomSceneryParser(const std::filesystem::path &file);
     void setAcceptor(Acceptor a);
     void loadCustomScenery();
 private:

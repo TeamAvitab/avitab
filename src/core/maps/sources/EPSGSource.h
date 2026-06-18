@@ -25,7 +25,7 @@ namespace maps {
 
 class EPSGSource: public img::TileSource {
 public:
-    EPSGSource(const std::string &tilePathUTF8);
+    EPSGSource(const std::filesystem::path &tilePathUTF8);
 
     // Basic information
     int getMinZoomLevel() override;
@@ -54,7 +54,7 @@ public:
 private:
     int minLevel = std::numeric_limits<int>::max();
     int maxLevel = std::numeric_limits<int>::min();
-    std::string tilePath;
+    std::filesystem::path tilePath;
 };
 
 } /* namespace maps */

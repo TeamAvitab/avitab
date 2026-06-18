@@ -28,7 +28,7 @@ class FMSParser {
 public:
     using Acceptor = std::function<void(const FlightPlanNodeData &)>;
 
-    FMSParser(const std::string &fmsFilename);
+    FMSParser(const std::filesystem::path &fmsFilename);
     void setAcceptor(Acceptor a);
     std::string getHeader() const;
     void loadFMS();

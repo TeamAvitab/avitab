@@ -30,7 +30,7 @@ FMSLoader::FMSLoader(std::shared_ptr<World> worldPtr):
     region = std::make_shared<world::Region>("ROUTE");
 }
 
-NavNodeList FMSLoader::load(const std::string &fmsFilename) {
+NavNodeList FMSLoader::load(const std::filesystem::path &fmsFilename) {
     logger::info("Loading %s", fmsFilename.c_str());
     FMSParser parser(fmsFilename);
     nodes.clear();

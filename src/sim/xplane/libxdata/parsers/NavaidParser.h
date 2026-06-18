@@ -28,7 +28,7 @@ class NavaidParser {
 public:
     using Acceptor = std::function<void(const NavaidData &)>;
 
-    NavaidParser(const std::string &file);
+    NavaidParser(const std::filesystem::path &file);
     void setAcceptor(Acceptor a);
     std::string getHeader() const;
     void loadNavaids();

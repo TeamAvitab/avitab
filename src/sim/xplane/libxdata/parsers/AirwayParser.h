@@ -28,7 +28,7 @@ class AirwayParser {
 public:
     using Acceptor = std::function<void(const AirwayData &)>;
 
-    AirwayParser(const std::string &file);
+    AirwayParser(const std::filesystem::path &file);
     void setAcceptor(Acceptor a);
     std::string getHeader() const;
     void loadAirways();

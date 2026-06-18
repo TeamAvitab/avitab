@@ -35,10 +35,10 @@ ChartFoxOAuth2Client::ChartFoxOAuth2Client(const std::string &ci)
     server.setAuthCallback([this] (const std::string &reply) { onAuthReply(reply); });
 }
 
-void ChartFoxOAuth2Client::setCacheDirectory(const std::string& dir)
+void ChartFoxOAuth2Client::setCacheDirectory(const std::filesystem::path& dir)
 {
-    tokenFile = dir + "/login.avicrypt";
-    if (platform::fileExists(tokenFile)) {
+    tokenFile = dir / "login.avicrypt";
+    if (std::filesystem::exists(tokenFile)) {
         loadTokens();
     }
 }
@@ -146,7 +146,7 @@ void ChartFoxOAuth2Client::cancelAuth()
 
 void ChartFoxOAuth2Client::logout()
 {
-    platform::removeFile(tokenFile);
+    std::filesystem::remove(tokenFile);
     accessToken.clear();
     refreshToken.clear();
 }
@@ -215,7 +215,7 @@ void ChartFoxOAuth2Client::loadTokens()
 {
     auto key = clientId + platform::getMachineID();
 
-    std::ifstream fileStream(std::filesystem::u8path(tokenFile));
+    std::ifstream fileStream(tokenFile);
     std::string line;
     std::getline(fileStream, line);
 
@@ -242,7 +242,7 @@ void ChartFoxOAuth2Client::storeTokens()
         {"refresh_token", refreshToken}
     };
 
-    std::ofstream fileStream(std::filesystem::u8path(tokenFile));
+    std::ofstream fileStream(tokenFile);
     fileStream << crypto.aesEncrypt(tokenStream.str(), key);
 }
 

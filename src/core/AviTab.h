@@ -55,10 +55,10 @@ public:
     void setBrightness(float brightness) override;
     float getBrightness() override;
     void executeLater(std::function<void()> func) override;
-    std::string getDataPath() override;
-    std::string getEarthTexturePath() override;
-    std::string getAirplanePath() override;
-    std::string getFlightPlansPath() override;
+    std::filesystem::path getAvitabInstallDir() override;
+    std::filesystem::path getAvitabDataDir() override;
+    std::filesystem::path getAirplanePath() override;
+    std::filesystem::path getFlightPlansPath() override;
     std::shared_ptr<Container> createGUIContainer() override;
     void showGUIContainer(std::shared_ptr<Container> container) override;
     void onHomeButton() override;
@@ -68,8 +68,8 @@ public:
     std::string getMETARForAirport(const std::string &icao) override;
     int getWeatherAtLocation(const world::Location &loc, const float &altitude, std::string &weather) override;
     std::string getNearestAirportId() override;
-    void loadUserFixes(std::string filename) override;
-    world::NavNodeList loadFlightPlan(const std::string filename) override;
+    void loadUserFixes(const std::filesystem::path &filename) override;
+    world::NavNodeList loadFlightPlan(const std::filesystem::path &filename) override;
     void close() override;
     void setIsInMenu(bool inMenu) override;
     std::shared_ptr<apis::ChartService> getChartService() override;

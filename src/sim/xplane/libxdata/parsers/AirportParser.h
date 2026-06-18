@@ -28,7 +28,7 @@ class AirportParser {
 public:
     using Acceptor = std::function<void(const AirportData &)>;
 
-    AirportParser(const std::string &file);
+    AirportParser(const std::filesystem::path &file);
     void setAcceptor(Acceptor a);
     std::string getHeader() const;
     void loadAirports();

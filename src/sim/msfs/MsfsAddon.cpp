@@ -31,7 +31,7 @@ int main() {
         auto env = std::make_shared<avitab::MsfsAddonEnvironment>();
         env->loadConfig();
         logger::setStdOut(env->getConfig()->getBool("/AviTab/logToStdOut"));
-        logger::init(env->getProgramPath());
+        logger::init(env->getDataRootPath());
         logger::verbose("Main thread has id %d", std::this_thread::get_id());
         env->loadSettings();
 

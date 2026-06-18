@@ -19,7 +19,7 @@
 
 namespace xdata {
 
-CIFPParser::CIFPParser(const std::string& file):
+CIFPParser::CIFPParser(const std::filesystem::path& file):
     parser(file)
 {
 }

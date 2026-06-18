@@ -28,7 +28,7 @@ namespace img {
 
 class Rasterizer {
 public:
-    Rasterizer(const std::string &utf8Path);
+    Rasterizer(const std::filesystem::path &utf8Path);
     Rasterizer(const std::vector<uint8_t> &data, const std::string type);
 
     int getTileSize();
@@ -55,7 +55,7 @@ private:
     fz_display_list *currentPageList {};
 
     void initFitz();
-    void loadFile(const std::string &file);
+    void loadFile(const std::filesystem::path &file);
     void loadMemory(const std::vector<uint8_t> &data, const std::string type);
     void loadDocument();
     void loadPage(int page);

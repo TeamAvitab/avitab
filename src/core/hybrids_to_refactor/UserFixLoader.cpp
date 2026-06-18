@@ -31,7 +31,7 @@ UserFixLoader::UserFixLoader(std::shared_ptr<LoadManager> mgr):
     world->addRegion(USER_REGION);
 }
 
-void UserFixLoader::load(const std::string& file) {
+void UserFixLoader::load(const std::filesystem::path& file) {
     UserFixParser parser(file);
     parser.setAcceptor([this] (const UserFixData &data) {
         try {

@@ -24,7 +24,7 @@
 
 namespace maps {
 
-LocalFileSource::LocalFileSource(const std::string& file, std::shared_ptr<apis::ChartService> chartService)
+LocalFileSource::LocalFileSource(const std::filesystem::path& file, std::shared_ptr<apis::ChartService> chartService)
 :   DocumentSource(file),
     utf8FileName(file),
     chartService(chartService)
@@ -35,7 +35,7 @@ LocalFileSource::LocalFileSource(const std::string& file, std::shared_ptr<apis::
         logger::info("No calibration: %s", e.what());
     }
 }
-LocalFileSource::LocalFileSource(const std::string& file, std::string calibrationMetadata)
+LocalFileSource::LocalFileSource(const std::filesystem::path& file, std::string calibrationMetadata)
 :   DocumentSource(file),
     utf8FileName(file)
 {
@@ -82,8 +82,8 @@ void LocalFileSource::attachCalibration3Angle(double angle)
 
 void LocalFileSource::findAndLoadCalibration() {
     // Try a co-located name-matched json file for calibration
-    std::string calFileName = utf8FileName + ".json";
-    std::ifstream jsonFile(std::filesystem::u8path(calFileName));
+    auto calFileName = utf8FileName /".json";
+    std::ifstream jsonFile(calFileName);
 
     if (jsonFile.good()) {
         logger::info("Loaded co-located json calibration file for %s", utf8FileName.c_str());
@@ -92,8 +92,8 @@ void LocalFileSource::findAndLoadCalibration() {
         calibration.fromJsonString(jsonStr, rasterizer.getAspectRatio(0));
     } else {
         // Try a co-located name-matched Google Earth KML file for calibration
-        std::string kmlFileName = utf8FileName + ".kml";
-        std::ifstream kmlFile(std::filesystem::u8path(kmlFileName));
+        auto kmlFileName = utf8FileName /".kml";
+        std::ifstream kmlFile(kmlFileName);
         if (kmlFile.good()) {
             logger::info("Loaded co-located kml calibration file for %s", utf8FileName.c_str());
             std::string kmlStr((std::istreambuf_iterator<char>(kmlFile)),
@@ -128,8 +128,8 @@ void LocalFileSource::storeCalibration() {
     }
     try {
         calibration.setHash(crypto.getFileSha256(utf8FileName));
-        std::string calFileName = utf8FileName + ".json";
-        std::ofstream jsonFile(std::filesystem::u8path(calFileName));
+        auto calFileName = utf8FileName /".json";
+        std::ofstream jsonFile(calFileName);
         jsonFile << calibration.toString();
     } catch (const std::exception &e) {
         logger::warn("Couldn't store calibration: %s", e.what());

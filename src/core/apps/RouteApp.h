@@ -74,8 +74,8 @@ private:
     std::string toDetailedRouteDescription();
 
     void selectFlightPlanFile();
-    std::string getFMSTextFromFile(const std::string &fmsFilename);
-    void parseFMS(const std::string &fmsFilename);
+    std::string getFMSTextFromFile(const std::filesystem::path &fmsFilename);
+    void parseFMS(const std::filesystem::path &fmsFilename);
 };
 
 } /* namespace avitab */

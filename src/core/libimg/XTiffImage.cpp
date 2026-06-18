@@ -31,11 +31,10 @@ namespace {
 
 namespace img {
 
-void XTiffImage::loadTIFF(const std::string& utf8Path) {
+void XTiffImage::loadTIFF(const std::filesystem::path& utf8Path) {
     TIFFSetWarningHandler(onTiffWarning);
     TIFFSetErrorHandler(onTiffError);
-    auto path = platform::UTF8ToACP(utf8Path);
-    tif = XTIFFOpen(path.c_str(), "r");
+    tif = XTIFFOpen(utf8Path.u8string().c_str(), "r");
 
     if (!tif) {
         throw std::runtime_error("Couldn't open TIFF");

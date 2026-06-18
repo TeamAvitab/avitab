@@ -23,7 +23,7 @@
 
 namespace world {
 
-UserFixParser::UserFixParser(const std::string& file):
+UserFixParser::UserFixParser(const std::filesystem::path& file):
     parser(file)
 {
 }

@@ -35,7 +35,7 @@ Stitcher::Stitcher(std::shared_ptr<Image> dstImage, std::shared_ptr<TileSource> 
     unrotatedImage = std::make_shared<Image>(max, max, 0);
 }
 
-void Stitcher::setCacheDirectory(const std::string& utf8Path) {
+void Stitcher::setCacheDirectory(const std::filesystem::path& utf8Path) {
     tileCache.setCacheDirectory(utf8Path);
 }
 

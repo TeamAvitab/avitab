@@ -84,10 +84,10 @@ void OverlayedMap::setGetRouteCallback(GetRouteCallback cb) {
     getRoute = cb;
 }
 
-void OverlayedMap::loadOverlayIcons(const std::string& path) {
+void OverlayedMap::loadOverlayIcons(const std::filesystem::path& path) {
     std::string planeIconName = "if_icon-plane_211875.png";
     try {
-        planeIcon.loadImageFile(path + planeIconName);
+        planeIcon.loadImageFile(path / planeIconName);
     } catch (const std::exception &e) {
         logger::warn("Couldn't load icon %s: %s", planeIconName.c_str(), e.what());
     }

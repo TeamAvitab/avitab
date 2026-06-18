@@ -26,7 +26,7 @@ namespace sqlnav {
 
 class SqlLoadManager : public world::LoadManager {
 public:
-    SqlLoadManager(std::string dbdir);
+    SqlLoadManager(std::filesystem::path dbdir);
     void init_or_throw(std::function<bool(const std::string simCode)> fn);
 
     virtual ~SqlLoadManager();

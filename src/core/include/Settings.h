@@ -28,7 +28,7 @@ namespace avitab {
 
 class Settings {
 public:
-    Settings(const std::string &settingsFile);
+    Settings(const std::filesystem::path &settingsFile);
     ~Settings();
 
     template<typename T>
@@ -59,7 +59,7 @@ private:
     void save();
 
 private:
-    const std::string filePath;
+    const std::filesystem::path filePath;
     std::shared_ptr<nlohmann::json> database;
     std::shared_ptr<maps::OverlayConfig> overlayConfig;
     std::shared_ptr<avitab::AirportConfig> airportConfig;

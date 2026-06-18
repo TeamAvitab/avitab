@@ -33,7 +33,7 @@ class ChartService {
 public:
     using ChartList = std::vector<std::shared_ptr<Chart>>;
 
-    ChartService(const std::string &programPath);
+    ChartService(const std::filesystem::path &programPath);
     ~ChartService();
 
     // synchronous calls
@@ -53,7 +53,7 @@ public:
     std::shared_ptr<chartfox::ChartFoxAPI> getChartFox();
     void submitCall(std::shared_ptr<BaseCall> call);
 
-    std::string getCalibrationMetadataForFile(std::string utf8ChartFileName) const;
+    std::string getCalibrationMetadataForFile(std::filesystem::path utf8ChartFileName) const;
     std::string getCalibrationMetadataForHash(std::string hash) const;
 
 private:
@@ -72,9 +72,9 @@ private:
     std::vector<std::shared_ptr<BaseCall>> pendingCalls;
 
     Crypto crypto;
-    std::map<std::string, std::string> jsonFileHashes;
+    std::map<std::string, std::filesystem::path> jsonFileHashes;
 
-    void scanJsonFiles(std::string dir);
+    void scanJsonFiles(std::filesystem::path dir);
 
     bool hasWork();
     void workLoop();

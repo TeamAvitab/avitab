@@ -18,6 +18,7 @@
 #pragma once
 
 #include "World.h"
+#include <filesystem>
 #include <memory>
 #include <atomic>
 
@@ -30,10 +31,10 @@ public:
     virtual void discoverSceneries() = 0;
     virtual void load() = 0;
 
-    virtual NavNodeList loadFlightPlan(const std::string filename);
+    virtual NavNodeList loadFlightPlan(const std::filesystem::path filename);
 
-    void setUserFixesFilename(std::string &filename);
-    void loadUserFixes(std::string &filename);
+    void setUserFixesFilename(const std::filesystem::path &filename);
+    void loadUserFixes(const std::filesystem::path &filename);
 
     void cancelLoading();
     bool shouldCancelLoading() const;
@@ -43,7 +44,7 @@ protected:
 
 protected:
     std::atomic_bool loadCancelled { false };
-    std::string userFixesFilename;
+    std::filesystem::path userFixesFilename;
 
 };
 

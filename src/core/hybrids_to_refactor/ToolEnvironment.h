@@ -36,16 +36,16 @@ public:
     void destroyMenu() override;
     void createCommand(const std::string &name, const std::string &desc, CommandCallback cb) override;
     void destroyCommands() override;
-    std::string getAirplanePath() override;
+    std::filesystem::path getAirplanePath() override;
 
     // Can be called from any thread
-    std::string getProgramPath() override;
-    std::string getSettingsDir() override;
-    std::string getFontDirectory() override;
-    std::string getEarthTexturePath() override;
+    std::filesystem::path getProgramPath() override;
+    std::filesystem::path getDataRootPath() override;
+    std::filesystem::path getSettingsDir() override;
+    std::filesystem::path getFontDirectory() override;
 
 private:
-    std::string ourPath;
+    std::filesystem::path ourPath;
 
 };
 

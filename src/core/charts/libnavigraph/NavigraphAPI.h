@@ -37,7 +37,7 @@ class NavigraphAPI {
 public:
     using ChartsList = std::vector<std::shared_ptr<apis::Chart>>;
 
-    NavigraphAPI(const std::string &cacheDirectory);
+    NavigraphAPI(const std::filesystem::path &cacheDirectory);
     virtual ~NavigraphAPI() = default;
 
     bool init();
@@ -56,7 +56,7 @@ public:
     std::unique_ptr<img::Image> getTileFromURL(const std::string &url, bool &cancel);
 
 private:
-    std::string cacheDirectory;
+    std::filesystem::path cacheDirectory;
     std::shared_ptr<OIDCClient> oidc;
     std::shared_ptr<nlohmann::json> airportJson;
     img::TTFStamper stamper;

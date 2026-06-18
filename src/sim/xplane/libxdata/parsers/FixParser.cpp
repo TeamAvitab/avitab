@@ -19,7 +19,7 @@
 
 namespace xdata {
 
-FixParser::FixParser(const std::string& file):
+FixParser::FixParser(const std::filesystem::path& file):
     parser(file)
 {
     header = parser.parseHeader();
