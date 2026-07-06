@@ -82,7 +82,7 @@ void LocalFileSource::attachCalibration3Angle(double angle)
 
 void LocalFileSource::findAndLoadCalibration() {
     // Try a co-located name-matched json file for calibration
-    auto calFileName = utf8FileName /".json";
+    auto calFileName = makeCalibrationMetafileName("json");
     std::ifstream jsonFile(calFileName);
 
     if (jsonFile.good()) {
@@ -92,7 +92,7 @@ void LocalFileSource::findAndLoadCalibration() {
         calibration.fromJsonString(jsonStr, rasterizer.getAspectRatio(0));
     } else {
         // Try a co-located name-matched Google Earth KML file for calibration
-        auto kmlFileName = utf8FileName /".kml";
+        auto kmlFileName = makeCalibrationMetafileName("kml");
         std::ifstream kmlFile(kmlFileName);
         if (kmlFile.good()) {
             logger::info("Loaded co-located kml calibration file for %s", utf8FileName.c_str());
@@ -128,12 +128,19 @@ void LocalFileSource::storeCalibration() {
     }
     try {
         calibration.setHash(crypto.getFileSha256(utf8FileName));
-        auto calFileName = utf8FileName /".json";
+        auto calFileName = makeCalibrationMetafileName("json");
         std::ofstream jsonFile(calFileName);
         jsonFile << calibration.toString();
     } catch (const std::exception &e) {
         logger::warn("Couldn't store calibration: %s", e.what());
     }
+}
+
+std::filesystem::path LocalFileSource::makeCalibrationMetafileName(const std::string &ext) {
+    auto d = utf8FileName;
+    d.remove_filename();
+    auto f = utf8FileName.filename().u8string() + "." + ext;
+    return d / std::filesystem::u8path(f);
 }
 
 }

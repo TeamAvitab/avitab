@@ -18,6 +18,7 @@
 #pragma once
 
 #include "DocumentSource.h"
+#include <filesystem>
 #include <string>
 
 namespace maps {
@@ -35,6 +36,7 @@ public:
 private:
     void findAndLoadCalibration();
     void storeCalibration();
+    std::filesystem::path makeCalibrationMetafileName(const std::string &ext);
 
 private:
     std::filesystem::path utf8FileName;
