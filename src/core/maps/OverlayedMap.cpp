@@ -602,12 +602,7 @@ int OverlayedMap::getMaxZoomLevel() const {
 }
 
 double OverlayedMap::getNorthOffset() const {
-    auto noa = tileSource->getNorthOffsetAngle();
-    if (noa != 0.0) {
-        logger::warn("Current map tile is not north-oriented. That's not supported! What you see will be wrong.");
-        assert(0); // barf when debugging
-    }
-    return 0.0;
+    return tileSource->getNorthOffsetAngle();
 }
 
 bool OverlayedMap::isCalibrated() const {
