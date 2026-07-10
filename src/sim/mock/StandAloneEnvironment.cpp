@@ -27,7 +27,7 @@ StandAloneEnvironment::StandAloneEnvironment() : ToolEnvironment() {
 void StandAloneEnvironment::eventLoop() {
     while (driver->handleEvents()) {
         runEnvironmentCallbacks();
-        setLastFrameTime(driver->getLastDrawTime() / 1000.0);
+        reportFrameDuration(driver->getLastDrawTime());
     }
     driver.reset();
 }

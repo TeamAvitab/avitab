@@ -135,12 +135,14 @@ void HeaderApp::onClockClick(int x, int y, bool press, bool release) {
 bool HeaderApp::onTick() {
     ++clickTimer;
     if (--clockUpdateAlarm <= 0) {
-        updateClock();
+        updateClock(); // when the minutes change (or per second for the stopwatch)
     }
     if (!(clickTimer % TIMER_TICKS_PER_SEC)) {
-        updateNav();
+        updateNav(); // every second
     }
-    updateFPS();
+    if (!(clickTimer % (TIMER_TICKS_PER_SEC / 2))) {
+        updateFPS(); // every half-second
+    }
     return true;
 }
 
@@ -203,41 +205,10 @@ void HeaderApp::updateNav() {
 }
 
 void HeaderApp::updateFPS() {
-    float lastFramePeriod = api().getLastFrameTime();
-
-    if (lastFramePeriod > 0) {
-        pushFPSValue(1 / lastFramePeriod);
-    }
-
-    if (fpsRingCursor % 10 == 0) {
-        float avgFps = getAverageFPS();
-        if (avgFps > 0) {
-            fpsLabel->setTextFormatted("%.0f FPS", avgFps);
-            fpsLabel->alignRightOf(settingsButton);
-        }
-    }
-}
-
-void HeaderApp::pushFPSValue(float fps) {
-    fpsRingBuffer[fpsRingCursor++] = fps;
-    fpsRingCursor %= fpsRingBuffer.size();
-}
-
-float HeaderApp::getAverageFPS() {
-    float fpsSum = 0;
-    size_t count = 0;
-
-    std::for_each(std::begin(fpsRingBuffer), std::end(fpsRingBuffer), [&fpsSum, &count] (float f) {
-        if (f > 0 && f < 1000) {
-            fpsSum += f;
-            count++;
-        }
-    });
-
-    if (count > 0) {
-        return fpsSum / count;
-    } else {
-        return 0;
+    auto avgFps = api().getFramesPerSecond();
+    if (avgFps > 0) {
+        fpsLabel->setTextFormatted("%u FPS", avgFps);
+        fpsLabel->alignRightOf(settingsButton);
     }
 }
 

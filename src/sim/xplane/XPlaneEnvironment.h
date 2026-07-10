@@ -109,7 +109,6 @@ private:
     float mapVerticalRange { 0.0f };
     unsigned int zuluTimeSecs;
     unsigned int localTimeSecs;
-    std::atomic<float> lastFrameTime {};
 
 private:
     std::vector<MenuCallback> menuCallbacks;
