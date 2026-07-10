@@ -64,9 +64,6 @@ private:
     int curClockMode = REAL_WORLD_TIME_LOCAL;
 
     bool showFps = true;
-    std::array<float, 30> fpsRingBuffer{};
-    int fpsRingCursor = 0;
-
     void onScreenResize(int width, int height) override;
 
     void createSettingsContainer();
@@ -79,8 +76,6 @@ private:
     void updateClock();
     void updateNav();
     void updateFPS();
-    void pushFPSValue(float fps);
-    float getAverageFPS();
 };
 
 } /* namespace avitab */

@@ -288,7 +288,7 @@ float XPlaneEnvironment::onFlightLoop(float elapsedSinceLastCall, float elapseSi
         localTimeSecs = static_cast<unsigned int>(dataCache.getData("sim/time/local_time_sec").floatValue);
     }
 
-    lastFrameTime = dataCache.getData("sim/operation/misc/frame_rate_period").floatValue;
+    reportFrameDuration(dataCache.getData("sim/operation/misc/frame_rate_period").floatValue * 1000);
 
     runEnvironmentCallbacks();
     return -1;

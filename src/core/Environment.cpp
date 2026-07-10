@@ -42,12 +42,6 @@ std::shared_ptr<Settings> Environment::getSettings() {
     return settings;
 }
 
-void Environment::setLastFrameTime(float t) {
-    lastFrameTime = t;
-}
-
-float Environment::getLastFrameTime() { return lastFrameTime; }
-
 void Environment::resumeEnvironmentJobs() {
     std::lock_guard<std::mutex> lock(envMutex);
     stopped = false;
@@ -78,6 +72,24 @@ void Environment::pauseEnvironmentJobs() {
         cb();
     }
     envCallbacks.clear();
+}
+
+unsigned int Environment::getFramesPerSecond() {
+    unsigned t = 0;
+    {
+        std::lock_guard<std::mutex> lock(envMutex);
+        for (auto i: frameDurations) {
+            if (i == 0) return 0; // no report until ring buffer has been filled
+            t += i;
+        }
+    }
+    return (RING_BUFFER_SIZE * 1000) / t;
+}
+
+void Environment::reportFrameDuration(unsigned int tMs) {
+    std::lock_guard<std::mutex> lock(envMutex);
+    frameDurations[nextSlot++] = tMs;
+    nextSlot %= RING_BUFFER_SIZE;
 }
 
 }

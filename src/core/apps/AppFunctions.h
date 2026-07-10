@@ -68,7 +68,7 @@ public:
     virtual std::shared_ptr<apis::ChartService> getChartService() = 0;
     virtual unsigned int getActiveAircraftCount() = 0;
     virtual world::Position getAircraftPosition(AircraftID id) = 0;
-    virtual float getLastFrameTime() = 0;
+    virtual unsigned int getFramesPerSecond() = 0;
     virtual unsigned int getZuluTimeSeconds() = 0;
     virtual unsigned int getLocalTimeSeconds() = 0;
     virtual std::shared_ptr<Settings> getSettings() = 0;

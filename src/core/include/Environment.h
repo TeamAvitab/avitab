@@ -21,6 +21,7 @@
 #include <string>
 #include <functional>
 #include <mutex>
+#include <array>
 #include <vector>
 #include <future>
 #include <atomic>
@@ -118,15 +119,13 @@ public:
     virtual unsigned int getZuluTimeSeconds() = 0;
     virtual unsigned int getLocalTimeSeconds() = 0;
 
+    unsigned int getFramesPerSecond();
 
     virtual ~Environment() = default;
 
-public:
-    float getLastFrameTime();
-
 protected:
     void runEnvironmentCallbacks();
-    void setLastFrameTime(float t);
+    void reportFrameDuration(unsigned int tMs);
 
 private:
     std::shared_ptr<JsonConfig> config;
@@ -134,7 +133,10 @@ private:
     std::mutex envMutex;
     std::vector<EnvironmentCallback> envCallbacks;
     bool stopped = false;
-    std::atomic<float> lastFrameTime {};
+
+    static constexpr size_t RING_BUFFER_SIZE = 20;
+    std::array<unsigned int, RING_BUFFER_SIZE> frameDurations = {};
+    size_t nextSlot = 0;
 };
 
 } /* namespace avitab */

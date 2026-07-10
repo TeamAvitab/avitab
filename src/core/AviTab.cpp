@@ -82,7 +82,7 @@ public:
     std::shared_ptr<apis::ChartService> getChartService() override;
     AircraftID getActiveAircraftCount() override;
     world::Position getAircraftPosition(AircraftID id) override;
-    float getLastFrameTime() override;
+    unsigned int getFramesPerSecond() override;
     std::shared_ptr<Settings> getSettings() override;
     std::shared_ptr<navdb::Route> getRoute() override;
     void setRoute(std::shared_ptr<navdb::Route> route) override;
@@ -550,8 +550,8 @@ world::Position AviTab::getAircraftPosition(AircraftID id) {
     return env->getAircraftPosition(id);
 }
 
-float AviTab::getLastFrameTime() {
-    return env->getLastFrameTime();
+unsigned int AviTab::getFramesPerSecond() {
+    return env->getFramesPerSecond();
 }
 
 unsigned int AviTab::getZuluTimeSeconds() {
