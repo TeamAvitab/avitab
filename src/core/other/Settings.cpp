@@ -43,7 +43,11 @@ Settings::Settings(const std::filesystem::path & settingsFile)
     database = std::make_shared<json>();
     init();
     load();
-
+    initMissing();
+    
+	logger::verbose("Preferences json :");
+	logger::verbose("%s", database->dump(4).c_str());
+	
     // Handle older json databases which have since been updated.
     // The version number is only changed if a setting has been moved, renamed, or removed.
     // Adding new settings generally does not require a version number increment.
@@ -259,6 +263,17 @@ void Settings::upgrade1to2() {
 void Settings::upgrade2to3() {
     (*database)["airports"]["sort"] = true;
     (*database)["airports"]["sort_ascending"] = true;
+}
+
+void Settings::initMissing() {
+	// Initialise "missing" settings, added to code since last prefs version update
+	// But they don't need a new prefs version, just set to a default if they're not there
+	
+	if (!database->contains("/general/remote_georefs_url"_json_pointer)) {
+		// Use latest checked in version, but from Github Pages to allow higher rate limit
+		std::string URL = "https://teamavitab.github.io/avitab_georefs/georefs/TeamAvitabGeorefs.zip";
+		setGeneralSetting<std::string>("remote_georefs_url", URL);
+	}
 }
 
 void Settings::saveAll() {

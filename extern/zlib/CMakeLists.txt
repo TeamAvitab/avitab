@@ -8,10 +8,15 @@ add_subdirectory("${AVITAB_zlib_SOURCE_DIR}" "${AVITAB_zlib_BINARY_DIR}" EXCLUDE
 add_library(ZLIB::ZLIB ALIAS zlibstatic)
 add_library(zlibs ALIAS zlibstatic)
 
+target_sources(zlibstatic PRIVATE
+    "${AVITAB_zlib_SOURCE_DIR}/contrib/minizip/ioapi.c"
+    "${AVITAB_zlib_SOURCE_DIR}/contrib/minizip/unzip.c"
+)
+
 # These settings influence findPackage into detecting Avitab's version of ZLib.
 # The name zlibs also avoids a clash in VS's generator.
 set(ZLIB_USE_STATIC_LIBS ON CACHE INTERNAL "")
-set(ZLIB_INCLUDE_DIR "${AVITAB_zlib_SOURCE_DIR}" "${AVITAB_zlib_BINARY_DIR}" CACHE INTERNAL "")
+set(ZLIB_INCLUDE_DIR "${AVITAB_zlib_SOURCE_DIR}" "${AVITAB_zlib_SOURCE_DIR}/contrib/minizip" "${AVITAB_zlib_BINARY_DIR}" CACHE INTERNAL "")
 if(MSVC)
     set(ZLIB_LIBRARY "${AVITAB_LIBS3RD_DIR}/zlibs.lib" CACHE INTERNAL "")
 else()
@@ -21,3 +26,4 @@ endif()
 # Cache settings to be used when AVITAB_FORCE_BUILD_THIRDPARTY is OFF
 set(AVITAB_zlib_PKGLIBS zlibs CACHE INTERNAL "")
 set(AVITAB_zlibs_LOCATION "${ZLIB_LIBRARY}" CACHE INTERNAL "")
+set(AVITAB_zlibs_INCDIRS "${AVITAB_zlib_SOURCE_DIR}" "${AVITAB_zlib_BINARY_DIR}" CACHE INTERNAL "")

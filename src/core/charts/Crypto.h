@@ -31,6 +31,7 @@ public:
     Crypto();
     std::vector<uint8_t> sha256(const std::string &in) const;
     std::string sha256String(const std::string& in) const;
+    std::string sha256String(const std::vector<uint8_t>) const;
     std::vector<uint8_t> generateRandom(size_t len);
     std::string urlEncode(const std::string &in);
     std::string base64URLEncode(const std::vector<uint8_t> &in);

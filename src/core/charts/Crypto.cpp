@@ -78,6 +78,11 @@ std::string Crypto::sha256String(const std::string& in) const {
     return buffer.str();
 }
 
+std::string Crypto::sha256String(const std::vector<uint8_t> in) const {
+    std::string s = std::string((char *)in.data(), in.size());
+    return sha256String(s);
+}
+
 std::string Crypto::urlEncode(const std::string& in) {
     char *escaped = curl_escape(in.c_str(), 0);
     std::string res = escaped;
@@ -204,7 +209,7 @@ std::string Crypto::aesDecrypt(const std::string& in, const std::string& key) {
 std::string Crypto::getFileSha256(const std::filesystem::path &utf8Path) const {
     std::ifstream ifs (utf8Path, std::ios::in|std::ios::binary|std::ios::ate);
     if (!ifs.is_open()) {
-        LOG_ERROR("Unable to open file '%s'", utf8Path.c_str());
+        LOG_ERROR("Unable to open file '%s'", utf8Path.u8string().c_str());
         return "No file !";
     }
 

@@ -26,6 +26,7 @@
 #include "charts/navigraph/NavigraphAPI.h"
 #include "charts/chartfox/ChartFoxAPI.h"
 #include "charts/Crypto.h"
+#include "maps/Downloader.h"
 
 namespace apis {
 
@@ -33,7 +34,7 @@ class ChartService {
 public:
     using ChartList = std::vector<std::shared_ptr<Chart>>;
 
-    ChartService(const std::filesystem::path &programPath);
+    ChartService(const std::filesystem::path &programPath, const std::string remote_georefs_url);
     ~ChartService();
 
     // synchronous calls
@@ -72,7 +73,15 @@ private:
     std::vector<std::shared_ptr<BaseCall>> pendingCalls;
 
     Crypto crypto;
+    maps::Downloader downloader;
     std::map<std::string, std::filesystem::path> jsonFileHashes;
+
+    void loadTeamAvitabGeorefs(const std::filesystem::path &calibrationPath, const std::string remote_georefs_url);
+	std::vector<uint8_t> downloadGeorefZip(const std::string &remote_georefs_url);
+	bool prepareCalibrationDirectory(const std::filesystem::path &calibrationPath);
+	bool writeZipBlobToFile(const std::filesystem::path &zipPath, const std::vector<uint8_t> &zipBlob);
+	void extractGeorefZip(const std::filesystem::path &zipPath, const std::filesystem::path &zipExtractPath);
+	void unzipGeorefData(const std::filesystem::path &zipPath, const std::filesystem::path &zipExtractPath);
 
     void scanJsonFiles(std::filesystem::path dir);
 

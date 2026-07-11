@@ -5,4 +5,5 @@ target_sources(avitab_core_lib PRIVATE
     Logger.cpp
     Settings.cpp
     WorldGeometry.cpp
+	UnzipWrapper.cpp
 )
