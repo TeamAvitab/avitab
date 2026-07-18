@@ -44,12 +44,7 @@ bool unzip::unzip_file(const std::filesystem::path & zip_path, const std::filesy
     std::filesystem::create_directories(abs_destination, ec);
     if (ec) return false;
 
-    // Use standard unzOpen64 for MSYS2/MinGW compatibility
-#if defined(_WIN32) && !defined(__GNUC__)
-    unzFile zip = unzOpen64W(zip_path.wstring().c_str());
-#else
     unzFile zip = unzOpen64(zip_path.string().c_str());
-#endif
     if (!zip) return false;
 
     if (unzGoToFirstFile(zip) != UNZ_OK) {
