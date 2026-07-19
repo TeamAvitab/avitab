@@ -135,7 +135,7 @@ endif()
 target_link_libraries(avitab_extern INTERFACE
     Threads::Threads
     nlohmann_json_imp curl_imp mupdf_imp lvgl_imp sqlite3_imp
-    freetype_imp mbedtls_imp stb_imp geotiff_imp zstd_imp
+    freetype_imp mbedtls_imp stb_imp geotiff_imp zstd_imp zlibs_imp
     ${sys_libraries}
 )
 

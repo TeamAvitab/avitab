@@ -141,7 +141,8 @@ AviTab::AviTab(std::shared_ptr<Environment> e, std::shared_ptr<GUIDriver> gd):
     navManager = std::make_unique<navdb::NavDbManager>(env->getXpNavDataRootPath(), env->getMsfsNavDataRootPath());
     guiLib = std::make_shared<LVGLToolkit>(guiDriver);
     img::TTFStamper::setFontDirectory(env->getFontDirectory());
-    chartService = std::make_shared<apis::ChartService>(env->getDataRootPath());
+    std::vector<std::string> remote_georefs_urls = env->getSettings()->getGeneralSetting<std::vector<std::string>>("remote_georefs_urls");
+    chartService = std::make_shared<apis::ChartService>(env->getDataRootPath(), remote_georefs_urls);
     env->resumeEnvironmentJobs();
 }
 

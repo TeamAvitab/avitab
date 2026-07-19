@@ -22,10 +22,12 @@
 #include "platform/Platform.h"
 #include "charts/Crypto.h"
 #include <nlohmann/json.hpp>
+#include "UnzipWrapper.h"
+
 
 namespace apis {
 
-ChartService::ChartService(const std::filesystem::path &programPath) {
+ChartService::ChartService(const std::filesystem::path &programPath, const std::vector<std::string> remote_georefs_urls) {
     try {
         navigraph = std::make_shared<navigraph::NavigraphAPI>(programPath / "Navigraph");
         useNavigraph = true;
@@ -46,14 +48,129 @@ ChartService::ChartService(const std::filesystem::path &programPath) {
     keepAlive = true;
     apiThread = std::make_unique<std::thread>(&ChartService::workLoop, this);
 
-    auto calibrationPath = programPath /"MapTiles"/"Mercator"/"Calibration";
+    auto calibrationPath = programPath / "MapTiles" / "Mercator" / "Calibration";
+    for (const auto& remote_georefs_url : remote_georefs_urls) {
+        try {
+	    loadTeamAvitabGeorefs(calibrationPath, remote_georefs_url);
+        } catch (...) {
+            logger::warn("Unable to download georefs from %s", remote_georefs_url.c_str());
+	}
+    }
+
     if (std::filesystem::exists(calibrationPath)) {
         scanJsonFiles(calibrationPath);
-        logger::info(" Found %d calibration files", jsonFileHashes.size());
+        logger::info("Found %d calibration files", jsonFileHashes.size());
     } else {
         logger::info("Calibration folder does not exist: %s", calibrationPath.string().c_str());
     }
+}
 
+std::vector<uint8_t> ChartService::downloadGeorefZip(const std::string &remote_georefs_url) {
+    if (remote_georefs_url.empty()) {
+        logger::info("remote_georefs_url empty, not downloading TeamAvitab georefs");
+        return {};
+    }
+
+    bool cancelToken = false;
+    auto zipBlob = downloader.download(remote_georefs_url, cancelToken);
+    if (zipBlob.empty()) {
+        logger::error("Downloaded zip blob is empty or download failed for TeamAvitabGeorefs.");
+        return {};
+    }
+
+    constexpr size_t MAX_ALLOWED_ZIP_SIZE = 16 * 1024 * 1024; 
+    if (zipBlob.size() > MAX_ALLOWED_ZIP_SIZE) {
+        logger::error("Downloaded zip blob exceeds maximum allowed safety size (%d bytes).", zipBlob.size());
+        return {};
+    }
+
+    logger::info("Downloaded TeamAvitab georef data %d bytes", zipBlob.size());
+    return zipBlob;
+}
+
+bool ChartService::prepareCalibrationDirectory(const std::filesystem::path &calibrationPath) {
+    std::error_code e;
+    if (!std::filesystem::exists(calibrationPath)) {
+        std::filesystem::create_directories(calibrationPath, e);
+        if (e) {
+            logger::error("Failed to create calibration directory: %s", e.message().c_str());
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ChartService::writeZipBlobToFile(const std::filesystem::path &zipPath, const std::vector<uint8_t> &zipBlob) {
+    std::ofstream stream(zipPath, std::ios::out | std::ios::binary);
+    if (!stream.is_open()) {
+        logger::error("Failed to open file for writing: %s", zipPath.string().c_str());
+        return false;
+    }
+
+    stream.write(reinterpret_cast<const char *>(zipBlob.data()), zipBlob.size());
+    if (stream.bad() || !stream.good()) {
+        logger::error("Error occurred while writing to file: %s", zipPath.string().c_str());
+        stream.close();
+        std::error_code e;
+        std::filesystem::remove(zipPath, e); // Clean up the corrupted/partial file
+        return false;
+    }
+    stream.close();
+    return true;
+}
+
+void ChartService::extractGeorefZip(const std::filesystem::path &zipPath, const std::filesystem::path &zipExtractPath) {
+    try {
+        std::filesystem::remove_all(zipPath);
+        std::filesystem::remove_all(zipExtractPath);
+    } catch (...) {
+        logger::warn("Unable to remove existing directories");
+    }
+
+    logger::info("Extracting into %s", zipExtractPath.string().c_str());
+    std::error_code e;
+    std::filesystem::create_directories(zipPath.parent_path(), e);
+}
+
+void ChartService::unzipGeorefData(const std::filesystem::path &zipPath, const std::filesystem::path &zipExtractPath) {
+    try {
+        unzip::unzip_file(zipPath.string().c_str(), zipExtractPath.string().c_str());
+    } catch (const std::exception &e) {
+        logger::error("Failed to unzip georef data: %s", e.what());
+    } catch (...) {
+        logger::error("Unknown error occurred during unzip execution.");
+    }
+}
+
+void ChartService::loadTeamAvitabGeorefs(const std::filesystem::path &calibrationPath, const std::string remote_georefs_url) {
+    if (remote_georefs_url.empty()) {
+        std::error_code e;
+        std::filesystem::remove_all(calibrationPath / "TeamAvitabGeorefs", e);
+        std::filesystem::remove(calibrationPath / "TeamAvitabGeorefs.zip", e);
+        logger::info("remote_georefs_url empty, ensure TeamAvitabGeorefs files removed");
+    }
+
+    auto zipBlob = downloadGeorefZip(remote_georefs_url);
+    if (zipBlob.empty()) return;
+
+    if (!prepareCalibrationDirectory(calibrationPath)) return;
+
+    auto zipName = std::filesystem::path(remote_georefs_url).filename();
+    auto zipPath = calibrationPath / zipName;
+    std::string remoteHash = crypto.sha256String(zipBlob);
+
+    if (std::filesystem::exists(zipPath) && (crypto.getFileSha256(zipPath) == remoteHash)) {
+        logger::info("Local and remote TeamAvitab georef zips same, no update required");
+        return;
+    }
+
+    auto zipExtractPath = zipPath;
+    zipExtractPath.replace_extension("");
+
+    extractGeorefZip(zipPath, zipExtractPath);
+    if (!writeZipBlobToFile(zipPath, zipBlob)) return;
+
+    unzipGeorefData(zipPath, zipExtractPath);
 }
 
 void ChartService::setUseNavigraph(bool use) {
@@ -122,8 +239,7 @@ std::shared_ptr<APICall<std::shared_ptr<Chart>>> ChartService::loadChart(std::sh
         if (bgChart) {
             chartFox->loadChart(bgChart);
             auto blob = bgChart->getChartData();
-            auto in = std::string((char *)blob.data(), blob.size());
-            auto hash = crypto.sha256String(in);
+            auto hash = crypto.sha256String(blob);
             std::string localCalibrationMetadata = getCalibrationMetadataForHash(hash);
             if (localCalibrationMetadata != "") {
                 // Use local calibration metadata, overriding any Chartfox georef
@@ -257,7 +373,7 @@ std::string ChartService::getCalibrationMetadataForHash(std::string hash) const 
             std::string jsonStr((std::istreambuf_iterator<char>(hashedJsonFile)),
                                  std::istreambuf_iterator<char>());
             logger::info("Found hash-matched calibration file");
-            logger::info(" at '%s'", calibrationFilename.c_str());
+            logger::info(" at '%s'", calibrationFilename.u8string().c_str());
             logger::info(" with sha256 %s", hash.c_str());
             return jsonStr;
         }

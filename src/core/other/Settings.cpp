@@ -43,7 +43,11 @@ Settings::Settings(const std::filesystem::path & settingsFile)
     database = std::make_shared<json>();
     init();
     load();
-
+    initMissing();
+    
+	logger::verbose("Preferences json :");
+	logger::verbose("%s", database->dump(4).c_str());
+	
     // Handle older json databases which have since been updated.
     // The version number is only changed if a setting has been moved, renamed, or removed.
     // Adding new settings generally does not require a version number increment.
@@ -87,6 +91,12 @@ int Settings::getGeneralSetting(const std::string &id) {
 }
 
 template<>
+std::vector<std::string> Settings::getGeneralSetting(const std::string &id) {
+    std::vector<std::string> empty_list = {};
+    return getSetting("/general/" + id, empty_list);
+}
+
+template<>
 void Settings::setGeneralSetting(const std::string &id, const bool value) {
     setSetting("/general/" + id, value);
 }
@@ -98,6 +108,11 @@ void Settings::setGeneralSetting(const std::string &id, const int value) {
 
 template<>
 void Settings::setGeneralSetting(const std::string &id, const std::string value) {
+    setSetting("/general/" + id, value);
+}
+
+template<>
+void Settings::setGeneralSetting(const std::string &id, std::vector<std::string> value) {
     setSetting("/general/" + id, value);
 }
 
@@ -259,6 +274,19 @@ void Settings::upgrade1to2() {
 void Settings::upgrade2to3() {
     (*database)["airports"]["sort"] = true;
     (*database)["airports"]["sort_ascending"] = true;
+}
+
+void Settings::initMissing() {
+    // Initialise "missing" settings, added to code since last prefs version update
+    // But they don't need a new prefs version, just set to a default if they're not there
+
+    if (!database->contains("/general/remote_georefs_urls"_json_pointer)) {
+        // Use latest checked in version, but from Github Pages to allow higher rate limit
+        const std::vector<std::string> default_url_list = { 
+            "https://teamavitab.github.io/avitab_georefs/georefs/TeamAvitabGeorefs.zip" 
+        };
+        setGeneralSetting("remote_georefs_urls", default_url_list);
+    }
 }
 
 void Settings::saveAll() {
