@@ -27,7 +27,7 @@
 
 namespace apis {
 
-ChartService::ChartService(const std::filesystem::path &programPath, const std::string remote_georefs_url) {
+ChartService::ChartService(const std::filesystem::path &programPath, const std::vector<std::string> remote_georefs_urls) {
     try {
         navigraph = std::make_shared<navigraph::NavigraphAPI>(programPath / "Navigraph");
         useNavigraph = true;
@@ -49,10 +49,12 @@ ChartService::ChartService(const std::filesystem::path &programPath, const std::
     apiThread = std::make_unique<std::thread>(&ChartService::workLoop, this);
 
     auto calibrationPath = programPath / "MapTiles" / "Mercator" / "Calibration";
-    try {
-        loadTeamAvitabGeorefs(calibrationPath, remote_georefs_url);
-    } catch (...) {
-        logger::warn("Unable to download TeamAvitab georefs");
+    for (const auto& remote_georefs_url : remote_georefs_urls) {
+        try {
+	    loadTeamAvitabGeorefs(calibrationPath, remote_georefs_url);
+        } catch (...) {
+            logger::warn("Unable to download georefs from %s", remote_georefs_url.c_str());
+	}
     }
 
     if (std::filesystem::exists(calibrationPath)) {
@@ -76,7 +78,7 @@ std::vector<uint8_t> ChartService::downloadGeorefZip(const std::string &remote_g
         return {};
     }
 
-    constexpr size_t MAX_ALLOWED_ZIP_SIZE = 100 * 1024 * 1024; // 100 MB limit
+    constexpr size_t MAX_ALLOWED_ZIP_SIZE = 16 * 1024 * 1024; 
     if (zipBlob.size() > MAX_ALLOWED_ZIP_SIZE) {
         logger::error("Downloaded zip blob exceeds maximum allowed safety size (%d bytes).", zipBlob.size());
         return {};

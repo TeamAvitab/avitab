@@ -91,6 +91,12 @@ int Settings::getGeneralSetting(const std::string &id) {
 }
 
 template<>
+std::vector<std::string> Settings::getGeneralSetting(const std::string &id) {
+    std::vector<std::string> empty_list = {};
+    return getSetting("/general/" + id, empty_list);
+}
+
+template<>
 void Settings::setGeneralSetting(const std::string &id, const bool value) {
     setSetting("/general/" + id, value);
 }
@@ -102,6 +108,11 @@ void Settings::setGeneralSetting(const std::string &id, const int value) {
 
 template<>
 void Settings::setGeneralSetting(const std::string &id, const std::string value) {
+    setSetting("/general/" + id, value);
+}
+
+template<>
+void Settings::setGeneralSetting(const std::string &id, std::vector<std::string> value) {
     setSetting("/general/" + id, value);
 }
 
@@ -266,14 +277,16 @@ void Settings::upgrade2to3() {
 }
 
 void Settings::initMissing() {
-	// Initialise "missing" settings, added to code since last prefs version update
-	// But they don't need a new prefs version, just set to a default if they're not there
-	
-	if (!database->contains("/general/remote_georefs_url"_json_pointer)) {
-		// Use latest checked in version, but from Github Pages to allow higher rate limit
-		std::string URL = "https://teamavitab.github.io/avitab_georefs/georefs/TeamAvitabGeorefs.zip";
-		setGeneralSetting<std::string>("remote_georefs_url", URL);
-	}
+    // Initialise "missing" settings, added to code since last prefs version update
+    // But they don't need a new prefs version, just set to a default if they're not there
+
+    if (!database->contains("/general/remote_georefs_urls"_json_pointer)) {
+        // Use latest checked in version, but from Github Pages to allow higher rate limit
+        const std::vector<std::string> default_url_list = { 
+            "https://teamavitab.github.io/avitab_georefs/georefs/TeamAvitabGeorefs.zip" 
+        };
+        setGeneralSetting("remote_georefs_urls", default_url_list);
+    }
 }
 
 void Settings::saveAll() {

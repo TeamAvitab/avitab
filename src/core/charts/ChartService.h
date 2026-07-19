@@ -34,7 +34,7 @@ class ChartService {
 public:
     using ChartList = std::vector<std::shared_ptr<Chart>>;
 
-    ChartService(const std::filesystem::path &programPath, const std::string remote_georefs_url);
+    ChartService(const std::filesystem::path &programPath, const std::vector<std::string> remote_georefs_url);
     ~ChartService();
 
     // synchronous calls
