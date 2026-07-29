@@ -17,25 +17,22 @@
  */
 #pragma once
 
-#include <map>
-#include <vector>
-#include <string>
-#include <XPLM/XPLMDataAccess.h>
-#include "EnvData.h"
+#include "SimDriver.h"
 
 namespace xdata {
 
-// This class may only be used by the environment thread
-class DataCache {
-public:
-    EnvData getData(const std::string &dataRef);
-    EnvData getLocationData(const avitab::AircraftID plane, const LocationPartIndex part);
-private:
-    std::map<std::string, XPLMDataRef> refCache;
-    std::vector<XPLMDataRef> locationRefCache;
-
-    XPLMDataRef createDataRef(const std::string &dataRef);
-    EnvData toEnvData(XPLMDataRef ref);
+struct EnvData {
+    int intValue;
+    float floatValue;
+    double doubleValue;
+    std::vector<int> intVector;
+    std::vector<float> floatVector;
 };
+
+const static avitab::AircraftID MAX_AI_AIRCRAFT = 19;
+
+using LocationPartIndex = unsigned int;
+const static LocationPartIndex NUM_LOCATION_PARTS = 4;
+
 
 } /* namespace xdata */

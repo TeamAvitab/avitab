@@ -17,12 +17,15 @@
  */
 #pragma once
 
-#include "GlfwGUIDriver.h"
+#include "driver/ui/glfw/GlfwUiDriver.h"
 #include <memory>
 #include <map>
-#include "ToolEnvironment.h"
+#include "ToolSimDriver.h"
 
-class StandAloneEnvironment: public ToolEnvironment {
+class GlfwGUIDriver;
+
+class StandAloneEnvironment : public ToolEnvironment
+{
 public:
     // Must be called from the environment thread - do not call from GUI thread!
     StandAloneEnvironment();

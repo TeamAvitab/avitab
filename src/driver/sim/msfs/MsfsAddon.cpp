@@ -19,7 +19,7 @@
 #include <thread>
 #include <iostream>
 #include "Logger.h"
-#include "MsfsAddonEnvironment.h"
+#include "MsfsSimDriver.h"
 #include "AviTabCore.h"
 #include "platform/CrashHandler.h"
 

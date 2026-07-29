@@ -13,9 +13,8 @@ target_sources(avitab_desktop PRIVATE
 )
 
 target_link_libraries(avitab_desktop PRIVATE
-    avitab_glfw_lib
     avitab_core_lib
-    avitab_xplane_lib
+    avitab_mock_lib
     glfw3_imp ${CMAKE_DL_LIBS}
 )
 

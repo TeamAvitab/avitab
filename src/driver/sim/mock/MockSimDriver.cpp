@@ -17,7 +17,7 @@
  */
 #include <cmath>
 #include <ctime>
-#include "StandAloneEnvironment.h"
+#include "MockSimDriver.h"
 #include "Logger.h"
 #include "platform/Platform.h"
 

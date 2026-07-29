@@ -22,7 +22,7 @@
 #include "image/stitcher/Stitcher.h"
 #include "image/TTFStamper.h"
 #include "nav/routing/Route.h"
-#include "Environment.h"
+#include "SimDriver.h"
 #include "OverlayHelper.h"
 #include "OverlayConfig.h"
 #include "OverlayedNode.h"

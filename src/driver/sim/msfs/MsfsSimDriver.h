@@ -17,7 +17,7 @@
  */
 #pragma once
 
-#include "sim/mock/StandAloneEnvironment.h"
+#include "driver/sim/mock/MockSimDriver.h"
 #include <winsock2.h>
 #include <windows.h>
 #include "SimConnect.h"

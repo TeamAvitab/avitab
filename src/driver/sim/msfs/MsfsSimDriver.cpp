@@ -16,7 +16,7 @@
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include <cmath>
-#include "MsfsAddonEnvironment.h"
+#include "MsfsSimDriver.h"
 #include "Logger.h"
 #include "platform/Platform.h"
 #include "Navigation.h"

@@ -2,8 +2,8 @@
 
 target_sources(avitab_core_lib PRIVATE
     AviTab.cpp
-    Environment.cpp
-    GUIDriver.cpp
+    SimDriver.cpp
+    UiDriver.cpp
 )
 
 add_subdirectory(include)

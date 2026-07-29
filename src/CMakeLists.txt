@@ -2,11 +2,13 @@
 
 configure_file(config.h.in "${PROJECT_BINARY_DIR}/AviTabBuildSettings.h")
 
-# The Avitab sources are built into one core library for all executables,
-# simulator-specific libraries for X-Plane, Flight Simulator and the mock
+# The Avitab sources are built into one core library for all product, and
+# simulator-specific libraries for X-Plane, MSFS and the mock
 # simulator (for development and test), and UI-window libraries.
-# Each executable will link the core library, and whichever simulation
-# and UI-window libraries are prescribed.
+# Each product will link the core library, and whichever simulation
+# and UI-window libraries are appropriate.
+
+include_directories("${CMAKE_CURRENT_LIST_DIR}" "${PROJECT_BINARY_DIR}")
 
 # All of the core Avitab classes are put in here
 add_library(avitab_core_lib)
@@ -15,8 +17,6 @@ target_include_directories(avitab_core_lib
     "${CMAKE_CURRENT_LIST_DIR}/core/include"
     PRIVATE
     "${CMAKE_CURRENT_LIST_DIR}/core"
-    "${CMAKE_CURRENT_LIST_DIR}"
-    "${PROJECT_BINARY_DIR}"
 )
 target_link_libraries(avitab_core_lib PUBLIC
     avitab_extern
@@ -25,8 +25,6 @@ target_link_libraries(avitab_core_lib PUBLIC
 # The XPlane library provides interfacing to XPlane for both simulator and window interfaces.
 add_library(avitab_xplane_lib)
 target_include_directories(avitab_xplane_lib PUBLIC
-    "${CMAKE_CURRENT_LIST_DIR}"
-    "${PROJECT_BINARY_DIR}"
     "${XPLANE_SDK}/CHeaders"
 )
 target_compile_definitions(avitab_xplane_lib PUBLIC
@@ -41,17 +39,13 @@ target_link_libraries(avitab_xplane_lib PRIVATE
 )
 
 # The glfw window library provides a desktop GUI window interface for the Avitab standalone.
-add_library(avitab_glfw_lib)
-target_include_directories(avitab_glfw_lib PRIVATE
-    "${CMAKE_CURRENT_LIST_DIR}"
-    "${PROJECT_BINARY_DIR}"
-)
+add_library(avitab_mock_lib)
 if(APPLE)
-    target_compile_definitions(avitab_glfw_lib PRIVATE
+    target_compile_definitions(avitab_mock_lib PRIVATE
         GL_SILENCE_DEPRECATION
     )
 endif()
-target_link_libraries(avitab_glfw_lib PRIVATE
+target_link_libraries(avitab_mock_lib PRIVATE
     avitab_core_lib
     glfw3_imp
 )
@@ -60,8 +54,6 @@ if(MSFS_SDK)
     # The MSFS library provides interfacing to MSFS for both simulator and window interfaces.
     add_library(avitab_msfs_lib)
     target_include_directories(avitab_msfs_lib PRIVATE
-        "${CMAKE_CURRENT_LIST_DIR}"
-        "${PROJECT_BINARY_DIR}"
         "$ENV{MSFS_SDK}/SimConnect SDK/include"
     )
     add_library(msfs_simconnect_dll SHARED IMPORTED)
@@ -76,7 +68,6 @@ if(MSFS_SDK)
 endif()
 
 add_subdirectory(core)
-add_subdirectory(sim)
-add_subdirectory(win)
+add_subdirectory(driver)
 add_subdirectory(product)
 add_subdirectory(platform)

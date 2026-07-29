@@ -7,11 +7,7 @@ target_sources(avitab_xplane_lib PRIVATE
     DataRefExport.h
     DataRefImport.cpp
     DataRefImport.h
-    EnvData.h
-    MonitorBoundsDecider.cpp
-    MonitorBoundsDecider.h
-    XPlaneEnvironment.cpp
-    XPlaneEnvironment.h
-    XPlaneGUIDriver.cpp
-    XPlaneGUIDriver.h
+    SimData.h
+    XPlaneSimDriver.cpp
+    XPlaneSimDriver.h
 )

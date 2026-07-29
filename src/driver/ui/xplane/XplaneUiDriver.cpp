@@ -29,7 +29,7 @@
 # endif
 #endif
 #include <stdexcept>
-#include "XPlaneGUIDriver.h"
+#include "XPlaneUiDriver.h"
 #include "MonitorBoundsDecider.h"
 #include "Logger.h"
 

@@ -3,6 +3,6 @@
 # Temporary to satisfy cmake
 target_sources(avitab_msfs_lib PRIVATE
     MsfsAddon.cpp
-    MsfsAddonEnvironment.cpp
-    MsfsAddonEnvironment.h
+    MsfsSimDriver.cpp
+    MsfsSimDriver.h
 )

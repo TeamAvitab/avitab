@@ -26,7 +26,7 @@
 #include <atomic>
 #include <map>
 #include <thread>
-#include "Environment.h"
+#include "SimDriver.h"
 #include "WorldGeometry.h"
 #include "DataCache.h"
 #include "DataRefExport.h"

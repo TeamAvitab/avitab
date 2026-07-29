@@ -25,8 +25,8 @@
 #include <memory>
 #include "AviTabCore.h"
 #include "apps/AppFunctions.h"
-#include "GUIDriver.h"
-#include "Environment.h"
+#include "UiDriver.h"
+#include "SimDriver.h"
 #include "platform/Platform.h"
 #include "Logger.h"
 #include "JsonConfig.h"

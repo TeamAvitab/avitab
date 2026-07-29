@@ -16,7 +16,7 @@
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "GUIDriver.h"
+#include "UiDriver.h"
 #include "Logger.h"
 #include <cstring>
 

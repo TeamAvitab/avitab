@@ -17,7 +17,7 @@
  */
 #pragma once
 
-#include "Environment.h"
+#include "SimDriver.h"
 
 /**
  * This class implements methods common to desktop/tool variants of Avitab,

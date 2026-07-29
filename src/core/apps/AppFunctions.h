@@ -23,7 +23,7 @@
 #include "gui/widgets/Container.h"
 #include "Navigation.h"
 #include "charts/ChartService.h"
-#include "Environment.h"
+#include "SimDriver.h"
 
 namespace navdb {
 class Route;

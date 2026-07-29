@@ -3,10 +3,13 @@
 target_sources(avitab_core_lib PRIVATE
     AviTabCore.h
     AviTabSimDriver.h
-    AviTabWinDriver.h
+    AviTabUiDriver.h
     JsonConfig.h
     Logger.h
     WorldGeometry.h
+
+    SimDriver.h
+    UiDriver.h
 
     Settings.h # REFACTOR - needs some abstraction
     # REFACTOR - these 2 files should not need exposing to non-core sources

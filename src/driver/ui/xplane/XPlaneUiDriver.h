@@ -24,9 +24,9 @@
 #include <mutex>
 #include <memory>
 #include <vector>
-#include "GUIDriver.h"
-#include "DataRefImport.h"
-#include "DataRefExport.h"
+#include "UiDriver.h"
+#include "driver/sim/xplane/DataRefImport.h"
+#include "driver/sim/xplane/DataRefExport.h"
 
 class XPlaneGUIDriver: public avitab::GUIDriver {
 public:

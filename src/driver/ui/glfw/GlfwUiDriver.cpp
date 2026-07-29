@@ -17,7 +17,7 @@
  */
 #include <stdexcept>
 #include <chrono>
-#include "GlfwGUIDriver.h"
+#include "GlfwUiDriver.h"
 #include "Logger.h"
 
 #ifdef __APPLE__

@@ -21,7 +21,7 @@
 #include <vector>
 #include <mutex>
 #include <atomic>
-#include "GUIDriver.h"
+#include "UiDriver.h"
 
 class GlfwGUIDriver: public avitab::GUIDriver {
 public:
