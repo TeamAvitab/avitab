@@ -19,14 +19,14 @@
 
 namespace avitab {
 
-// Abstract interface to the window driver used by the AviTab core
-// and the product wrappers.
+// Abstract interface to the UI services provided by the UI driver,
+// and used by the AviTab core and the product wrappers.
 
-class AviTabWinDriver {
+class AviTabWinServices {
 public:
 
 
-    virtual ~AviTabWinDriver() { }
+    virtual ~AviTabWinServices() { }
 };
 
 } // namespace avitab

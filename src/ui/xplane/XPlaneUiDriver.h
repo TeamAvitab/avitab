@@ -25,8 +25,8 @@
 #include <memory>
 #include <vector>
 #include "UiDriver.h"
-#include "driver/sim/xplane/DataRefImport.h"
-#include "driver/sim/xplane/DataRefExport.h"
+#include "sim/xplane/DataRefImport.h"
+#include "sim/xplane/DataRefExport.h"
 
 class XPlaneUiDriver: public avitab::UiDriverBase {
 public:

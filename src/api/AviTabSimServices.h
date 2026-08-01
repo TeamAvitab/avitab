@@ -19,14 +19,14 @@
 
 namespace avitab {
 
-// Abstract interface to the simulation driver used by the AviTab core
-// and the product wrappers.
+// Abstract interface defining the services provided by the simulation,
+// and used by the AviTab core and the product wrappers.
 
-class AviTabSimDriver {
+class AviTabSimServices {
 public:
 
 
-    virtual ~AviTabSimDriver() { }
+    virtual ~AviTabSimServices() { }
 };
 
 } // namespace avitab

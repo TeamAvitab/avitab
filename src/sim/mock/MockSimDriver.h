@@ -17,7 +17,7 @@
  */
 #pragma once
 
-#include "driver/ui/glfw/GlfwUiDriver.h"
+#include "ui/glfw/GlfwUiDriver.h"
 #include <memory>
 #include <map>
 #include "ToolSimDriver.h"

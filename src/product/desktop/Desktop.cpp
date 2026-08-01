@@ -18,7 +18,7 @@
 #include <memory>
 #include <thread>
 #include <iostream>
-#include "driver/sim/mock/MockSimDriver.h"
+#include "sim/mock/MockSimDriver.h"
 #include "AviTabCore.h"
 #include "Logger.h"
 #include "platform/CrashHandler.h"

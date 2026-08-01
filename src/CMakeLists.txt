@@ -14,7 +14,7 @@ include_directories("${CMAKE_CURRENT_LIST_DIR}" "${PROJECT_BINARY_DIR}")
 add_library(avitab_core_lib)
 target_include_directories(avitab_core_lib
     PUBLIC
-    "${CMAKE_CURRENT_LIST_DIR}/core/include"
+    "${CMAKE_CURRENT_LIST_DIR}/api"
     PRIVATE
     "${CMAKE_CURRENT_LIST_DIR}/core"
 )
@@ -38,7 +38,7 @@ target_link_libraries(avitab_xplane_lib PRIVATE
     avitab_core_lib
 )
 
-# The glfw window library provides a desktop GUI window interface for the Avitab standalone.
+# The mock library provides a mock simulation and desktop GLFW window for the Avitab standalone.
 add_library(avitab_mock_lib)
 if(APPLE)
     target_compile_definitions(avitab_mock_lib PRIVATE
@@ -67,7 +67,9 @@ if(MSFS_SDK)
     )
 endif()
 
+add_subdirectory(api)
 add_subdirectory(core)
-add_subdirectory(driver)
 add_subdirectory(product)
 add_subdirectory(platform)
+add_subdirectory(sim)
+add_subdirectory(ui)

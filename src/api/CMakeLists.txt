@@ -2,17 +2,18 @@
 
 target_sources(avitab_core_lib PRIVATE
     AviTabCore.h
-    AviTabSimDriver.h
-    AviTabUiDriver.h
+    AviTabSimServices.h
+    AviTabUiServices.h
     JsonConfig.h
     Logger.h
+    Navigation.h
     WorldGeometry.h
 
     SimDriver.h
     UiDriver.h
 
     Settings.h # REFACTOR - needs some abstraction
-    # REFACTOR - these 2 files should not need exposing to non-core sources
+    # REFACTOR - these 2 files will be wrapped into the settings API
     AirportConfig.h
     OverlayConfig.h
 )

@@ -6,7 +6,6 @@ target_sources(avitab_core_lib PRIVATE
     UiDriver.cpp
 )
 
-add_subdirectory(include)
 add_subdirectory(apps)
 add_subdirectory(charts)
 add_subdirectory(gui)

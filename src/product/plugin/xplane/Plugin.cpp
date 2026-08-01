@@ -21,7 +21,7 @@
 #include <XPLM/XPLMPlugin.h>
 #include <memory>
 #include <cstring>
-#include "driver/sim/xplane/XPlaneSimDriver.h"
+#include "sim/xplane/XPlaneSimDriver.h"
 #include "AviTabCore.h"
 #include "Logger.h"
 #include "platform/CrashHandler.h"

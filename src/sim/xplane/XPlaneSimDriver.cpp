@@ -26,7 +26,7 @@
 #include <iomanip>
 #include <sstream>
 #include "XPlaneSimDriver.h"
-#include "driver/ui/xplane/XPlaneUiDriver.h"
+#include "ui/xplane/XPlaneUiDriver.h"
 #include "Logger.h"
 #include "platform/Platform.h"
 #include "AviTabBuildSettings.h"
