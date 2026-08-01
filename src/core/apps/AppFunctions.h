@@ -43,8 +43,8 @@ enum class AppId {
 };
 
 class AppFunctions {
-    // REFACTOR - some of these APIs are simply forwarded to the environment.
-    // they could be removed by passing the environment to apps on creation.
+    // REFACTOR - some of these APIs are simply forwarded to the simDriver.
+    // they could be removed by passing the simDriver to apps on creation.
     // also are they really needed in an abstract API, or could they simply be called directly?
 public:
     virtual void setBrightness(float brightness) = 0;

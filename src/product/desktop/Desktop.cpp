@@ -28,29 +28,29 @@ int main() {
 
     try {
         // Using the heap so we can debug destructors with log messages
-        auto env = std::make_shared<StandAloneEnvironment>();
+        auto simDriver = std::make_shared<MockSimDriver>();
         try {
-            env->loadConfig();
+            simDriver->loadConfig();
         } catch (const std::exception &e) {
             std::cerr << "Exception: " << e.what() << std::endl;
             exit(1);
         }
-        logger::setStdOut(env->getConfig()->getBool("/AviTab/logToStdOut"));
-        logger::init(env->getDataRootPath());
+        logger::setStdOut(simDriver->getConfig()->getBool("/AviTab/logToStdOut"));
+        logger::init(simDriver->getDataRootPath());
         logger::verbose("Main thread has id %d", std::this_thread::get_id());
-        env->loadSettings();
+        simDriver->loadSettings();
 
-        auto guiDriver = env->createGUIDriver();
-        auto aviTab = avitab::AviTabCore::CreateAviTabCore(env, guiDriver);
+        auto uiDriver = simDriver->createUiDriver();
+        auto aviTab = avitab::AviTabCore::CreateAviTabCore(simDriver, uiDriver);
         aviTab->startApp();
         aviTab->toggleTablet();
 
         // pauses until window closed
-        env->eventLoop();
+        simDriver->eventLoop();
 
         aviTab->stopApp();
         aviTab.reset();
-        env.reset();
+        simDriver.reset();
     } catch (const std::exception &e) {
         logger::error("Exception: %s", e.what());
     }

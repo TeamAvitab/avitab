@@ -40,7 +40,7 @@ void SqlLoadManager::init_or_throw(std::function<bool(const std::string simCode)
     sqlworld = std::make_shared<sqlnav::SqlWorld>(shared_this);
 
     // these will throw an exception if DB schema does not support the searches
-    // that's fine, it will be caught in the environment, and trigger a fallback
+    // that's fine, it will be caught by the caller, and trigger a fallback
     // to the legacy NAV data loader (if one exists).
     prepareSearches();
     checkMetadata(fn);

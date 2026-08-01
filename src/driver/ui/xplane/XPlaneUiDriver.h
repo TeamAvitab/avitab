@@ -28,9 +28,9 @@
 #include "driver/sim/xplane/DataRefImport.h"
 #include "driver/sim/xplane/DataRefExport.h"
 
-class XPlaneGUIDriver: public avitab::GUIDriver {
+class XPlaneUiDriver: public avitab::UiDriverBase {
 public:
-    XPlaneGUIDriver();
+    XPlaneUiDriver();
 
     void init(int width, int height) override;
     void createWindow(const std::string &title, const avitab::WindowRect &rect) override;
@@ -54,7 +54,7 @@ public:
     void passLeftClick(bool down, bool drag) override;
     void passWheel(int direction) override;
 
-    ~XPlaneGUIDriver();
+    ~XPlaneUiDriver();
 private:
     avitab::WindowRect lastRect{};
     std::shared_ptr<float> brightness;

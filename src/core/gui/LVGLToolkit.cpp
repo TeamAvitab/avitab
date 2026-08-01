@@ -33,7 +33,7 @@ lv_indev_drv_t inputDriver;
 std::vector<uint32_t> tmpBuffer;
 }
 
-LVGLToolkit::LVGLToolkit(std::shared_ptr<GUIDriver> drv):
+LVGLToolkit::LVGLToolkit(std::shared_ptr<UiDriverBase> drv):
     driver(drv)
 {
     driver->init(INITIAL_WIDTH, INITIAL_HEIGHT);
@@ -162,7 +162,7 @@ void LVGLToolkit::pauseNativeWindow() {
     driver->killWindow();
 }
 
-void LVGLToolkit::createPanel(int left, int bottom, int width, int height, GUIDriver::PanelControlMode mode) {
+void LVGLToolkit::createPanel(int left, int bottom, int width, int height, UiDriverBase::PanelControlMode mode) {
     driver->createPanel(left, bottom, width, height, mode);
 }
 
@@ -217,11 +217,8 @@ void LVGLToolkit::guiLoop() {
             lv_task_handler();
 
             // then run our own tasks
-            // To prevent race-conditions since a task could
-            // use the environment mutex or create new tasks,
-            // let's work on a copy. This also prevents
-            // deadlocks if a task decides to use the environment
-            // mutex by doing something in the environment
+            // grab the mutex briefly to extract the tasks into a local list
+            // this avoids potential race and deadlock conditions.
             std::vector<GUITask> tasks;
             {
                 std::lock_guard<std::recursive_mutex> lock(guiMutex);

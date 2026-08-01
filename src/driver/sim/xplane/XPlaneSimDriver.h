@@ -31,12 +31,12 @@
 #include "DataCache.h"
 #include "DataRefExport.h"
 
-class XPlaneEnvironment: public avitab::Environment {
+class XPlaneSimDriver: public avitab::SimDriverBase {
 public:
-    XPlaneEnvironment();
+    XPlaneSimDriver();
 
-    // Must be called from the environment thread - do not call from GUI thread!
-    std::shared_ptr<avitab::GUIDriver> createGUIDriver() override;
+    // Must be called from the simDriver thread - do not call from GUI thread!
+    std::shared_ptr<avitab::UiDriverBase> createUiDriver() override;
     void createMenu(const std::string &name) override;
     void addMenuEntry(const std::string &label, MenuCallback cb) override;
     void destroyMenu() override;
@@ -66,7 +66,7 @@ public:
     unsigned int getZuluTimeSeconds() override;
     unsigned int getLocalTimeSeconds() override;
 
-    ~XPlaneEnvironment();
+    ~XPlaneSimDriver();
 
 private:
     // Exported datarefs relating to the overlayed map status

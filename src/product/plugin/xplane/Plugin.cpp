@@ -27,7 +27,7 @@
 #include "platform/CrashHandler.h"
 #include "AviTabBuildSettings.h"
 
-std::shared_ptr<XPlaneEnvironment> environment;
+std::shared_ptr<XPlaneSimDriver> simDriver;
 std::unique_ptr<avitab::AviTabCore> aviTab;
 
 PLUGIN_API int XPluginStart(char *outName, char *outSignature, char *outDescription) {
@@ -40,18 +40,18 @@ PLUGIN_API int XPluginStart(char *outName, char *outSignature, char *outDescript
         XPLMEnableFeature("XPLM_USE_NATIVE_PATHS", 1);
         curl_global_init(CURL_GLOBAL_ALL);
 
-        environment = std::make_shared<XPlaneEnvironment>();
-        environment->loadConfig();
-        logger::setStdOut(environment->getConfig()->getBool("/AviTab/logToStdOut"));
-        logger::init(environment->getDataRootPath());
+        simDriver = std::make_shared<XPlaneSimDriver>();
+        simDriver->loadConfig();
+        logger::setStdOut(simDriver->getConfig()->getBool("/AviTab/logToStdOut"));
+        logger::init(simDriver->getDataRootPath());
         logger::info("AviTab version " AVITAB_VERSION_STR);
-        environment->loadSettings();
+        simDriver->loadSettings();
         strncpy(outDescription, "A tablet to help in VR.", 255);
     } catch (const std::exception &e) {
         try {
-            environment.reset();
+            simDriver.reset();
         } catch (...) {
-            logger::error("Environment exception while destroying");
+            logger::error("SimDriverBase exception while destroying");
         }
         logger::error("Exception in XPluginStart: %s", e.what());
         strncpy(outDescription, e.what(), 255);
@@ -63,9 +63,9 @@ PLUGIN_API int XPluginStart(char *outName, char *outSignature, char *outDescript
 
 PLUGIN_API int XPluginEnable(void) {
     try {
-        if (environment) {
-            auto guiDriver = environment->createGUIDriver();
-            aviTab = avitab::AviTabCore::CreateAviTabCore(environment, guiDriver);
+        if (simDriver) {
+            auto uiDriver = simDriver->createUiDriver();
+            aviTab = avitab::AviTabCore::CreateAviTabCore(simDriver, uiDriver);
             aviTab->startApp();
         }
     } catch (const std::exception &e) {
@@ -98,12 +98,12 @@ PLUGIN_API void XPluginDisable(void) {
 PLUGIN_API void XPluginStop(void) {
     logger::verbose("AviTab told to stop");
     try {
-        if (environment) {
+        if (simDriver) {
             if (aviTab) {
                 aviTab->stopApp();
                 aviTab.reset();
             }
-            environment.reset();
+            simDriver.reset();
             curl_global_cleanup();
         }
     } catch (const std::exception &e) {

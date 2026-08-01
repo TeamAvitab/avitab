@@ -23,61 +23,61 @@
 
 namespace avitab {
 
-void Environment::loadConfig() {
+void SimDriverBase::loadConfig() {
     config = std::make_unique<JsonConfig>(getDataRootPath() / "config.json",
                             R"({ "AviTab": { "logToStdOut": false, "loadNavData": true } })");
 }
 
-std::shared_ptr<JsonConfig> Environment::getConfig() {
+std::shared_ptr<JsonConfig> SimDriverBase::getConfig() {
     return config;
 }
 
-void Environment::loadSettings() {
+void SimDriverBase::loadSettings() {
     auto fname(getSettingsDir() / "avitab.prf");
     logger::info("Settings file: %s", fname.string().c_str());
     settings = std::make_unique<Settings>(fname);
 }
 
-std::shared_ptr<Settings> Environment::getSettings() {
+std::shared_ptr<Settings> SimDriverBase::getSettings() {
     return settings;
 }
 
-void Environment::resumeEnvironmentJobs() {
-    std::lock_guard<std::mutex> lock(envMutex);
+void SimDriverBase::resumeSimDriverJobs() {
+    std::lock_guard<std::mutex> lock(lockMutex);
     stopped = false;
 }
 
-void Environment::runInEnvironment(EnvironmentCallback cb) {
-    std::lock_guard<std::mutex> lock(envMutex);
+void SimDriverBase::runInSimDriver(SimDriverCallback cb) {
+    std::lock_guard<std::mutex> lock(lockMutex);
     if (stopped) {
-        throw std::runtime_error("Environment is stopped");
+        throw std::runtime_error("SimDriver is stopped");
     }
-    envCallbacks.push_back(cb);
+    simDriverCallbacks.push_back(cb);
 }
 
-void Environment::runEnvironmentCallbacks() {
-    std::lock_guard<std::mutex> lock(envMutex);
-    if (!envCallbacks.empty()) {
-        for (auto &cb: envCallbacks) {
+void SimDriverBase::runSimDriverCallbacks() {
+    std::lock_guard<std::mutex> lock(lockMutex);
+    if (!simDriverCallbacks.empty()) {
+        for (auto &cb: simDriverCallbacks) {
             cb();
         }
-        envCallbacks.clear();
+        simDriverCallbacks.clear();
     }
 }
 
-void Environment::pauseEnvironmentJobs() {
-    std::lock_guard<std::mutex> lock(envMutex);
+void SimDriverBase::pauseSimDriverJobs() {
+    std::lock_guard<std::mutex> lock(lockMutex);
     stopped = true;
-    for (auto &cb: envCallbacks) {
+    for (auto &cb: simDriverCallbacks) {
         cb();
     }
-    envCallbacks.clear();
+    simDriverCallbacks.clear();
 }
 
-unsigned int Environment::getFramesPerSecond() {
+unsigned int SimDriverBase::getFramesPerSecond() {
     unsigned t = 0;
     {
-        std::lock_guard<std::mutex> lock(envMutex);
+        std::lock_guard<std::mutex> lock(lockMutex);
         for (auto i: frameDurations) {
             if (i == 0) return 0; // no report until ring buffer has been filled
             t += i;
@@ -86,8 +86,8 @@ unsigned int Environment::getFramesPerSecond() {
     return (RING_BUFFER_SIZE * 1000) / t;
 }
 
-void Environment::reportFrameDuration(unsigned int tMs) {
-    std::lock_guard<std::mutex> lock(envMutex);
+void SimDriverBase::reportFrameDuration(unsigned int tMs) {
+    std::lock_guard<std::mutex> lock(lockMutex);
     frameDurations[nextSlot++] = tMs;
     nextSlot %= RING_BUFFER_SIZE;
 }

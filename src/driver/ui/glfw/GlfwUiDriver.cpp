@@ -31,17 +31,17 @@
 # endif
 #endif
 
-void GlfwGUIDriver::init(int width, int height) {
+void GlfwUiDriver::init(int width, int height) {
     logger::verbose("Initializing GLFW driver...");
 
     if (!glfwInit()) {
         throw std::runtime_error("Couldn't initialize GLFW");
     }
 
-    GUIDriver::init(width, height);
+    UiDriverBase::init(width, height);
 }
 
-void GlfwGUIDriver::createWindow(const std::string& title, const avitab::WindowRect &rect) {
+void GlfwUiDriver::createWindow(const std::string& title, const avitab::WindowRect &rect) {
     int winWidth = width();
     int winHeight = height();
 
@@ -60,20 +60,20 @@ void GlfwGUIDriver::createWindow(const std::string& title, const avitab::WindowR
     glfwSwapInterval(1); // 1 to enable vsync and avoid tearing, 0 to benchmark
     glfwSetWindowUserPointer(window, this);
     glfwSetCursorPosCallback(window, [] (GLFWwindow *wnd, double x, double y) {
-        GlfwGUIDriver *us = (GlfwGUIDriver *) glfwGetWindowUserPointer(wnd);
+        GlfwUiDriver *us = (GlfwUiDriver *) glfwGetWindowUserPointer(wnd);
         int w, h;
         glfwGetWindowSize(wnd, &w, &h);
         us->mouseX = x / w * us->width();
         us->mouseY = y / h * us->height();
     });
     glfwSetMouseButtonCallback(window, [] (GLFWwindow *wnd, int button, int action, int flags) {
-        GlfwGUIDriver *us = (GlfwGUIDriver *) glfwGetWindowUserPointer(wnd);
+        GlfwUiDriver *us = (GlfwUiDriver *) glfwGetWindowUserPointer(wnd);
         if (button == GLFW_MOUSE_BUTTON_LEFT) {
             us->mousePressed = (action == GLFW_PRESS);
         }
     });
     glfwSetScrollCallback(window, [] (GLFWwindow *wnd, double x, double y) {
-        GlfwGUIDriver *us = (GlfwGUIDriver *) glfwGetWindowUserPointer(wnd);
+        GlfwUiDriver *us = (GlfwUiDriver *) glfwGetWindowUserPointer(wnd);
         if (y > 0) {
             us->wheelDir = 1;
         } else if (y < 0) {
@@ -83,7 +83,7 @@ void GlfwGUIDriver::createWindow(const std::string& title, const avitab::WindowR
         }
     });
     glfwSetKeyCallback(window, [] (GLFWwindow *wnd, int key, int scanCode, int action, int mods) {
-        GlfwGUIDriver *us = (GlfwGUIDriver *) glfwGetWindowUserPointer(wnd);
+        GlfwUiDriver *us = (GlfwUiDriver *) glfwGetWindowUserPointer(wnd);
         if (us->wantsKeyInput() && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
             if (key == GLFW_KEY_BACKSPACE) {
                 us->pushKeyInput('\b');
@@ -93,13 +93,13 @@ void GlfwGUIDriver::createWindow(const std::string& title, const avitab::WindowR
         }
     });
     glfwSetCharCallback(window, [] (GLFWwindow *wnd, unsigned int c) {
-        GlfwGUIDriver *us = (GlfwGUIDriver *) glfwGetWindowUserPointer(wnd);
+        GlfwUiDriver *us = (GlfwUiDriver *) glfwGetWindowUserPointer(wnd);
         if (us->wantsKeyInput()) {
             us->pushKeyInput(c);
         }
     });
     glfwSetWindowSizeCallback(window, [] (GLFWwindow *wnd, int w, int h) {
-        GlfwGUIDriver *us = (GlfwGUIDriver *) glfwGetWindowUserPointer(wnd);
+        GlfwUiDriver *us = (GlfwUiDriver *) glfwGetWindowUserPointer(wnd);
         us->resize(w / ZOOM, h / ZOOM);
         glBindTexture(GL_TEXTURE_2D, us->textureId);
         glTexImage2D(GL_TEXTURE_2D, 0,
@@ -111,7 +111,7 @@ void GlfwGUIDriver::createWindow(const std::string& title, const avitab::WindowR
     createTexture();
 }
 
-void GlfwGUIDriver::createTexture() {
+void GlfwUiDriver::createTexture() {
     glGenTextures(1, &textureId);
     glBindTexture(GL_TEXTURE_2D, textureId);
     glTexImage2D(GL_TEXTURE_2D, 0,
@@ -122,17 +122,17 @@ void GlfwGUIDriver::createTexture() {
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-bool GlfwGUIDriver::hasWindow() {
+bool GlfwUiDriver::hasWindow() {
     return window != nullptr;
 }
 
-void GlfwGUIDriver::killWindow() {
+void GlfwUiDriver::killWindow() {
     if (window) {
         glfwSetWindowShouldClose(window, true);
     }
 }
 
-bool GlfwGUIDriver::handleEvents() {
+bool GlfwUiDriver::handleEvents() {
     // called from main thread
     if (glfwWindowShouldClose(window)) {
         onQuit();
@@ -143,7 +143,7 @@ bool GlfwGUIDriver::handleEvents() {
     return true;
 }
 
-void GlfwGUIDriver::onQuit() {
+void GlfwUiDriver::onQuit() {
     // called from main thread
     std::lock_guard<std::mutex> lock(driverMutex);
     logger::verbose("Shutting down GLFW");
@@ -154,15 +154,15 @@ void GlfwGUIDriver::onQuit() {
     }
 }
 
-void GlfwGUIDriver::blit(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const uint32_t* newData) {
+void GlfwUiDriver::blit(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const uint32_t* newData) {
     // called from LVGL thread
-    GUIDriver::blit(x1, y1, x2, y2, newData);
+    UiDriverBase::blit(x1, y1, x2, y2, newData);
 
     std::lock_guard<std::mutex> lock(driverMutex);
     needsRedraw = true;
 }
 
-void GlfwGUIDriver::render() {
+void GlfwUiDriver::render() {
     static auto startAt = std::chrono::steady_clock::now();
 
     int winWidth, winHeight;
@@ -210,32 +210,32 @@ void GlfwGUIDriver::render() {
     glfwSwapBuffers(window);
 }
 
-uint32_t GlfwGUIDriver::getLastDrawTime() {
+uint32_t GlfwUiDriver::getLastDrawTime() {
     return lastDrawTime;
 }
 
-void GlfwGUIDriver::readPointerState(int &x, int &y, bool &pressed) {
+void GlfwUiDriver::readPointerState(int &x, int &y, bool &pressed) {
     // called from LVGL thread
     x = mouseX;
     y = mouseY;
     pressed = mousePressed;
 }
 
-int GlfwGUIDriver::getWheelClicks() {
+int GlfwUiDriver::getWheelClicks() {
     int dir = wheelDir;
     wheelDir = 0;
     return dir;
 }
 
-void GlfwGUIDriver::setBrightness(float b) {
+void GlfwUiDriver::setBrightness(float b) {
     brightness = b;
 }
 
-float GlfwGUIDriver::getBrightness() {
+float GlfwUiDriver::getBrightness() {
     return brightness;
 }
 
-GlfwGUIDriver::~GlfwGUIDriver() {
+GlfwUiDriver::~GlfwUiDriver() {
     std::lock_guard<std::mutex> lock(driverMutex);
 
     if (window) {

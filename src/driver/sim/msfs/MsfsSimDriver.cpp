@@ -27,25 +27,25 @@
 
 #define MSFS_VERBOSE_LOGGING 0
 
-MsfsAddonEnvironment::MsfsAddonEnvironment()
-:   StandAloneEnvironment(),
+MsfsAddonSimDriver::MsfsAddonSimDriver()
+:   MockSimDriver(),
     hSimConnect(NULL),
     nextSimUpdate(0)
 {
     resetLocations();
 }
 
-MsfsAddonEnvironment::~MsfsAddonEnvironment()
+MsfsAddonSimDriver::~MsfsAddonSimDriver()
 {
     if (hSimConnect != NULL) {
         (void)SimConnect_Close(hSimConnect);
     }
 }
 
-void MsfsAddonEnvironment::eventLoop()
+void MsfsAddonSimDriver::eventLoop()
 {
     while (driver->handleEvents()) {
-        runEnvironmentCallbacks();
+        runSimDriverCallbacks();
         reportFrameDuration(driver->getLastDrawTime());
 
         auto t = GetTickCount64();
@@ -62,13 +62,13 @@ void MsfsAddonEnvironment::eventLoop()
     driver.reset();
 }
 
-avitab::AircraftID MsfsAddonEnvironment::getActiveAircraftCount()
+avitab::AircraftID MsfsAddonSimDriver::getActiveAircraftCount()
 {
     std::lock_guard<std::mutex> lock(stateMutex);
     return 1 + otherLocations.size();
 }
 
-world::Position MsfsAddonEnvironment::getAircraftPosition(avitab::AircraftID id)
+world::Position MsfsAddonSimDriver::getAircraftPosition(avitab::AircraftID id)
 {
     std::lock_guard<std::mutex> lock(stateMutex);
     if (id == 0) {
@@ -78,14 +78,14 @@ world::Position MsfsAddonEnvironment::getAircraftPosition(avitab::AircraftID id)
     }
 }
 
-void MsfsAddonEnvironment::resetLocations()
+void MsfsAddonSimDriver::resetLocations()
 {
     std::lock_guard<std::mutex> lock(stateMutex);
     userLocation = world::Position::fromGCSft(0, 0, 0, 0);
     otherLocations.clear();
 }
 
-void MsfsAddonEnvironment::tryConnectToMsfsSim()
+void MsfsAddonSimDriver::tryConnectToMsfsSim()
 {
     if (SUCCEEDED(SimConnect_Open(&hSimConnect, "Avitab", NULL, 0, 0, 0)))
     {
@@ -112,7 +112,7 @@ void MsfsAddonEnvironment::tryConnectToMsfsSim()
     }
 }
 
-void MsfsAddonEnvironment::retrieveMsfsObjectData()
+void MsfsAddonSimDriver::retrieveMsfsObjectData()
 {
     // Ask for updates about other aircraft locations - seems like this needs to be done every time an update is wanted
     HRESULT hr = SimConnect_RequestDataOnSimObjectType(hSimConnect, OTHER_AIRCRAFT_LOCATIONS, LOCATION_DEFINITION, REQUEST_DATA_RANGE, SIMCONNECT_SIMOBJECT_TYPE_AIRCRAFT);
@@ -134,7 +134,7 @@ void MsfsAddonEnvironment::retrieveMsfsObjectData()
 
 }
 
-void CALLBACK MsfsAddonEnvironment::handleMsfsDispatch(SIMCONNECT_RECV* pData, DWORD cbData)
+void CALLBACK MsfsAddonSimDriver::handleMsfsDispatch(SIMCONNECT_RECV* pData, DWORD cbData)
 {
     // handle callback data
     LOG_VERBOSE(MSFS_VERBOSE_LOGGING, "HandleMsfsDispatch (%d,%d,%d)", pData->dwSize, pData->dwVersion, pData->dwID);
@@ -164,7 +164,7 @@ void CALLBACK MsfsAddonEnvironment::handleMsfsDispatch(SIMCONNECT_RECV* pData, D
     }
 }
 
-void MsfsAddonEnvironment::updateAircraftLocation(SIMCONNECT_RECV_SIMOBJECT_DATA *pObjData, bool isUserAircraft)
+void MsfsAddonSimDriver::updateAircraftLocation(SIMCONNECT_RECV_SIMOBJECT_DATA *pObjData, bool isUserAircraft)
 {
     LOG_VERBOSE(MSFS_VERBOSE_LOGGING, "dwRequestID = %ld, dwObjectID = %ld, dwDefineID = %ld, dwFlags = %ld, dwentrynumber = %ld, dwoutof = %ld, dwDefineCount = %ld",
             pObjData->dwRequestID, pObjData->dwObjectID, pObjData->dwDefineID, pObjData->dwFlags, pObjData->dwentrynumber, pObjData->dwoutof, pObjData->dwDefineCount);

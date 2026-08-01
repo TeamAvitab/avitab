@@ -33,40 +33,40 @@
 #include "MonitorBoundsDecider.h"
 #include "Logger.h"
 
-XPlaneGUIDriver::XPlaneGUIDriver():
+XPlaneUiDriver::XPlaneUiDriver():
     brightness(std::make_shared<float>(1.0f)),
     isVrEnabled("sim/graphics/VR/enabled", false),
     xplane3dClickX("sim/graphics/view/click_3d_x_pixels", -1),
     xplane3dClickY("sim/graphics/view/click_3d_y_pixels", -1)
 {
     panelLeftRef = std::make_unique<xdata::DataRefExport<int>>("avitab/panel_left", this,
-        [] (void *self) { return (reinterpret_cast<XPlaneGUIDriver *>(self))->panelLeft; },
-        [] (void *self, int v) { (reinterpret_cast<XPlaneGUIDriver *>(self))->panelLeft = v; });
+        [] (void *self) { return (reinterpret_cast<XPlaneUiDriver *>(self))->panelLeft; },
+        [] (void *self, int v) { (reinterpret_cast<XPlaneUiDriver *>(self))->panelLeft = v; });
 
     panelWidthRef = std::make_unique<xdata::DataRefExport<int>>("avitab/panel_width", this,
-        [] (void *self) { return (reinterpret_cast<XPlaneGUIDriver *>(self))->panelWidth; },
-        [] (void *self, int v) { (reinterpret_cast<XPlaneGUIDriver *>(self))->panelWidth = v; });
+        [] (void *self) { return (reinterpret_cast<XPlaneUiDriver *>(self))->panelWidth; },
+        [] (void *self, int v) { (reinterpret_cast<XPlaneUiDriver *>(self))->panelWidth = v; });
 
     panelBottomRef = std::make_unique<xdata::DataRefExport<int>>("avitab/panel_bottom", this,
-        [] (void *self) { return (reinterpret_cast<XPlaneGUIDriver *>(self))->panelBottom; },
-        [] (void *self, int v) { (reinterpret_cast<XPlaneGUIDriver *>(self))->panelBottom = v; });
+        [] (void *self) { return (reinterpret_cast<XPlaneUiDriver *>(self))->panelBottom; },
+        [] (void *self, int v) { (reinterpret_cast<XPlaneUiDriver *>(self))->panelBottom = v; });
 
     panelHeightRef = std::make_unique<xdata::DataRefExport<int>>("avitab/panel_height", this,
-        [] (void *self) { return (reinterpret_cast<XPlaneGUIDriver *>(self))->panelHeight; },
-        [] (void *self, int v) { (reinterpret_cast<XPlaneGUIDriver *>(self))->panelHeight = v; });
+        [] (void *self) { return (reinterpret_cast<XPlaneUiDriver *>(self))->panelHeight; },
+        [] (void *self, int v) { (reinterpret_cast<XPlaneUiDriver *>(self))->panelHeight = v; });
 
     panelMouseXref = std::make_unique<xdata::DataRefExport<float>>("avitab/panel_x_click", this,
-        [] (void *self) { return (reinterpret_cast<XPlaneGUIDriver *>(self))->panelClickX; },
-        [] (void *self, float x) { (reinterpret_cast<XPlaneGUIDriver *>(self))->panelClickX = x; });
+        [] (void *self) { return (reinterpret_cast<XPlaneUiDriver *>(self))->panelClickX; },
+        [] (void *self, float x) { (reinterpret_cast<XPlaneUiDriver *>(self))->panelClickX = x; });
 
     panelMouseYref = std::make_unique<xdata::DataRefExport<float>>("avitab/panel_y_click", this,
-        [] (void *self) { return (reinterpret_cast<XPlaneGUIDriver *>(self))->panelClickY; },
-        [] (void *self, float y) { (reinterpret_cast<XPlaneGUIDriver *>(self))->panelClickY = y; });
+        [] (void *self) { return (reinterpret_cast<XPlaneUiDriver *>(self))->panelClickY; },
+        [] (void *self, float y) { (reinterpret_cast<XPlaneUiDriver *>(self))->panelClickY = y; });
 }
 
-void XPlaneGUIDriver::init(int width, int height) {
+void XPlaneUiDriver::init(int width, int height) {
     logger::verbose("Initializing X-Plane GUI driver");
-    GUIDriver::init(width, height);
+    UiDriverBase::init(width, height);
     setupKeyboard();
     XPLMGenerateTextureNumbers(&textureId, 1);
 
@@ -79,7 +79,7 @@ void XPlaneGUIDriver::init(int width, int height) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
-void XPlaneGUIDriver::setupVRCapture() {
+void XPlaneUiDriver::setupVRCapture() {
     vrTriggerIndices.clear();
 
     int triggerIndex = (ptrdiff_t) XPLMFindCommand("sim/VR/reserved/select");
@@ -114,7 +114,7 @@ void XPlaneGUIDriver::setupVRCapture() {
     }
 }
 
-void XPlaneGUIDriver::createWindow(const std::string &title, const avitab::WindowRect &rect) {
+void XPlaneUiDriver::createWindow(const std::string &title, const avitab::WindowRect &rect) {
     if (hasWindow()) {
         killWindow();
     }
@@ -138,21 +138,21 @@ void XPlaneGUIDriver::createWindow(const std::string &title, const avitab::Windo
     params.visible = 1;
     params.refcon = this;
     params.drawWindowFunc = [] (XPLMWindowID id, void *ref) {
-        reinterpret_cast<XPlaneGUIDriver *>(ref)->onDraw();
+        reinterpret_cast<XPlaneUiDriver *>(ref)->onDraw();
     };
     params.handleMouseClickFunc = [] (XPLMWindowID id, int x, int y, XPLMMouseStatus status, void *ref) -> int {
-        return reinterpret_cast<XPlaneGUIDriver *>(ref)->onClick(x, y, status);
+        return reinterpret_cast<XPlaneUiDriver *>(ref)->onClick(x, y, status);
     };
     params.handleRightClickFunc = [] (XPLMWindowID id, int x, int y, XPLMMouseStatus status, void *ref) -> int {
-        return reinterpret_cast<XPlaneGUIDriver *>(ref)->onRightClick(x, y, status);
+        return reinterpret_cast<XPlaneUiDriver *>(ref)->onRightClick(x, y, status);
     };
     params.handleKeyFunc = [] (XPLMWindowID id, char key, XPLMKeyFlags flags, char vKey, void *ref, int losingFocus) {
     };
     params.handleCursorFunc = [] (XPLMWindowID id, int x, int y, void *ref) -> XPLMCursorStatus {
-        return reinterpret_cast<XPlaneGUIDriver *>(ref)->getCursor(x, y);
+        return reinterpret_cast<XPlaneUiDriver *>(ref)->getCursor(x, y);
     };
     params.handleMouseWheelFunc =  [] (XPLMWindowID id, int x, int y, int wheel, int clicks, void *ref) -> int {
-        return reinterpret_cast<XPlaneGUIDriver *>(ref)->onMouseWheel(x, y, wheel, clicks);
+        return reinterpret_cast<XPlaneUiDriver *>(ref)->onMouseWheel(x, y, wheel, clicks);
     };
     params.layer = xplm_WindowLayerFloatingWindows;
 
@@ -179,7 +179,7 @@ void XPlaneGUIDriver::createWindow(const std::string &title, const avitab::Windo
     }
 }
 
-avitab::WindowRect XPlaneGUIDriver::getWindowRect() {
+avitab::WindowRect XPlaneUiDriver::getWindowRect() {
     if (!window || !XPLMGetWindowIsVisible(window)) {
         return lastRect;
     }
@@ -196,19 +196,19 @@ avitab::WindowRect XPlaneGUIDriver::getWindowRect() {
     return rect;
 }
 
-void XPlaneGUIDriver::setPanelEnabledPtr(std::shared_ptr<int> panelEnabledPtr) {
+void XPlaneUiDriver::setPanelEnabledPtr(std::shared_ptr<int> panelEnabledPtr) {
     panelEnabled = panelEnabledPtr;
 }
 
-void XPlaneGUIDriver::setPanelPoweredPtr(std::shared_ptr<int> panelPoweredPtr) {
+void XPlaneUiDriver::setPanelPoweredPtr(std::shared_ptr<int> panelPoweredPtr) {
     panelPowered = panelPoweredPtr;
 }
 
-void XPlaneGUIDriver::setBrightnessPtr(std::shared_ptr<float> brightnessPtr) {
+void XPlaneUiDriver::setBrightnessPtr(std::shared_ptr<float> brightnessPtr) {
     brightness = brightnessPtr;
 }
 
-void XPlaneGUIDriver::createPanel(int left, int bottom, int width, int height, PanelControlMode mode) {
+void XPlaneUiDriver::createPanel(int left, int bottom, int width, int height, PanelControlMode mode) {
     logger::info("Creating panel @ %d,%d size %dx%d mode=%s",
         left,bottom, width,height,
         mode == PanelControlMode::CAPTURE_WINDOW ? "capture" : (mode == PanelControlMode::COMMAND_ONLY ? "hybrid" : "managed"));
@@ -232,7 +232,7 @@ void XPlaneGUIDriver::createPanel(int left, int bottom, int width, int height, P
         params.drawWindowFunc = [] (XPLMWindowID id, void *ref) {
         };
         params.handleMouseClickFunc = [] (XPLMWindowID id, int x, int y, XPLMMouseStatus status, void *ref) -> int {
-            return reinterpret_cast<XPlaneGUIDriver *>(ref)->onPanelClick(status);
+            return reinterpret_cast<XPlaneUiDriver *>(ref)->onPanelClick(status);
         };
         params.handleRightClickFunc = [] (XPLMWindowID id, int x, int y, XPLMMouseStatus status, void *ref) -> int {
             return false;
@@ -243,7 +243,7 @@ void XPlaneGUIDriver::createPanel(int left, int bottom, int width, int height, P
             return xplm_CursorDefault;
         };
         params.handleMouseWheelFunc =  [] (XPLMWindowID id, int x, int y, int wheel, int clicks, void *ref) -> int {
-            return reinterpret_cast<XPlaneGUIDriver *>(ref)->onPanelWheel(wheel, clicks);
+            return reinterpret_cast<XPlaneUiDriver *>(ref)->onPanelWheel(wheel, clicks);
         };
         params.layer = xplm_WindowLayerFlightOverlay;
         params.decorateAsFloatingWindow = xplm_WindowDecorationNone;
@@ -265,7 +265,7 @@ void XPlaneGUIDriver::createPanel(int left, int bottom, int width, int height, P
     isPanelActive = true;
 }
 
-void XPlaneGUIDriver::hidePanel() {
+void XPlaneUiDriver::hidePanel() {
     logger::info("Removing/hiding panel");
     if (captureWindow) {
         XPLMDestroyWindow(captureWindow);
@@ -275,13 +275,13 @@ void XPlaneGUIDriver::hidePanel() {
     isPanelActive = false;
 }
 
-int XPlaneGUIDriver::onDraw3D(XPLMDrawingPhase phase, int isBefore, void *ref) {
-    XPlaneGUIDriver *us = reinterpret_cast<XPlaneGUIDriver *>(ref);
+int XPlaneUiDriver::onDraw3D(XPLMDrawingPhase phase, int isBefore, void *ref) {
+    XPlaneUiDriver *us = reinterpret_cast<XPlaneUiDriver *>(ref);
     us->onDrawPanel();
     return 1;
 }
 
-bool XPlaneGUIDriver::hasWindow() {
+bool XPlaneUiDriver::hasWindow() {
     if (!window) {
         return false;
     } else {
@@ -289,21 +289,21 @@ bool XPlaneGUIDriver::hasWindow() {
     }
 }
 
-void XPlaneGUIDriver::killWindow() {
+void XPlaneUiDriver::killWindow() {
     if (window) {
         XPLMDestroyWindow(window);
         window = nullptr;
     }
 }
 
-void XPlaneGUIDriver::blit(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const uint32_t* data) {
-    GUIDriver::blit(x1, y1, x2, y2, data);
+void XPlaneUiDriver::blit(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const uint32_t* data) {
+    UiDriverBase::blit(x1, y1, x2, y2, data);
 
     std::lock_guard<std::mutex> lock(drawMutex);
     needsRedraw = true;
 }
 
-void XPlaneGUIDriver::onDraw() {
+void XPlaneUiDriver::onDraw() {
     if (!window) {
         logger::warn("No window in onDraw");
         return;
@@ -332,7 +332,7 @@ void XPlaneGUIDriver::onDraw() {
     renderWindowTexture(left, top, right, bottom);
 }
 
-void XPlaneGUIDriver::onDrawPanel() {
+void XPlaneUiDriver::onDrawPanel() {
     if (*panelEnabled == 0) {
         return;
     }
@@ -382,7 +382,7 @@ void XPlaneGUIDriver::onDrawPanel() {
     renderWindowTexture(left, top, right, bottom);
 }
 
-void XPlaneGUIDriver::redrawTexture() {
+void XPlaneUiDriver::redrawTexture() {
     std::lock_guard<std::mutex> lock(drawMutex);
     if (needsRedraw) {
         glTexSubImage2D(GL_TEXTURE_2D, 0,
@@ -393,7 +393,7 @@ void XPlaneGUIDriver::redrawTexture() {
     }
 }
 
-void XPlaneGUIDriver::correctRatio(int &left, int &top, int& right, int& bottom, bool center) {
+void XPlaneUiDriver::correctRatio(int &left, int &top, int& right, int& bottom, bool center) {
     int curWidth = right - left;
     int curHeight = top - bottom;
 
@@ -418,7 +418,7 @@ void XPlaneGUIDriver::correctRatio(int &left, int &top, int& right, int& bottom,
     }
 }
 
-void XPlaneGUIDriver::renderWindowTexture(int left, int top, int right, int bottom) {
+void XPlaneUiDriver::renderWindowTexture(int left, int top, int right, int bottom) {
     // our window has a negative y-axis while OpenGL has a positive one
     glBegin(GL_QUADS);
         // map top left texture to bottom left vertex
@@ -439,13 +439,13 @@ void XPlaneGUIDriver::renderWindowTexture(int left, int top, int right, int bott
     glEnd();
 }
 
-void XPlaneGUIDriver::readPointerState(int &x, int &y, bool &pressed) {
+void XPlaneUiDriver::readPointerState(int &x, int &y, bool &pressed) {
     x = mouseX;
     y = mouseY;
     pressed = mousePressed;
 }
 
-bool XPlaneGUIDriver::boxelToPixel(int bx, int by, int& px, int& py) {
+bool XPlaneUiDriver::boxelToPixel(int bx, int by, int& px, int& py) {
     int bLeft, bTop, bRight, bBottom;
     XPLMGetWindowGeometry(window, &bLeft, &bTop, &bRight, &bBottom);
 
@@ -483,7 +483,7 @@ bool XPlaneGUIDriver::boxelToPixel(int bx, int by, int& px, int& py) {
     }
 }
 
-bool XPlaneGUIDriver::onClick(int x, int y, XPLMMouseStatus status) {
+bool XPlaneUiDriver::onClick(int x, int y, XPLMMouseStatus status) {
     int guiX, guiY;
 
     bool isInWindow = boxelToPixel(x, y, guiX, guiY);
@@ -512,11 +512,11 @@ bool XPlaneGUIDriver::onClick(int x, int y, XPLMMouseStatus status) {
     return true;
 }
 
-bool XPlaneGUIDriver::onRightClick(int x, int y, XPLMMouseStatus status) {
+bool XPlaneUiDriver::onRightClick(int x, int y, XPLMMouseStatus status) {
     return true;
 }
 
-bool XPlaneGUIDriver::onMouseWheel(int x, int y, int, int clicks) {
+bool XPlaneUiDriver::onMouseWheel(int x, int y, int, int clicks) {
     int px, py;
     if (boxelToPixel(x, y, px, py)) {
         mouseX = px;
@@ -527,25 +527,25 @@ bool XPlaneGUIDriver::onMouseWheel(int x, int y, int, int clicks) {
     return false;
 }
 
-int XPlaneGUIDriver::getWheelClicks() {
+int XPlaneUiDriver::getWheelClicks() {
     int val = wheelClicks;
     wheelClicks = 0;
     return val;
 }
 
-XPLMCursorStatus XPlaneGUIDriver::getCursor(int x, int y) {
+XPLMCursorStatus XPlaneUiDriver::getCursor(int x, int y) {
     return xplm_CursorDefault;
 }
 
-void XPlaneGUIDriver::passLeftClick(bool down, bool drag) {
+void XPlaneUiDriver::passLeftClick(bool down, bool drag) {
     onPanelClick(down ? xplm_MouseDown : (drag ? xplm_MouseDrag : xplm_MouseUp));
 }
 
-void XPlaneGUIDriver::passWheel(int clicks) {
+void XPlaneUiDriver::passWheel(int clicks) {
     onPanelWheel(0, clicks);
 }
 
-bool XPlaneGUIDriver::panelClickXYtoAvitabXY(float & px, float & py, int & mx, int & my) {
+bool XPlaneUiDriver::panelClickXYtoAvitabXY(float & px, float & py, int & mx, int & my) {
     int left = panelLeft;
     int top = panelBottom + panelHeight;
     int right = panelLeft + panelWidth;
@@ -569,7 +569,7 @@ bool XPlaneGUIDriver::panelClickXYtoAvitabXY(float & px, float & py, int & mx, i
     return isInAvitabWindow;
 }
 
-bool XPlaneGUIDriver::onPanelClick(XPLMMouseStatus status) {
+bool XPlaneUiDriver::onPanelClick(XPLMMouseStatus status) {
     // returns true if this mouse event was consumed - only relevant to the capture window
     if (*panelEnabled == 0) {
         return false;
@@ -604,7 +604,7 @@ bool XPlaneGUIDriver::onPanelClick(XPLMMouseStatus status) {
     return isInWindow || mousePressed;
 }
 
-bool XPlaneGUIDriver::onPanelWheel(int wheel, int clicks) {
+bool XPlaneUiDriver::onPanelWheel(int wheel, int clicks) {
     if (*panelEnabled == 0) {
         return false;
     }
@@ -628,12 +628,12 @@ bool XPlaneGUIDriver::onPanelWheel(int wheel, int clicks) {
     return false;
 }
 
-void XPlaneGUIDriver::setupKeyboard() {
+void XPlaneUiDriver::setupKeyboard() {
     XPLMRegisterKeySniffer(onKeyPress, 0, this);
 }
 
-int XPlaneGUIDriver::onKeyPress(char c, XPLMKeyFlags flags, char vKey, void* ref) {
-    XPlaneGUIDriver *us = (XPlaneGUIDriver *) ref;
+int XPlaneUiDriver::onKeyPress(char c, XPLMKeyFlags flags, char vKey, void* ref) {
+    XPlaneUiDriver *us = (XPlaneUiDriver *) ref;
 
     if (!us->hasWindow() && !us->isPanelActive) {
         return 1;
@@ -659,15 +659,15 @@ int XPlaneGUIDriver::onKeyPress(char c, XPLMKeyFlags flags, char vKey, void* ref
     return 0;
 }
 
-void XPlaneGUIDriver::setBrightness(float b) {
+void XPlaneUiDriver::setBrightness(float b) {
     *brightness = b;
 }
 
-float XPlaneGUIDriver::getBrightness() {
+float XPlaneUiDriver::getBrightness() {
     return *brightness;
 }
 
-XPlaneGUIDriver::~XPlaneGUIDriver() {
+XPlaneUiDriver::~XPlaneUiDriver() {
     GLuint gluId = textureId;
     glDeleteTextures(1, &gluId);
 

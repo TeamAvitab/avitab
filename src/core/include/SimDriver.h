@@ -41,36 +41,36 @@ enum class CommandState {
     END
 };
 
-/**
- * This interface defines methods to interact with the environment
- * of the application, e.g. X-Plane or the stand-alone variant.
- */
+// The SimDriverBase interface defines methods for the Avitab core to interact with a simulation,
+// which may be X-Plane, MSFS, or the mock simulator (used for desktop testing).
 
-// REFACTOR - there's stuff in here that's common to all environments.
+// REFACTOR - there's stuff in here that's common to all simulations.
 // In that case, surely it should just go in the Avitab core?
+// And there's other stuff that is only relevant to X-Plane.
+// This should be moved into the X-Plane product or driver.
 // This should eventually be an abstract interface.
 
-class Environment {
+class SimDriverBase {
 public:
     using MenuCallback = std::function<void()>;
     using CommandCallback = std::function<void(CommandState)>;
-    using EnvironmentCallback = std::function<void()>;
+    using SimDriverCallback = std::function<void()>;
 
-    // Must be called from the environment thread - do not call from GUI thread!
+    // Must be called from the simDriver thread - do not call from Avitab's thread!
 
 
     // REFACTOR - obsolete? combine with settings?
     void loadConfig();
     std::shared_ptr<JsonConfig> getConfig();
 
-    // REFACTOR - move into core, nothing to do with the environment
+    // REFACTOR - move into core, nothing to do with the simDriver
     void loadSettings();
     std::shared_ptr<Settings> getSettings();
 
-    virtual void onAircraftReload() = 0;
-    virtual std::shared_ptr<GUIDriver> createGUIDriver() = 0;
+    virtual void onAircraftReload() = 0; // REFACTOR - move to AvitabCore interface
+    virtual std::shared_ptr<UiDriverBase> createUiDriver() = 0; // REFACTOR - move to product
 
-    // REFACTOR - move into X-Plane environment, not core
+    // REFACTOR - move into X-Plane SimDriver, is not a common interface
     virtual void createMenu(const std::string &name) = 0;
     virtual void addMenuEntry(const std::string &label, MenuCallback cb) = 0;
     virtual void destroyMenu() = 0;
@@ -80,16 +80,16 @@ public:
 
     // Can be called from any thread
 
-    void pauseEnvironmentJobs();
-    void resumeEnvironmentJobs();
+    void pauseSimDriverJobs();
+    void resumeSimDriverJobs();
 
 
     /**
      * Stores a callback in the pending callbacks queue to
-     * be executed by the environment thread.
+     * be executed by the simDriver thread.
      * @param cb the callback to enqueue
      */
-    void runInEnvironment(EnvironmentCallback cb);
+    void runInSimDriver(SimDriverCallback cb);
 
     virtual std::filesystem::path getProgramPath() = 0;
     virtual std::filesystem::path getDataRootPath() = 0;
@@ -121,17 +121,17 @@ public:
 
     unsigned int getFramesPerSecond();
 
-    virtual ~Environment() = default;
+    virtual ~SimDriverBase() = default;
 
 protected:
-    void runEnvironmentCallbacks();
+    void runSimDriverCallbacks(); // REFACTOR - probably not called by AvitabCore ??
     void reportFrameDuration(unsigned int tMs);
 
 private:
     std::shared_ptr<JsonConfig> config;
     std::shared_ptr<Settings> settings;
-    std::mutex envMutex;
-    std::vector<EnvironmentCallback> envCallbacks;
+    std::mutex lockMutex;
+    std::vector<SimDriverCallback> simDriverCallbacks;
     bool stopped = false;
 
     static constexpr size_t RING_BUFFER_SIZE = 20;

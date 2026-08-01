@@ -22,7 +22,7 @@
 
 namespace avitab {
 
-void GUIDriver::init(int width, int height) {
+void UiDriverBase::init(int width, int height) {
     logger::verbose("Initializing GUI driver");
 
     bufferWidth = width;
@@ -30,15 +30,15 @@ void GUIDriver::init(int width, int height) {
     buffer.resize(width * height);
 }
 
-WindowRect GUIDriver::getWindowRect() {
+WindowRect UiDriverBase::getWindowRect() {
     return {};
 }
 
-void GUIDriver::setResizeCallback(ResizeCallback cb) {
+void UiDriverBase::setResizeCallback(ResizeCallback cb) {
     onResize = cb;
 }
 
-void GUIDriver::resize(int newWidth, int newHeight) {
+void UiDriverBase::resize(int newWidth, int newHeight) {
     bufferWidth = newWidth;
     bufferHeight = newHeight;
     buffer.resize(bufferWidth * bufferHeight);
@@ -47,13 +47,13 @@ void GUIDriver::resize(int newWidth, int newHeight) {
     }
 }
 
-void GUIDriver::createPanel(int left, int bottom, int width, int height, PanelControlMode mode) {
+void UiDriverBase::createPanel(int left, int bottom, int width, int height, PanelControlMode mode) {
 }
 
-void GUIDriver::hidePanel() {
+void UiDriverBase::hidePanel() {
 }
 
-void GUIDriver::blit(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const uint32_t* data) {
+void UiDriverBase::blit(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const uint32_t* data) {
     if(x2 < 0 || y2 < 0 || x1 > bufferWidth - 1 || y1 > bufferHeight - 1) {
         return;
     }
@@ -69,37 +69,37 @@ void GUIDriver::blit(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const uint3
     }
 }
 
-int GUIDriver::width() {
+int UiDriverBase::width() {
     return bufferWidth;
 }
 
-int GUIDriver::height() {
+int UiDriverBase::height() {
     return bufferHeight;
 }
 
-uint32_t* GUIDriver::data() {
+uint32_t* UiDriverBase::data() {
     return buffer.data();
 }
 
-void GUIDriver::setWantKeyInput(bool wantKeys) {
+void UiDriverBase::setWantKeyInput(bool wantKeys) {
     if (enableKeyInput != wantKeys) {
         logger::verbose("Want key input: %d", wantKeys);
     }
     enableKeyInput = wantKeys;
 }
 
-bool GUIDriver::wantsKeyInput() {
+bool UiDriverBase::wantsKeyInput() {
     return enableKeyInput;
 }
 
-void GUIDriver::pushKeyInput(uint32_t c) {
+void UiDriverBase::pushKeyInput(uint32_t c) {
     std::lock_guard<std::mutex> lock(keyMutex);
     if (enableKeyInput) {
         keyInput.push(c);
     }
 }
 
-uint32_t GUIDriver::popKeyPress() {
+uint32_t UiDriverBase::popKeyPress() {
     int res = 0;
     {
         std::lock_guard<std::mutex> lock(keyMutex);
@@ -111,13 +111,13 @@ uint32_t GUIDriver::popKeyPress() {
     return res;
 }
 
-void GUIDriver::passLeftClick(bool, bool) {
+void UiDriverBase::passLeftClick(bool, bool) {
 }
 
-void GUIDriver::passWheel(int) {
+void UiDriverBase::passWheel(int) {
 }
 
-GUIDriver::~GUIDriver() {
+UiDriverBase::~UiDriverBase() {
     logger::verbose("Destroying GUI driver");
 }
 

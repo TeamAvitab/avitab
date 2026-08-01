@@ -21,23 +21,23 @@
 #include "Logger.h"
 #include "platform/Platform.h"
 
-StandAloneEnvironment::StandAloneEnvironment() : ToolEnvironment() {
+MockSimDriver::MockSimDriver() : ToolSimDriver() {
 }
 
-void StandAloneEnvironment::eventLoop() {
+void MockSimDriver::eventLoop() {
     while (driver->handleEvents()) {
-        runEnvironmentCallbacks();
+        runSimDriverCallbacks();
         reportFrameDuration(driver->getLastDrawTime());
     }
     driver.reset();
 }
 
-std::shared_ptr<avitab::GUIDriver> StandAloneEnvironment::createGUIDriver() {
-    driver = std::make_shared<GlfwGUIDriver>();
+std::shared_ptr<avitab::UiDriverBase> MockSimDriver::createUiDriver() {
+    driver = std::make_shared<GlfwUiDriver>();
     return driver;
 }
 
-std::vector<float> StandAloneEnvironment::getMagneticVariations(std::vector<world::Location> &locs) {
+std::vector<float> MockSimDriver::getMagneticVariations(std::vector<world::Location> &locs) {
     std::vector<float> mvs;
     for (auto location : locs) {
         mvs.push_back(((float)std::rand() / RAND_MAX - 0.5) * 10);
@@ -45,24 +45,24 @@ std::vector<float> StandAloneEnvironment::getMagneticVariations(std::vector<worl
     return mvs;
 }
 
-std::string StandAloneEnvironment::getMETARForAirport(const std::string &icao) {
+std::string MockSimDriver::getMETARForAirport(const std::string &icao) {
     return "";
 }
 
-int StandAloneEnvironment::getWeatherAtLocation(const world::Location &loc, const float &altitude, std::string &weather) {
+int MockSimDriver::getWeatherAtLocation(const world::Location &loc, const float &altitude, std::string &weather) {
     weather = std::string("Wind calm, Visibility 7 nm, Temp./Dew 14/8 °C, QNH 1013");
     return 1;
 }
 
-std::string StandAloneEnvironment::getNearestAirportId() {
+std::string MockSimDriver::getNearestAirportId() {
     return "EDHL";
 }
 
-avitab::AircraftID StandAloneEnvironment::getActiveAircraftCount() {
+avitab::AircraftID MockSimDriver::getActiveAircraftCount() {
     return 4;
 }
 
-world::Position StandAloneEnvironment::getAircraftPosition(avitab::AircraftID id) {
+world::Position MockSimDriver::getAircraftPosition(avitab::AircraftID id) {
     static unsigned int t = 0;
     static world::Position loc[4];
     static double vel[4];
@@ -114,18 +114,18 @@ world::Position StandAloneEnvironment::getAircraftPosition(avitab::AircraftID id
     return loc[id];
 }
 
-unsigned int StandAloneEnvironment::getZuluTimeSeconds() {
+unsigned int MockSimDriver::getZuluTimeSeconds() {
     time_t now = time(nullptr);
     tm *zulu = gmtime(&now);
     return zulu->tm_hour * 3600 + zulu->tm_min * 60 + zulu->tm_sec;
 }
 
-unsigned int StandAloneEnvironment::getLocalTimeSeconds() {
+unsigned int MockSimDriver::getLocalTimeSeconds() {
     time_t now = time(nullptr);
     tm *local = localtime(&now);
     return local->tm_hour * 3600 + local->tm_min * 60 + local->tm_sec;
 }
 
-StandAloneEnvironment::~StandAloneEnvironment() {
-    logger::verbose("~StandAloneEnvironment");
+MockSimDriver::~MockSimDriver() {
+    logger::verbose("~MockSimDriver");
 }

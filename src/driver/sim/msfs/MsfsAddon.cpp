@@ -28,24 +28,24 @@ int main() {
 
     try {
         // Using the stack so we can debug destructors with log messages
-        auto env = std::make_shared<MsfsAddonEnvironment>();
-        env->loadConfig();
-        logger::setStdOut(env->getConfig()->getBool("/AviTab/logToStdOut"));
-        logger::init(env->getDataRootPath());
+        auto simDriver = std::make_shared<MsfsAddonSimDriver>();
+        simDriver->loadConfig();
+        logger::setStdOut(simDriver->getConfig()->getBool("/AviTab/logToStdOut"));
+        logger::init(simDriver->getDataRootPath());
         logger::verbose("Main thread has id %d", std::this_thread::get_id());
-        env->loadSettings();
+        simDriver->loadSettings();
 
-        auto guiDriver = env->createGUIDriver();
-        auto aviTab = avitab::AviTabCore::CreateAviTabCore(env, guiDriver);
+        auto uiDriver = simDriver->createUiDriver();
+        auto aviTab = avitab::AviTabCore::CreateAviTabCore(simDriver, uiDriver);
         aviTab->startApp();
         aviTab->toggleTablet();
 
         // pauses until window closed
-        env->eventLoop();
+        simDriver->eventLoop();
 
         aviTab->stopApp();
         aviTab.reset();
-        env.reset();
+        simDriver.reset();
     } catch (const std::exception &e) {
         logger::error("Exception: %s", e.what());
     }

@@ -36,7 +36,11 @@ struct WindowRect {
     bool poppedOut = false;
 };
 
-class GUIDriver {
+// The UiDriverBase interface defines abstract methods for the Avitab core to interact with the user,
+// using the mouse, scroll wheel, keyboard and a displayed image.
+// Implementations are specialised for X-Plane, MSFS and a GLFW desktop application.
+
+class UiDriverBase {
 public:
     using ResizeCallback = std::function<void(int, int)>;
 
@@ -55,6 +59,7 @@ public:
         AIRCRAFT_MANAGED
     };
 
+    // REFACTOR - move into X-Plane SimDriver, is not a common interface
     virtual void createPanel(int left, int bottom, int width, int height, PanelControlMode mode);
     virtual void hidePanel();
 
@@ -71,7 +76,7 @@ public:
     virtual void passLeftClick(bool down, bool drag);
     virtual void passWheel(int direction);
 
-    virtual ~GUIDriver();
+    virtual ~UiDriverBase();
 protected:
     uint32_t *data();
     bool wantsKeyInput();

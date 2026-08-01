@@ -22,17 +22,17 @@
 #include <map>
 #include "ToolSimDriver.h"
 
-class GlfwGUIDriver;
+class GlfwUiDriver;
 
-class StandAloneEnvironment : public ToolEnvironment
+class MockSimDriver : public ToolSimDriver
 {
 public:
-    // Must be called from the environment thread - do not call from GUI thread!
-    StandAloneEnvironment();
+    // Must be called from the simDriver thread - do not call from GUI thread!
+    MockSimDriver();
 
-    // avitab::Environment overrides
+    // avitab::SimDriverBase overrides
 
-    std::shared_ptr<avitab::GUIDriver> createGUIDriver() override;
+    std::shared_ptr<avitab::UiDriverBase> createUiDriver() override;
 
     void eventLoop();
 
@@ -46,9 +46,9 @@ public:
     unsigned int getZuluTimeSeconds() override;
     unsigned int getLocalTimeSeconds() override;
 
-    virtual ~StandAloneEnvironment();
+    virtual ~MockSimDriver();
 
 protected:
-    std::shared_ptr<GlfwGUIDriver> driver;
+    std::shared_ptr<GlfwUiDriver> driver;
 
 };

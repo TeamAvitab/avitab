@@ -31,7 +31,7 @@
 #include "platform/Platform.h"
 #include "AviTabBuildSettings.h"
 
-XPlaneEnvironment::XPlaneEnvironment() {
+XPlaneSimDriver::XPlaneSimDriver() {
     XPLMDebugString("AviTab version " AVITAB_VERSION_STR "\n");
 
     // Called by the X-Plane thread via StartPlugin
@@ -61,42 +61,42 @@ XPlaneEnvironment::XPlaneEnvironment() {
     reloadAircraftPath();
 
     panelEnabledRef = std::make_unique<xdata::DataRefExport<int>>("avitab/panel_enabled", this,
-        [] (void *self) { return *((reinterpret_cast<XPlaneEnvironment *>(self))->panelEnabled); },
-        [] (void *self, int v) { *((reinterpret_cast<XPlaneEnvironment *>(self))->panelEnabled) = v; });
+        [] (void *self) { return *((reinterpret_cast<XPlaneSimDriver *>(self))->panelEnabled); },
+        [] (void *self, int v) { *((reinterpret_cast<XPlaneSimDriver *>(self))->panelEnabled) = v; });
 
     panelPoweredRef = std::make_unique<xdata::DataRefExport<int>>("avitab/panel_powered", this,
-        [] (void *self) { return *((reinterpret_cast<XPlaneEnvironment *>(self))->panelPowered); },
-        [] (void *self, int v) { *((reinterpret_cast<XPlaneEnvironment *>(self))->panelPowered) = v; });
+        [] (void *self) { return *((reinterpret_cast<XPlaneSimDriver *>(self))->panelPowered); },
+        [] (void *self, int v) { *((reinterpret_cast<XPlaneSimDriver *>(self))->panelPowered) = v; });
 
     brightnessRef = std::make_unique<xdata::DataRefExport<float>>("avitab/brightness", this,
-        [] (void *self) { return *((reinterpret_cast<XPlaneEnvironment *>(self))->brightness); },
-        [] (void *self, float v) { *((reinterpret_cast<XPlaneEnvironment *>(self))->brightness) = v; });
+        [] (void *self) { return *((reinterpret_cast<XPlaneSimDriver *>(self))->brightness); },
+        [] (void *self, float v) { *((reinterpret_cast<XPlaneSimDriver *>(self))->brightness) = v; });
 
     isInMenuRef = std::make_unique<xdata::DataRefExport<int>>("avitab/is_in_menu", this,
-        [] (void *self) { return (reinterpret_cast<XPlaneEnvironment *>(self))->isInMenu; });
+        [] (void *self) { return (reinterpret_cast<XPlaneSimDriver *>(self))->isInMenu; });
 
     mapLatitudeRef = std::make_unique<xdata::DataRefExport<float>>("avitab/map/latitude", this,
-        [] (void *self) { return (reinterpret_cast<XPlaneEnvironment *>(self))->getMapLatitude(); });
+        [] (void *self) { return (reinterpret_cast<XPlaneSimDriver *>(self))->getMapLatitude(); });
 
     mapLongitudeRef = std::make_unique<xdata::DataRefExport<float>>("avitab/map/longitude", this,
-        [] (void *self) { return (reinterpret_cast<XPlaneEnvironment *>(self))->getMapLongitude(); });
+        [] (void *self) { return (reinterpret_cast<XPlaneSimDriver *>(self))->getMapLongitude(); });
 
     mapZoomRef = std::make_unique<xdata::DataRefExport<int>>("avitab/map/zoom", this,
-        [] (void *self) { return (reinterpret_cast<XPlaneEnvironment *>(self))->getMapZoom(); });
+        [] (void *self) { return (reinterpret_cast<XPlaneSimDriver *>(self))->getMapZoom(); });
 
     mapVerticalRangeRef = std::make_unique<xdata::DataRefExport<float>>("avitab/map/vertical_range", this,
-        [] (void *self) { return (reinterpret_cast<XPlaneEnvironment *>(self))->getMapVerticalRange(); });
+        [] (void *self) { return (reinterpret_cast<XPlaneSimDriver *>(self))->getMapVerticalRange(); });
 
     XPLMScheduleFlightLoop(flightLoopId, -1, true);
 }
 
-std::filesystem::path XPlaneEnvironment::getXPlanePath() {
+std::filesystem::path XPlaneSimDriver::getXPlanePath() {
     char buf[2048];
     XPLMGetSystemPath(buf);
     return std::filesystem::u8path(buf);
 }
 
-std::filesystem::path XPlaneEnvironment::getPluginPath() {
+std::filesystem::path XPlaneSimDriver::getPluginPath() {
     XPLMPluginID ourId = XPLMGetMyID();
     char pathBuf[2048];
     XPLMGetPluginInfo(ourId, nullptr, pathBuf, nullptr, nullptr);
@@ -104,14 +104,14 @@ std::filesystem::path XPlaneEnvironment::getPluginPath() {
     return std::filesystem::u8path(std::string(pathBuf, 0, filePart - pathBuf)).parent_path();
 }
 
-std::filesystem::path XPlaneEnvironment::findPreferencesDir() {
+std::filesystem::path XPlaneSimDriver::findPreferencesDir() {
     char pathBuf[2048];
     XPLMGetPrefsPath(pathBuf);
     char *filePart = XPLMExtractFileAndPath(pathBuf);
     return std::filesystem::u8path(std::string(pathBuf, 0, filePart - pathBuf));
 }
 
-XPLMFlightLoopID XPlaneEnvironment::createFlightLoop() {
+XPLMFlightLoopID XPlaneSimDriver::createFlightLoop() {
     XPLMCreateFlightLoop_t loop;
     loop.structSize = sizeof(XPLMCreateFlightLoop_t);
     loop.phase = 0; // ignored according to docs
@@ -120,7 +120,7 @@ XPLMFlightLoopID XPlaneEnvironment::createFlightLoop() {
         if (!ref) {
             return 0;
         }
-        auto *us = reinterpret_cast<XPlaneEnvironment *>(ref);
+        auto *us = reinterpret_cast<XPlaneSimDriver *>(ref);
         return us->onFlightLoop(f1, f2, c);
     };
 
@@ -131,15 +131,15 @@ XPLMFlightLoopID XPlaneEnvironment::createFlightLoop() {
     return id;
 }
 
-std::shared_ptr<avitab::GUIDriver> XPlaneEnvironment::createGUIDriver() {
-    std::shared_ptr<XPlaneGUIDriver> driver = std::make_shared<XPlaneGUIDriver>();
+std::shared_ptr<avitab::UiDriverBase> XPlaneSimDriver::createUiDriver() {
+    std::shared_ptr<XPlaneUiDriver> driver = std::make_shared<XPlaneUiDriver>();
     driver->setPanelEnabledPtr(panelEnabled);
     driver->setPanelPoweredPtr(panelPowered);
     driver->setBrightnessPtr(brightness);
     return driver;
 }
 
-void XPlaneEnvironment::createMenu(const std::string& name) {
+void XPlaneSimDriver::createMenu(const std::string& name) {
     XPLMMenuID pluginMenu = XPLMFindPluginsMenu();
     subMenuIdx = XPLMAppendMenuItem(pluginMenu, name.c_str(), nullptr, 0);
 
@@ -148,7 +148,7 @@ void XPlaneEnvironment::createMenu(const std::string& name) {
     }
 
     subMenu = XPLMCreateMenu(name.c_str(), pluginMenu, subMenuIdx, [] (void *ctrl, void *cb) {
-        XPlaneEnvironment *us = (XPlaneEnvironment *) ctrl;
+        XPlaneSimDriver *us = (XPlaneSimDriver *) ctrl;
         auto idx = reinterpret_cast<intptr_t>(cb);
         MenuCallback callback = us->menuCallbacks[idx];
         if (callback) {
@@ -162,13 +162,13 @@ void XPlaneEnvironment::createMenu(const std::string& name) {
     }
 }
 
-void XPlaneEnvironment::addMenuEntry(const std::string& label, MenuCallback cb) {
+void XPlaneSimDriver::addMenuEntry(const std::string& label, MenuCallback cb) {
     menuCallbacks.push_back(cb);
     intptr_t idx = menuCallbacks.size() - 1;
     XPLMAppendMenuItem(subMenu, label.c_str(), reinterpret_cast<void *>(idx), 0);
 }
 
-void XPlaneEnvironment::destroyMenu() {
+void XPlaneSimDriver::destroyMenu() {
     if (subMenu) {
         XPLMDestroyMenu(subMenu);
         subMenu = nullptr;
@@ -177,7 +177,7 @@ void XPlaneEnvironment::destroyMenu() {
     }
 }
 
-void XPlaneEnvironment::createCommand(const std::string& name, const std::string& desc, CommandCallback cb) {
+void XPlaneSimDriver::createCommand(const std::string& name, const std::string& desc, CommandCallback cb) {
     XPLMCommandRef cmd = XPLMCreateCommand(name.c_str(), desc.c_str());
     if (!cmd) {
         throw std::runtime_error("Couldn't create command: " + name);
@@ -193,8 +193,8 @@ void XPlaneEnvironment::createCommand(const std::string& name, const std::string
     XPLMRegisterCommandHandler(cmd, handleCommand, true, this);
 }
 
-int XPlaneEnvironment::handleCommand(XPLMCommandRef cmd, XPLMCommandPhase phase, void* ref) {
-    XPlaneEnvironment *us = reinterpret_cast<XPlaneEnvironment *>(ref);
+int XPlaneSimDriver::handleCommand(XPLMCommandRef cmd, XPLMCommandPhase phase, void* ref) {
+    XPlaneSimDriver *us = reinterpret_cast<XPlaneSimDriver *>(ref);
     if (!us) {
         return 1;
     }
@@ -211,43 +211,43 @@ int XPlaneEnvironment::handleCommand(XPLMCommandRef cmd, XPLMCommandPhase phase,
     return 1;
 }
 
-void XPlaneEnvironment::destroyCommands() {
+void XPlaneSimDriver::destroyCommands() {
     for (auto &iter: commandHandlers) {
         XPLMUnregisterCommandHandler(iter.first, handleCommand, true, this);
     }
     commandHandlers.clear();
 }
 
-std::filesystem::path XPlaneEnvironment::getAirplanePath() {
+std::filesystem::path XPlaneSimDriver::getAirplanePath() {
     std::lock_guard<std::mutex> lock(stateMutex);
     return aircraftPath;
 }
 
-std::filesystem::path XPlaneEnvironment::getProgramPath() {
+std::filesystem::path XPlaneSimDriver::getProgramPath() {
     return pluginPath;
 }
 
-std::filesystem::path XPlaneEnvironment::getDataRootPath() {
+std::filesystem::path XPlaneSimDriver::getDataRootPath() {
     return pluginPath;
 }
 
-std::filesystem::path XPlaneEnvironment::getSettingsDir() {
+std::filesystem::path XPlaneSimDriver::getSettingsDir() {
     return xplanePrefsDir;
 }
 
-std::filesystem::path XPlaneEnvironment::getFontDirectory() {
+std::filesystem::path XPlaneSimDriver::getFontDirectory() {
     return xplaneRootPath / "Resources"/"fonts";
 }
 
-std::filesystem::path XPlaneEnvironment::getFlightPlansPath() {
+std::filesystem::path XPlaneSimDriver::getFlightPlansPath() {
     return xplaneRootPath / "Output"/"FMS Plans";
 }
 
-std::filesystem::path XPlaneEnvironment::getXpNavDataRootPath() {
+std::filesystem::path XPlaneSimDriver::getXpNavDataRootPath() {
     return xplaneRootPath;
 }
 
-float XPlaneEnvironment::onFlightLoop(float elapsedSinceLastCall, float elapseSinceLastLoop, int count) {
+float XPlaneSimDriver::onFlightLoop(float elapsedSinceLastCall, float elapseSinceLastLoop, int count) {
     std::vector<world::Position> activeAircraftLocations;
 
     updatePlaneCount();
@@ -290,16 +290,16 @@ float XPlaneEnvironment::onFlightLoop(float elapsedSinceLastCall, float elapseSi
 
     reportFrameDuration(dataCache.getData("sim/operation/misc/frame_rate_period").floatValue * 1000);
 
-    runEnvironmentCallbacks();
+    runSimDriverCallbacks();
     return -1;
 }
 
-avitab::AircraftID XPlaneEnvironment::getActiveAircraftCount() {
+avitab::AircraftID XPlaneSimDriver::getActiveAircraftCount() {
     std::lock_guard<std::mutex> lock(stateMutex);
     return (otherAircraftCount + 1);
 }
 
-world::Position XPlaneEnvironment::getAircraftPosition(avitab::AircraftID id) {
+world::Position XPlaneSimDriver::getAircraftPosition(avitab::AircraftID id) {
     std::lock_guard<std::mutex> lock(stateMutex);
     if (id < aircraftLocations.size()) {
         return aircraftLocations[id];
@@ -308,11 +308,11 @@ world::Position XPlaneEnvironment::getAircraftPosition(avitab::AircraftID id) {
     }
 }
 
-xdata::EnvData XPlaneEnvironment::getData(const std::string& dataRef) {
+xdata::EnvData XPlaneSimDriver::getData(const std::string& dataRef) {
     std::promise<xdata::EnvData> dataPromise;
     auto futureData = dataPromise.get_future();
 
-    runInEnvironment([&dataPromise, &dataRef, this] () {
+    runInSimDriver([&dataPromise, &dataRef, this] () {
         try {
             dataPromise.set_value(dataCache.getData(dataRef));
         } catch (...) {
@@ -324,12 +324,12 @@ xdata::EnvData XPlaneEnvironment::getData(const std::string& dataRef) {
     return futureData.get();
 }
 
-std::vector<float> XPlaneEnvironment::getMagneticVariations(std::vector<world::Location> &locs) {
+std::vector<float> XPlaneSimDriver::getMagneticVariations(std::vector<world::Location> &locs) {
     std::promise<std::vector<float>> dataPromise;
     auto futureData = dataPromise.get_future();
 
     auto startAt = std::chrono::steady_clock::now();
-    runInEnvironment([&dataPromise, &locs] () {
+    runInSimDriver([&dataPromise, &locs] () {
         std::vector<float> mvs;
         for (auto loc : locs) {
             mvs.push_back(XPLMGetMagneticVariation(loc.latDegrees(), loc.lonDegrees()));
@@ -344,14 +344,14 @@ std::vector<float> XPlaneEnvironment::getMagneticVariations(std::vector<world::L
     return res;
 }
 
-std::string XPlaneEnvironment::getMETARForAirport(const std::string &icao) {
+std::string XPlaneSimDriver::getMETARForAirport(const std::string &icao) {
     std::string metar, timestamp;
     if (getMetar) {
         std::promise<std::string> dataPromise;
         auto futureData = dataPromise.get_future();
 
         auto startAt = std::chrono::steady_clock::now();
-        runInEnvironment([this, icao, &dataPromise] () {
+        runInSimDriver([this, icao, &dataPromise] () {
             XPLMFixedString150_t buf;
             getMetar(icao.c_str(), &buf);
             dataPromise.set_value(std::string(buf.buffer));
@@ -363,13 +363,13 @@ std::string XPlaneEnvironment::getMETARForAirport(const std::string &icao) {
             std::chrono::duration_cast<std::chrono::milliseconds>(duration).count());
     } else {
         // REFACTOR - if we decide to restore XP11 METAR, then we can do it here by scanning the METAR.rwx
-        // using the runInEnvironment pattern above, and extracting the data directly
+        // using the runInSimDriver pattern above, and extracting the data directly
     }
 
     return metar;
 }
 
-int XPlaneEnvironment::getWeatherAtLocation(const world::Location &loc, const float &altitude, std::string& weather) {
+int XPlaneSimDriver::getWeatherAtLocation(const world::Location &loc, const float &altitude, std::string& weather) {
     int detailed;
     XPLMWeatherInfo_t winfo;
     winfo.structSize = sizeof(XPLMWeatherInfo_t);
@@ -382,7 +382,7 @@ int XPlaneEnvironment::getWeatherAtLocation(const world::Location &loc, const fl
         auto futureData = dataPromise.get_future();
 
         auto startAt = std::chrono::steady_clock::now();
-        runInEnvironment([this, &loc, &altitude, &dataPromise] () {
+        runInSimDriver([this, &loc, &altitude, &dataPromise] () {
             int d;
             XPLMWeatherInfo_t w;
             w.structSize = sizeof(XPLMWeatherInfo_t);
@@ -439,11 +439,11 @@ int XPlaneEnvironment::getWeatherAtLocation(const world::Location &loc, const fl
     return detailed;
 }
 
-std::string XPlaneEnvironment::getNearestAirportId() {
+std::string XPlaneSimDriver::getNearestAirportId() {
     std::promise<std::string> dataPromise;
     auto futureData = dataPromise.get_future();
 
-    runInEnvironment([this, &dataPromise] () {
+    runInSimDriver([this, &dataPromise] () {
         std::lock_guard<std::mutex> lock(stateMutex);
         float lat = 0.0, lon = 0.0;
         char nearestID[32] = {};
@@ -462,25 +462,25 @@ std::string XPlaneEnvironment::getNearestAirportId() {
     return nearestId;
 }
 
-void XPlaneEnvironment::enableAndPowerPanel() {
+void XPlaneSimDriver::enableAndPowerPanel() {
     *panelEnabled = true;
     *panelPowered = true;
 }
 
-void XPlaneEnvironment::setIsInMenu(bool menu) {
+void XPlaneSimDriver::setIsInMenu(bool menu) {
     isInMenu = menu;
 }
 
-XPlaneEnvironment::~XPlaneEnvironment() {
+XPlaneSimDriver::~XPlaneSimDriver() {
     if (flightLoopId) {
         XPLMDestroyFlightLoop(flightLoopId);
     }
 
     destroyMenu();
-    logger::verbose("~XPlaneEnvironment");
+    logger::verbose("~XPlaneSimDriver");
 }
 
-void XPlaneEnvironment::updateMapExports(float lat, float lon, int zoom, float vrange) {
+void XPlaneSimDriver::updateMapExports(float lat, float lon, int zoom, float vrange) {
     std::lock_guard<std::mutex> lock(stateMutex);
     mapLatitude = lat;
     mapLongitude = lon;
@@ -488,37 +488,37 @@ void XPlaneEnvironment::updateMapExports(float lat, float lon, int zoom, float v
     mapVerticalRange = vrange;
 }
 
-unsigned int XPlaneEnvironment::getZuluTimeSeconds() {
+unsigned int XPlaneSimDriver::getZuluTimeSeconds() {
     std::lock_guard<std::mutex> lock(stateMutex);
     return zuluTimeSecs;
 }
 
-unsigned int XPlaneEnvironment::getLocalTimeSeconds() {
+unsigned int XPlaneSimDriver::getLocalTimeSeconds() {
     std::lock_guard<std::mutex> lock(stateMutex);
     return localTimeSecs;
 }
 
-float XPlaneEnvironment::getMapLatitude() {
+float XPlaneSimDriver::getMapLatitude() {
     std::lock_guard<std::mutex> lock(stateMutex);
     return mapLatitude;
 }
 
-float XPlaneEnvironment::getMapLongitude() {
+float XPlaneSimDriver::getMapLongitude() {
     std::lock_guard<std::mutex> lock(stateMutex);
     return mapLongitude;
 }
 
-int XPlaneEnvironment::getMapZoom() {
+int XPlaneSimDriver::getMapZoom() {
     std::lock_guard<std::mutex> lock(stateMutex);
     return mapZoom;
 }
 
-float XPlaneEnvironment::getMapVerticalRange() {
+float XPlaneSimDriver::getMapVerticalRange() {
     std::lock_guard<std::mutex> lock(stateMutex);
     return mapVerticalRange;
 }
 
-void XPlaneEnvironment::reloadAircraftPath() {
+void XPlaneSimDriver::reloadAircraftPath() {
     std::lock_guard<std::mutex> lock(stateMutex);
     char file[512];
     char path[512];
@@ -527,11 +527,11 @@ void XPlaneEnvironment::reloadAircraftPath() {
     aircraftPath = acf.parent_path();
 }
 
-void XPlaneEnvironment::onAircraftReload() {
+void XPlaneSimDriver::onAircraftReload() {
     reloadAircraftPath();
 }
 
-std::string XPlaneEnvironment::cloudCoverageToText(const float coverage) {
+std::string XPlaneSimDriver::cloudCoverageToText(const float coverage) {
     int c =  std::round(coverage * 100);
     std::string cloudLayer = "overcast";
     if (c <= SKY_CLEAR) {
@@ -546,7 +546,7 @@ std::string XPlaneEnvironment::cloudCoverageToText(const float coverage) {
     return cloudLayer;
 }
 
-void XPlaneEnvironment::updatePlaneCount() {
+void XPlaneSimDriver::updatePlaneCount() {
     int tmp1, active;
     XPLMPluginID tmp2;
     XPLMCountAircraft(&tmp1, &active, &tmp2);

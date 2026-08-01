@@ -23,7 +23,7 @@
 #include <atomic>
 #include "UiDriver.h"
 
-class GlfwGUIDriver: public avitab::GUIDriver {
+class GlfwUiDriver: public avitab::UiDriverBase {
 public:
     void init(int width, int height) override;
     void createWindow(const std::string &title, const avitab::WindowRect &rect) override;
@@ -38,7 +38,7 @@ public:
     void blit(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const uint32_t *newData) override;
     void readPointerState(int &x, int &y, bool &pressed) override;
     int getWheelClicks() override;
-    ~GlfwGUIDriver();
+    ~GlfwUiDriver();
 private:
     static constexpr const float ZOOM = 1.5f;
 

@@ -18,61 +18,61 @@
 #include "ToolSimDriver.h"
 #include "platform/Platform.h"
 
-ToolEnvironment::ToolEnvironment() : Environment() {
+ToolSimDriver::ToolSimDriver() : SimDriverBase() {
     xplaneRootPath = findXPlaneInstallationPath();
     ourPath = platform::getExectuablePath();
 }
 
-void ToolEnvironment::createMenu(const std::string& name) {
+void ToolSimDriver::createMenu(const std::string& name) {
 }
 
-void ToolEnvironment::addMenuEntry(const std::string& label, MenuCallback cb) {
+void ToolSimDriver::addMenuEntry(const std::string& label, MenuCallback cb) {
 }
 
-void ToolEnvironment::destroyMenu() {
+void ToolSimDriver::destroyMenu() {
 }
 
-void ToolEnvironment::createCommand(const std::string& name, const std::string& desc, CommandCallback cb) {
+void ToolSimDriver::createCommand(const std::string& name, const std::string& desc, CommandCallback cb) {
 }
 
-void ToolEnvironment::destroyCommands() {
+void ToolSimDriver::destroyCommands() {
 }
 
-std::filesystem::path ToolEnvironment::getAirplanePath() {
+std::filesystem::path ToolSimDriver::getAirplanePath() {
     return ourPath;
 }
 
-std::filesystem::path ToolEnvironment::getProgramPath() {
+std::filesystem::path ToolSimDriver::getProgramPath() {
     return ourPath;
 }
 
-std::filesystem::path ToolEnvironment::getDataRootPath() {
+std::filesystem::path ToolSimDriver::getDataRootPath() {
     return ourPath;
 }
 
-std::filesystem::path ToolEnvironment::getSettingsDir() {
+std::filesystem::path ToolSimDriver::getSettingsDir() {
     return ourPath;
 }
 
-std::filesystem::path ToolEnvironment::getFlightPlansPath() {
+std::filesystem::path ToolSimDriver::getFlightPlansPath() {
     return ourPath;
 }
 
-std::filesystem::path ToolEnvironment::getFontDirectory() {
+std::filesystem::path ToolSimDriver::getFontDirectory() {
     return ourPath;
 }
 
-std::filesystem::path ToolEnvironment::getXpNavDataRootPath() {
+std::filesystem::path ToolSimDriver::getXpNavDataRootPath() {
     return xplaneRootPath;
 }
 
-std::filesystem::path ToolEnvironment::getMsfsNavDataRootPath() {
+std::filesystem::path ToolSimDriver::getMsfsNavDataRootPath() {
     return "";
 }
 
-std::filesystem::path ToolEnvironment::findXPlaneInstallationPath()
+std::filesystem::path ToolSimDriver::findXPlaneInstallationPath()
 {
-    // When running in the tool environment we can't ask X-Plane where to find
+    // When running with a mock simulation we can't ask X-Plane where to find
     // the NAV data. The installer creates a text file, so we look for this and
     // then find the most recent installation.
 

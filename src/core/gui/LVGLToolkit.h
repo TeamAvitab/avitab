@@ -33,11 +33,11 @@ public:
     using GUITask = std::function<void()>;
     using MouseWheelCallback = std::function<void(int, int, int)>;
 
-    LVGLToolkit(std::shared_ptr<GUIDriver> drv);
+    LVGLToolkit(std::shared_ptr<UiDriverBase> drv);
 
     void setMouseWheelCallback(MouseWheelCallback cb);
     void createNativeWindow(const std::string &title, const WindowRect &rect);
-    void createPanel(int left, int bottom, int width, int height, GUIDriver::PanelControlMode mode);
+    void createPanel(int left, int bottom, int width, int height, UiDriverBase::PanelControlMode mode);
     void hidePanel();
     void pauseNativeWindow();
     bool hasNativeWindow();
@@ -60,7 +60,7 @@ private:
     MouseWheelCallback onMouseWheel;
     std::recursive_mutex guiMutex;
     std::vector<GUITask> pendingTasks;
-    std::shared_ptr<GUIDriver> driver;
+    std::shared_ptr<UiDriverBase> driver;
     std::unique_ptr<std::thread> guiThread;
     std::atomic_bool guiActive;
     std::shared_ptr<Screen> mainScreen;

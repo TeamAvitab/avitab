@@ -22,7 +22,7 @@
 #include <windows.h>
 #include "SimConnect.h"
 
-class MsfsAddonEnvironment : public StandAloneEnvironment
+class MsfsAddonSimDriver : public MockSimDriver
 {
     struct SimObjectLocation
     {
@@ -34,8 +34,8 @@ class MsfsAddonEnvironment : public StandAloneEnvironment
     };
 
 public:
-    MsfsAddonEnvironment();
-    virtual ~MsfsAddonEnvironment();
+    MsfsAddonSimDriver();
+    virtual ~MsfsAddonSimDriver();
     
     void eventLoop();
 
