@@ -1,0 +1,29 @@
+{
+  "_comment": "AviTab default theme — LVGL standard look",
+
+  "colors": {
+    "background":     "#1A1A1A",
+    "surface":        "#2B2B2B",
+    "primary":        "#1565C0",
+    "primaryPressed": "#0D47A1",
+    "onPrimary":      "#FFFFFF",
+    "text":           "#E0E0E0",
+    "textMuted":      "#9E9E9E",
+    "border":         "#444444",
+    "error":          "#CF6679"
+  },
+
+  "fonts": {
+    "small":   "montserrat_12",
+    "body":    "montserrat_16",
+    "heading": "montserrat_20"
+  },
+
+  "spacing": {
+    "paddingSmall":  4,
+    "paddingNormal": 8,
+    "paddingLarge":  16,
+    "borderRadius":  4,
+    "borderWidth":   1
+  }
+}

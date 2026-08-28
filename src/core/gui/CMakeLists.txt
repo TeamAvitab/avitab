@@ -5,6 +5,8 @@ target_sources(avitab_core_lib PRIVATE
     LVGLToolkit.h
     Timer.cpp
     Timer.h
+    Theme.cpp
+    Theme.h
 )
 
 add_subdirectory(widgets)

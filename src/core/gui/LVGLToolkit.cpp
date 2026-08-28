@@ -34,7 +34,7 @@ lv_indev_t *inputDevice;
 std::vector<uint8_t> tmpBuffer;
 }
 
-LVGLToolkit::LVGLToolkit(std::shared_ptr<UiDriverBase> drv):
+LVGLToolkit::LVGLToolkit(std::shared_ptr<UiDriverBase> drv, const std::string dataDir):
     driver(drv)
 {
     driver->init(INITIAL_WIDTH, INITIAL_HEIGHT);
@@ -65,6 +65,8 @@ LVGLToolkit::LVGLToolkit(std::shared_ptr<UiDriverBase> drv):
 
     initDisplay();
     initInputDevice();
+
+    Theme::init(dataDir + "/themes", display);
 
     // if keepAlive if true, the window was hidden without us noticing
     // so it's enough to re-create it without starting rendering again

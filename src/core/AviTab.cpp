@@ -139,7 +139,7 @@ AviTab::AviTab(std::shared_ptr<SimDriverBase> e, std::shared_ptr<UiDriverBase> g
     // runs in simDriver thread, called by XPluginEnable
     // NOTE order here is important. NAV db must be created before GUI is started.
     navManager = std::make_unique<navdb::NavDbManager>(simDriver->getXpNavDataRootPath(), simDriver->getMsfsNavDataRootPath());
-    guiLib = std::make_shared<LVGLToolkit>(uiDriver);
+    guiLib = std::make_shared<LVGLToolkit>(uiDriver, getAvitabDataDir());
     img::TTFStamper::setFontDirectory(simDriver->getFontDirectory());
     std::vector<std::string> remote_georefs_urls = simDriver->getSettings()->getGeneralSetting<std::vector<std::string>>("remote_georefs_urls");
     chartService = std::make_shared<apis::ChartService>(simDriver->getDataRootPath(), remote_georefs_urls);

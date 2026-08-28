@@ -24,6 +24,7 @@
 #include <mutex>
 #include <vector>
 #include "UiDriver.h"
+#include "gui/Theme.h"
 #include "gui/widgets/Screen.h"
 
 namespace avitab {
@@ -33,7 +34,7 @@ public:
     using GUITask = std::function<void()>;
     using MouseWheelCallback = std::function<void(int, int, int)>;
 
-    LVGLToolkit(std::shared_ptr<UiDriverBase> drv);
+    LVGLToolkit(std::shared_ptr<UiDriverBase> drv, const std::string dataDir);
 
     void setMouseWheelCallback(MouseWheelCallback cb);
     void createNativeWindow(const std::string &title, const WindowRect &rect);

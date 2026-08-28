@@ -1,0 +1,29 @@
+{
+  "_comment": "AviTab dark cockpit theme — low brightness for night flying",
+
+  "colors": {
+    "background":     "#0D0D0D",
+    "surface":        "#1A1A1A",
+    "primary":        "#B71C1C",
+    "primaryPressed": "#7F0000",
+    "onPrimary":      "#FFFFFF",
+    "text":           "#CC0000",
+    "textMuted":      "#660000",
+    "border":         "#330000",
+    "error":          "#FF6D00"
+  },
+
+  "fonts": {
+    "small":   "montserrat_12",
+    "body":    "montserrat_16",
+    "heading": "montserrat_20"
+  },
+
+  "spacing": {
+    "paddingSmall":  4,
+    "paddingNormal": 8,
+    "paddingLarge":  16,
+    "borderRadius":  3,
+    "borderWidth":   1
+  }
+}
