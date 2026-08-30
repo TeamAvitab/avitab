@@ -34,7 +34,7 @@ About::About(FuncsPtr appFuncs):
             "\n"
             "Avitab uses, and acknowledges the copyright and licensing of, the following\n"
             "Open Source or Public Domain libraries (see LICENSING.md for details):\n"
-            "Brotli, bzip2, Curl, Detex, {fmt}, FreeType, GLFW, Gumbo, HarfBuzz, jbig2dec, JPEG,\n"
+            "Brotli, bzip2, clip, Curl, Detex, {fmt}, FreeType, GLFW, Gumbo, HarfBuzz, jbig2dec, JPEG,\n"
             "JSON for C++, Little CMS, LERC, LIBGEOTIFF, libpng, libssh2, LunaSVG, LittlevGL,\n"
             "Mbed TLS, MuPDF, OpenJPEG, PROJ, SQLite, stb, TIFF, zlib, Zstandard\n"
             "\n"

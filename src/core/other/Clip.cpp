@@ -15,21 +15,18 @@
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#pragma once
+#include "Clip.h"
 
-#include <string>
-#include "Widget.h"
+namespace clip {
 
-namespace avitab {
+std::string getClipboardContent() {
+    std::string text;
+    clip::get_text(text);
+    return text;
+}
 
-class TextArea: public Widget {
-public:
-    TextArea(WidgetPtr parent, const std::string &text);
-    void setMultiLine(bool multiLine);
-    void setText(const std::string &text);
-    void addText(const std::string &text);
-    void setShowCursor(bool show);
-    std::string getText();
-};
+void setClipboardContent(const std::string &text) {
+    clip::set_text(text);
+}
 
-} /* namespace avitab */
+}
