@@ -51,6 +51,10 @@ public:
 
     std::shared_ptr<Screen> &screen();
 
+    // The active theme. Static so widgets (which hold no toolkit instance)
+    // can reach it via LVGLToolkit::theme().
+    static Theme &theme();
+
     void executeLater(GUITask func);
 
     ~LVGLToolkit();
@@ -65,6 +69,7 @@ private:
     std::unique_ptr<std::thread> guiThread;
     std::atomic_bool guiActive;
     std::shared_ptr<Screen> mainScreen;
+    std::shared_ptr<Theme> mainTheme;
 
     void initDisplay();
     void initInputDevice();

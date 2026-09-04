@@ -43,9 +43,8 @@ void AirportApp::resetLayout() {
     tabs = std::make_shared<TabGroup>(getUIContainer());
 
     searchPage = tabs->addTab(tabs, "Search");
-    searchPage->setPadding();
     searchWindow = std::make_shared<Window>(searchPage, "");
-    searchWindow->setDimensionsPct(100, 100);
+    searchWindow->setLocalStyle("WindowContent");
 
     searchWindow->addSymbol(Widget::Symbol::SETTINGS, std::bind(&AirportApp::toggleSettings, this));
     searchWindow->setOnClose([this] { prefContainer->setVisible(false); exit(); });
@@ -131,9 +130,8 @@ void AirportApp::onAirportSelected(std::shared_ptr<navdb::Airport> airport) {
     TabPage tab;
     tab.airport = airport;
     tab.page = tabs->addTab(tabs, airport->getDisplayID());
-    tab.page->setPadding();
     tab.window = std::make_shared<Window>(tab.page, toAptHeader(airport));
-    tab.window->setDimensionsPct(100, 100);
+    tab.window->setLocalStyle("WindowContent");
 
     auto page = tab.page;
 
@@ -426,12 +424,10 @@ void AirportApp::onChartsLoaded(std::shared_ptr<Page> page, const apis::ChartSer
 
             TabPage newTab;
             newTab.page = tabs->addTab(tabs, chart->getICAO() + " " + chart->getIndex());
-            newTab.page->setPadding();
             newTab.page->setShowScrollbar(false);
             auto newPage = newTab.page;
 
             newTab.window = std::make_shared<Window>(newTab.page, chart->getIndex());
-            newTab.window->setPadding();
             newTab.window->setDimensions(newTab.page->getContentWidth(), newTab.page->getHeight() + 30);
             newTab.window->alignInTopLeft();
             newTab.window->setOnClose([this, newPage] {

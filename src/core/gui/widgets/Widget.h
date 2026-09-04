@@ -80,6 +80,7 @@ public:
     void setPadding(int left = 0, int right = 0, int top = 0, int bottom = 0);
     void setPaddingHor(int padHor = 0);
     void setPaddingVer(int padVer = 0);
+    void setLocalStyle(const std::string style);
     void invalidate();
 
     // For internal use by other widgets
