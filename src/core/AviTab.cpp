@@ -451,7 +451,6 @@ std::shared_ptr<Container> AviTab::createGUIContainer() {
     auto screen = guiLib->screen();
     auto container = std::make_shared<Container>(screen);
     container->setVisible(false);
-    container->setPadding();
 
     if (hideHeader) {
         container->setPosition(0, 0);

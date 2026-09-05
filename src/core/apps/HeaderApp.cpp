@@ -37,7 +37,6 @@ HeaderApp::HeaderApp(FuncsPtr appFuncs):
     container->setPosition(0, 0);
     container->setWidthPct(100);
     container->setHeight(30);
-    container->setPadding();
     clockLabel = std::make_shared<Label>(container, "");
     clockLabel->alignRightInParent(0);
     clockLabel->setClickable(true);

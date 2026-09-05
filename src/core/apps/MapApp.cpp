@@ -35,8 +35,6 @@ MapApp::MapApp(FuncsPtr funcs):
     savedSettings(funcs->getSettings()),
     updateTimer(std::bind(&MapApp::onTimer, this), 200)
 {
-    window->setPadding();
-    window->getContent()->setPadding();
     window->setDimensionsPct(100, 100);
 
     overlayConf = api().getSettings()->getOverlayConfig();
