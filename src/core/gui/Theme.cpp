@@ -273,6 +273,11 @@ void Theme::setLocalStyle(lv_obj_t* obj, const std::string style) {
     else if (style == "headerArea") {
         lv_obj_add_style(obj, &styles.headerArea, LV_PART_MAIN);
     }
+    else if (style == "settings") {
+        lv_obj_add_style(obj, &styles.dropdownlist, LV_PART_MAIN);
+        lv_obj_set_style_border_width(obj, spacing.borderWidth, LV_PART_MAIN);
+        lv_obj_set_style_radius(obj, spacing.borderRadius, LV_PART_MAIN);
+    }
     else {
         throw std::runtime_error("Theme: unknown localStyle: " + style);
     }

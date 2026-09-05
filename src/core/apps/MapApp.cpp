@@ -76,6 +76,7 @@ void MapApp::createSettingsLayout() {
     auto ui = getUIContainer();
 
     settingsContainer = window->addContent(std::make_shared<Container>(window));
+    settingsContainer->setLocalStyle("settings");
     settingsContainer->setSizeByContent();
     settingsContainer->centerInParent();
     settingsContainer->setVisible(false);
@@ -504,6 +505,7 @@ void MapApp::showOverlaySettings() {
     auto ui = getUIContainer();
 
     overlaysContainer = window->addContent(std::make_shared<Container>(window));
+    overlaysContainer->setLocalStyle("settings");
     overlaysContainer->setSizeByContent();
     overlaysContainer->alignTopRightInParent();
     overlaysContainer->setVisible(true);

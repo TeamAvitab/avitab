@@ -556,6 +556,7 @@ void AirportApp::createSettingsContainer() {
     auto ui = getUIContainer();
 
     prefContainer = std::make_shared<Container>();
+    prefContainer->setLocalStyle("settings");
     prefContainer->setSizeByContent();
     prefContainer->alignTopRightInParent(10, 100);
     prefContainer->setVisible(false);

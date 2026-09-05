@@ -61,6 +61,7 @@ void DocumentsApp::createBrowseTab() {
     browsePage->setPadding();
     browseWindow = std::make_shared<Window>(browsePage, appTitle);
     browseWindow->setDimensionsPct(100, 100);
+    browseWindow->setLocalStyle("windowContent");
 
     browseWindow->addSymbol(Widget::Symbol::UP, [this] () { onUp(); });
     browseWindow->addSymbol(Widget::Symbol::DOWN, [this] () { onDown(); });
@@ -389,6 +390,7 @@ void DocumentsApp::showAppSettings() {
 
     settingsContainer = std::make_shared<Container>();
     settingsContainer->setSizeByContent();
+    settingsContainer->setLocalStyle("settings");
     settingsContainer->centerInParent();
     // FIXME settingsContainer->setFit(Container::Fit::TIGHT, Container::Fit::TIGHT);
     settingsContainer->setVisible(false);

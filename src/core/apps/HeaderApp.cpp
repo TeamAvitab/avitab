@@ -70,7 +70,8 @@ void HeaderApp::createSettingsContainer() {
     auto ui = getUIContainer();
 
     prefContainer = std::make_shared<Container>();
-    prefContainer->setDimensionsPct(50, 50);
+    prefContainer->setLocalStyle("settings");
+    prefContainer->setSizeByContent();
     prefContainer->centerInParent();
     // FIXME prefContainer->setFit(Container::Fit::TIGHT, Container::Fit::TIGHT);
     prefContainer->setVisible(false);
