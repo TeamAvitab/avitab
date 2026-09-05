@@ -89,6 +89,7 @@ std::shared_ptr<Button> Window::addSymbol(Symbol smb, WindowCallback cb) {
             winCls->callbacks[static_cast<Symbol>(smbInt)]();
         }
     }, LV_EVENT_CLICKED, nullptr);
+    lv_obj_set_style_bg_opa(btn, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_set_user_data(btn, reinterpret_cast<void *>(smb));
 /*
     lv_obj_set_event_cb(btn, [] (lv_obj_t *btn, lv_event_t ev) {

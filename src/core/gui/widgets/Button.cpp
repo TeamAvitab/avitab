@@ -103,6 +103,7 @@ Button::Button(WidgetPtr parent, Symbol smb):
     lv_image_set_src(ico, symbolToLVSymbol(smb));
     lv_obj_center(ico);
     lv_obj_clear_flag(ico, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_set_style_bg_opa(button, LV_OPA_TRANSP, LV_PART_MAIN);
 
     setObj(button);
 }
