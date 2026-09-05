@@ -1,0 +1,33 @@
+{
+  "_comment": "AviTab Solarized Dark theme",
+
+  "colors": {
+    "background":     "#ffffff",
+    "surface":        "#002b36",
+    "headerArea":     "#004052",
+    "primary":        "#586e75",
+    "primaryPressed": "#003641",
+    "onPrimary":      "#586e75",
+    "hovered":        "#0c6074",
+    "headerText":     "#eee8d5",
+    "text":           "#93A1A1",
+    "textMuted":      "#586e75",
+    "border":         "#839496",
+    "error":          "#dc322f",
+    "appButtonBackground": "#004052"
+  },
+
+  "fonts": {
+    "small":   "montserrat_12",
+    "body":    "montserrat_16",
+    "heading": "montserrat_20"
+  },
+
+  "spacing": {
+    "paddingSmall":  4,
+    "paddingNormal": 8,
+    "paddingLarge":  16,
+    "borderRadius":  4,
+    "borderWidth":   1
+  }
+}
