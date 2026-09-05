@@ -37,11 +37,13 @@ public:
     struct Colors {
         lv_color_t background;
         lv_color_t surface;
+        lv_color_t headerArea;
         lv_color_t primary;
         lv_color_t primaryPressed;
         lv_color_t onPrimary;
         lv_color_t hovered;
         lv_color_t focused;
+        lv_color_t headerText;
         lv_color_t text;
         lv_color_t textMuted;
         lv_color_t border;
@@ -83,7 +85,7 @@ public:
     // Name of the currently loaded theme
     const std::string &currentName() const;
 
-    void setLocalStyle(lv_obj_t* lvObj, const std::string style);
+    void setLocalStyle(lv_obj_t* obj, const std::string style);
 
     // ── Change listeners ──────────────────────────────────────
     // Widgets/apps can register to react to theme changes
@@ -114,9 +116,14 @@ private:
         lv_style_t button {};
         lv_style_t buttonPressed {};
         lv_style_t buttonHovered {};
+        lv_style_t keyboardItems{};
         lv_style_t label {};
         lv_style_t textarea {};
         lv_style_t textareaFocused {};
+        lv_style_t dropdown {};
+        lv_style_t dropdownlist {};
+        lv_style_t headerArea {};
+        lv_style_t windowContent {};
     };
     void initStyles();
     void rebuildStyles();

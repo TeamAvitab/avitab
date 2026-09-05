@@ -44,7 +44,8 @@ void AirportApp::resetLayout() {
 
     searchPage = tabs->addTab(tabs, "Search");
     searchWindow = std::make_shared<Window>(searchPage, "");
-    searchWindow->setLocalStyle("WindowContent");
+    searchWindow->setLocalStyle("windowContent");
+    searchWindowContent = searchWindow->getContent();
 
     searchWindow->addSymbol(Widget::Symbol::SETTINGS, std::bind(&AirportApp::toggleSettings, this));
     searchWindow->setOnClose([this] { prefContainer->setVisible(false); exit(); });
@@ -131,7 +132,7 @@ void AirportApp::onAirportSelected(std::shared_ptr<navdb::Airport> airport) {
     tab.airport = airport;
     tab.page = tabs->addTab(tabs, airport->getDisplayID());
     tab.window = std::make_shared<Window>(tab.page, toAptHeader(airport));
-    tab.window->setLocalStyle("WindowContent");
+    tab.window->setLocalStyle("windowContent");
 
     auto page = tab.page;
 

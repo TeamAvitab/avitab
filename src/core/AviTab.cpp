@@ -254,6 +254,7 @@ void AviTab::onPlaneLoad() {
             if (!headerApp) {
                 headerApp = std::make_shared<HeaderApp>(this);
                 headContainer = headerApp->getUIContainer();
+                headContainer->setLocalStyle("headerArea");
                 headContainer->setVisible(true);
                 headContainer->setScrollable(false);
                 // FIXME
@@ -400,6 +401,7 @@ void AviTab::createLayout() {
         if (!headerApp) {
             headerApp = std::make_shared<HeaderApp>(this);
             headContainer = headerApp->getUIContainer();
+            headContainer->setLocalStyle("headerArea");
             headContainer->setVisible(true);
             headContainer->setScrollable(false);
         }

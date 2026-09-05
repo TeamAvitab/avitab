@@ -104,10 +104,12 @@ void Theme::parseJson(const std::string &path) {
     auto &jc = j.at("colors");
     c.background     = parseColor(jc.at("background"));
     c.surface        = parseColor(jc.at("surface"));
+    c.headerArea     = parseColor(jc.at("headerArea"));
     c.primary        = parseColor(jc.at("primary"));
     c.primaryPressed = parseColor(jc.at("primaryPressed"));
     c.onPrimary      = parseColor(jc.at("onPrimary"));
     c.hovered        = parseColor(jc.at("hovered"));
+    c.headerText     = parseColor(jc.at("headerText"));
     c.text           = parseColor(jc.at("text"));
     c.textMuted      = parseColor(jc.at("textMuted"));
     c.border         = parseColor(jc.at("border"));
@@ -142,28 +144,37 @@ void Theme::applyTheme(lv_obj_t *obj) {
     const lv_obj_class_t *cls = lv_obj_get_class(obj);
 
     if (cls == &lv_obj_class) {
-        lv_obj_add_style(obj, &styles.obj, 0);
+        lv_obj_add_style(obj, &styles.obj, LV_PART_MAIN);
+    }
+    else if (cls == &lv_checkbox_class) {
+        lv_obj_add_style(obj, &styles.button, LV_PART_MAIN);
+        lv_obj_add_style(obj, &styles.button, LV_PART_INDICATOR);
     }
     else if (cls == &lv_button_class) {
-        lv_obj_add_style(obj, &styles.button,        0);
-        lv_obj_add_style(obj, &styles.buttonPressed, LV_STATE_PRESSED);
-        lv_obj_add_style(obj, &styles.buttonHovered, LV_STATE_HOVERED);
+        lv_obj_add_style(obj, &styles.button, LV_PART_MAIN);
     }
     else if (cls == &lv_keyboard_class) {
-        lv_obj_add_style(obj, &styles.button,        0);
+        lv_obj_add_style(obj, &styles.button, LV_PART_MAIN);
+        lv_obj_add_style(obj, &styles.keyboardItems, LV_PART_ITEMS);
     }
     else if (cls == &lv_label_class) {
-        lv_obj_add_style(obj, &styles.label, 0);
+        lv_obj_add_style(obj, &styles.label, LV_PART_MAIN);
     }
     else if (cls == &lv_textarea_class) {
-        lv_obj_add_style(obj, &styles.textarea,        0);
+        lv_obj_add_style(obj, &styles.textarea, LV_PART_MAIN);
         lv_obj_add_style(obj, &styles.textareaFocused, LV_STATE_FOCUSED);
     }
     else if (cls == &lv_dropdown_class) {
-        lv_obj_add_style(obj, &styles.obj, 0);
+        lv_obj_add_style(obj, &styles.dropdown, LV_PART_MAIN);
+        lv_obj_add_style(obj, &styles.textareaFocused, LV_STATE_FOCUSED);
     }
     else if (cls == &lv_dropdownlist_class) {
-        lv_obj_add_style(obj, &styles.obj, 0);
+        lv_obj_add_style(obj, &styles.dropdownlist, LV_PART_MAIN);
+        lv_obj_add_style(obj, &styles.textareaFocused, LV_STATE_FOCUSED);
+        lv_obj_add_style(obj, &styles.textareaFocused, LV_PART_SELECTED);
+    }
+    else if (cls == &lv_slider_class) {
+        lv_obj_add_style(obj, &styles.button, LV_PART_MAIN | LV_PART_INDICATOR | LV_PART_KNOB);
     }
 }
 
@@ -173,9 +184,12 @@ void Theme::initStyles() {
     lv_style_init(&styles.button);
     lv_style_init(&styles.buttonPressed);
     lv_style_init(&styles.buttonHovered);
+    lv_style_init(&styles.keyboardItems);
     lv_style_init(&styles.label);
     lv_style_init(&styles.textarea);
     lv_style_init(&styles.textareaFocused);
+    lv_style_init(&styles.dropdown);
+    lv_style_init(&styles.dropdownlist);
     stylesInited = true;
 }
 
@@ -193,7 +207,7 @@ void Theme::rebuildStyles() {
 
     lv_style_reset(&styles.button);
     lv_style_set_bg_color  (&styles.button, colors.primary);
-    lv_style_set_text_color(&styles.button, colors.onPrimary);
+    lv_style_set_text_color(&styles.button, colors.headerText);
     lv_style_set_radius    (&styles.button, spacing.borderRadius);
     lv_style_set_pad_hor   (&styles.button, spacing.paddingNormal);
     lv_style_set_pad_ver   (&styles.button, spacing.paddingSmall);
@@ -202,6 +216,9 @@ void Theme::rebuildStyles() {
     lv_style_set_bg_color(&styles.buttonPressed, colors.primaryPressed);
     lv_style_reset(&styles.buttonHovered);
     lv_style_set_bg_color(&styles.buttonHovered, colors.hovered);
+
+    lv_style_reset(&styles.keyboardItems);
+    lv_style_set_text_color(&styles.keyboardItems, colors.text);
 
     lv_style_reset(&styles.label);
     lv_style_set_text_font (&styles.label, fonts.body);
@@ -214,19 +231,50 @@ void Theme::rebuildStyles() {
 
     lv_style_reset(&styles.textareaFocused);
     lv_style_set_border_color(&styles.textareaFocused, colors.border);
+    lv_style_set_bg_color(&styles.textareaFocused, colors.hovered);
+
+    lv_style_reset(&styles.dropdown);
+    lv_style_set_bg_color  (&styles.dropdown, colors.surface);
+    lv_style_set_text_color(&styles.dropdown, colors.text);
+    lv_style_set_radius    (&styles.dropdown, spacing.borderRadius);
+    lv_style_set_pad_hor   (&styles.dropdown, spacing.paddingNormal);
+    lv_style_set_pad_ver   (&styles.dropdown, spacing.paddingSmall);
+
+    lv_style_reset(&styles.dropdownlist);
+    lv_style_set_bg_color    (&styles.dropdownlist, colors.appButtonBackground);
+    lv_style_set_border_color(&styles.dropdownlist, colors.border);
+    lv_style_set_radius      (&styles.dropdownlist, spacing.borderRadius);
+    lv_style_set_pad_hor     (&styles.dropdownlist, spacing.paddingNormal);
+    lv_style_set_pad_ver     (&styles.dropdownlist, spacing.paddingSmall);
+
+    lv_style_reset(&styles.headerArea);
+    lv_style_set_bg_color  (&styles.headerArea, colors.headerArea);
+    lv_style_set_text_color(&styles.headerArea, colors.headerText);
+
+    lv_style_reset(&styles.windowContent);
+    lv_style_set_pad_hor   (&styles.windowContent, spacing.paddingSmall);
+    lv_style_set_pad_ver   (&styles.windowContent, spacing.paddingSmall);
+    lv_style_set_text_color(&styles.windowContent, colors.textMuted);
 }
 
-void Theme::setLocalStyle(lv_obj_t* lvObj, const std::string style) {
-    if (style == "UIContainer" ) {
-        lv_obj_set_style_pad_hor(lvObj, spacing.paddingNormal, 0);
-        lv_obj_set_style_pad_ver(lvObj, spacing.paddingNormal, 0);
+void Theme::setLocalStyle(lv_obj_t* obj, const std::string style) {
+    if (style == "uiContainer" ) {
+        lv_obj_set_style_pad_hor(obj, spacing.paddingNormal, LV_PART_MAIN);
+        lv_obj_set_style_pad_ver(obj, spacing.paddingNormal, LV_PART_MAIN);
     }
-    else if (style == "WindowContent") {
-        lv_obj_set_style_pad_hor(lvObj, spacing.paddingSmall, 0);
-        lv_obj_set_style_pad_ver(lvObj, spacing.paddingSmall, 0);
+    else if (style == "windowContent") {
+        lv_obj_add_style(obj, &styles.windowContent, LV_PART_MAIN);
     }
-    else if (style == "AppButton" ) {
-        lv_obj_set_style_bg_color(lvObj, colors.appButtonBackground, 0);
+    else if (style == "appButton" ) {
+        lv_obj_set_style_bg_color(obj, colors.appButtonBackground, LV_PART_MAIN);
+        lv_obj_set_style_text_color(obj, colors.text, LV_PART_MAIN);
+        lv_obj_add_style(obj, &styles.buttonHovered, LV_STATE_HOVERED);
+    }
+    else if (style == "headerArea") {
+        lv_obj_add_style(obj, &styles.headerArea, LV_PART_MAIN);
+    }
+    else {
+        throw std::runtime_error("Theme: unknown localStyle: " + style);
     }
 }
 

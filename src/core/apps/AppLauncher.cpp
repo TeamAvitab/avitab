@@ -33,7 +33,7 @@ AppLauncher::AppLauncher(FuncsPtr appFuncs):
 {
     auto cont = getUIContainer();
     cont->setLayoutFlex();
-    cont->setLocalStyle("UIContainer");
+    cont->setLocalStyle("uiContainer");
     auto root = api().getAvitabInstallDir()/"icons";
 
     addEntry<ChartsApp>("Charts", root / "folder.png", AppId::CHARTS);
@@ -93,7 +93,7 @@ void AppLauncher::addEntry(const std::string& name, const std::filesystem::path&
     entry.id = id;
     entry.app = std::move(app);
     entry.button = std::make_shared<Button>(getUIContainer(), icon, name, 100);
-    entry.button->setLocalStyle("AppButton");
+    entry.button->setLocalStyle("appButton");
     entries.push_back(entry);
 
     size_t index = entries.size() - 1;
