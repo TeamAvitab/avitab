@@ -21,6 +21,7 @@
 #include <stdexcept>
 #include <unordered_map>
 #include <utility>
+#include "Logger.h"
 #include "Theme.h"
 #include <nlohmann/json.hpp>
 
@@ -46,7 +47,8 @@ Theme::Theme(std::string dir, std::string name, lv_display_t *disp):
 
 // ── load (by name) ───────────────────────────────────────────
 void Theme::load(const std::string &name) {
-    std::string path = themesDir + "/" + name + ".json";
+    logger::verbose("GUI: loading Theme %s", name.c_str());
+    std::string path = themesDir + "/" + name + "/" + name + ".json";
     loadFromPath(path);
     activeName = name;
 }
@@ -95,7 +97,7 @@ void Theme::notifyListeners() {
 void Theme::parseJson(const std::string &path) {
     std::ifstream f(path);
     if (!f.is_open()) {
-        throw std::runtime_error("Theme: file not found: " + path);
+        throw std::runtime_error("GUI: Theme file not found: " + path);
     }
 
     json j = json::parse(f, nullptr, /*exceptions=*/true, /*ignore_comments=*/true);
@@ -279,7 +281,7 @@ void Theme::setLocalStyle(lv_obj_t* obj, const std::string style) {
         lv_obj_set_style_radius(obj, spacing.borderRadius, LV_PART_MAIN);
     }
     else {
-        throw std::runtime_error("Theme: unknown localStyle: " + style);
+        throw std::runtime_error("GUI: Theme::setLocalStyle called with unknown style:" + style);
     }
 }
 
@@ -288,7 +290,7 @@ lv_color_t Theme::parseColor(const std::string &hex) {
     std::string s = hex;
     if (!s.empty() && s[0] == '#') s.erase(0, 1);
     if (s.size() != 6) {
-        throw std::runtime_error("Theme: invalid color value: " + hex);
+        throw std::runtime_error("GUI: invalid Theme color value: " + hex);
     }
     return lv_color_hex(std::stoul(s, nullptr, 16));
 }
@@ -305,7 +307,7 @@ const lv_font_t *Theme::parseFont(const std::string &name) {
     };
     auto it = map.find(name);
     if (it == map.end()) {
-        throw std::runtime_error("Theme: unknown font: " + name);
+        throw std::runtime_error("GUI: unknown Theme font: " + name);
     }
     return it->second;
 }
