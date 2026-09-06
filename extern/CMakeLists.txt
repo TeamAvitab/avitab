@@ -61,7 +61,7 @@ PrepareExternPackages(
     geotiff     "https://github.com/OSGeo/libgeotiff/archive/refs/tags/1.4.3.tar.gz"
 
     # freetype uses zlib, bzip2, brotli, png, and harfbuzz (circular-dependency).
-    freetype    "https://download.savannah.gnu.org/releases/freetype/freetype-2.13.3.tar.gz"
+    freetype    "https://download-mirror.savannah.gnu.org/releases/freetype/freetype-2.13.3.tar.gz"
 
     # harfbuzz uses freetype, but will use Avitab's freetype if it is a build target, so is processed afterwards
     harfbuzz    "https://github.com/harfbuzz/harfbuzz/archive/refs/tags/11.2.1.tar.gz"
