@@ -31,23 +31,24 @@ namespace avitab {
 AppLauncher::AppLauncher(FuncsPtr appFuncs):
     App(appFuncs)
 {
+    auto theme = getUITheme();
     auto cont = getUIContainer();
     cont->setLayoutFlex();
     cont->setLocalStyle("uiContainer");
-    auto root = api().getAvitabInstallDir()/"icons";
+    auto iconDir = api().getAvitabThemeDir()/theme->currentName();
 
-    addEntry<ChartsApp>("Charts", root / "folder.png", AppId::CHARTS);
-    addEntry<AirportApp>("Airports", root / "if_xmag_3617.png", AppId::AIRPORTS);
-    addEntry<RouteApp>("Routes", root / "if_applications-internet_118835.png", AppId::ROUTES);
-    addEntry<MapApp>("Maps", root / "if_starthere_18227.png", AppId::MAPS);
-    addEntry<PlaneManualApp>("Aircraft", root / "if_ilustracoes_04-11_1519786.png", AppId::PLANE_MANUAL);
-    addEntry<NotesApp>("Notes", root / "if_txt2_3783.png", AppId::NOTES);
+    addEntry<ChartsApp>("Charts", iconDir / "folder.png", AppId::CHARTS);
+    addEntry<AirportApp>("Airports", iconDir / "if_xmag_3617.png", AppId::AIRPORTS);
+    addEntry<RouteApp>("Routes", iconDir / "if_applications-internet_118835.png", AppId::ROUTES);
+    addEntry<MapApp>("Maps", iconDir / "if_starthere_18227.png", AppId::MAPS);
+    addEntry<PlaneManualApp>("Aircraft", iconDir / "if_ilustracoes_04-11_1519786.png", AppId::PLANE_MANUAL);
+    addEntry<NotesApp>("Notes", iconDir / "if_txt2_3783.png", AppId::NOTES);
 
     if (api().getChartService()->getNavigraph()->isSupported() || api().getChartService()->getChartFox()->isSupported()) {
-        addEntry<ProvidersApp>("Providers", root / "if_Airport_22906.png", AppId::NAVIGRAPH);
+        addEntry<ProvidersApp>("Providers", iconDir / "if_Airport_22906.png", AppId::NAVIGRAPH);
     }
 
-    addEntry<About>("About", root / "if_Help_1493288.png", AppId::ABOUT);
+    addEntry<About>("About", iconDir / "if_Help_1493288.png", AppId::ABOUT);
 }
 
 void AppLauncher::onScreenResize(int width, int height) {

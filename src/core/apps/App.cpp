@@ -26,6 +26,7 @@ App::App(FuncsPtr appFuncs):
         throw std::runtime_error("No API passed to app");
     }
     uiContainer = funcs->createGUIContainer();
+    uiTheme = funcs->getGUITheme();
 }
 
 void App::onScreenResize(int width, int height) {
@@ -41,6 +42,10 @@ void App::setOnExit(ExitFunct onExitFunct) {
 
 App::ContPtr App::getUIContainer() {
     return uiContainer;
+}
+
+App::ThemePtr App::getUITheme() {
+    return uiTheme;
 }
 
 App::ExitFunct& App::getOnExit() {

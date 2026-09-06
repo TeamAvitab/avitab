@@ -32,7 +32,6 @@ bool lvglIsInitialized = false;
 lv_display_t *display;
 lv_indev_t *inputDevice;
 std::vector<uint8_t> tmpBuffer;
-LVGLToolkit *toolkitInstance = nullptr;
 }
 
 LVGLToolkit::LVGLToolkit(std::shared_ptr<UiDriverBase> drv, const std::string themedir, const std::string themename):
@@ -68,7 +67,6 @@ LVGLToolkit::LVGLToolkit(std::shared_ptr<UiDriverBase> drv, const std::string th
     initInputDevice();
 
     mainTheme = std::make_shared<Theme>(themedir, themename, display);
-    toolkitInstance = this;
 
     // if keepAlive if true, the window was hidden without us noticing
     // so it's enough to re-create it without starting rendering again
@@ -190,8 +188,8 @@ std::shared_ptr<Screen> &LVGLToolkit::screen() {
     return mainScreen;
 }
 
-Theme &LVGLToolkit::theme() {
-    return *toolkitInstance->mainTheme;
+std::shared_ptr<Theme> &LVGLToolkit::theme() {
+    return mainTheme;
 }
 
 void LVGLToolkit::setMouseWheelCallback(MouseWheelCallback cb) {
@@ -333,7 +331,6 @@ LVGLToolkit::~LVGLToolkit() {
     lv_indev_set_user_data(inputDevice, nullptr);
     lv_display_set_user_data(display, nullptr);
     destroyNativeWindow();
-    toolkitInstance = nullptr;
 }
 
 } /* namespace avitab */

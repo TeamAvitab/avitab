@@ -35,6 +35,10 @@ Screen::Screen():
         }
     }, LV_EVENT_SIZE_CHANGED, nullptr);
 
+    // we only use one screen, thus theme is set only once
+    lv_theme_t *lvTheme = lv_theme_get_from_obj(obj);
+    setTheme(reinterpret_cast<Theme *>(lvTheme->user_data)->shared_from_this());
+
 /*
     originalSignalCB = lv_obj_get_signal_cb(obj);
     lv_obj_set_signal_cb(obj, [] (lv_obj_t *obj, lv_signal_t sig, void *param) -> lv_res_t  {

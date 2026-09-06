@@ -50,10 +50,7 @@ public:
     void handleMouseWheel(int clicks);
 
     std::shared_ptr<Screen> &screen();
-
-    // The active theme. Static so widgets (which hold no toolkit instance)
-    // can reach it via LVGLToolkit::theme().
-    static Theme &theme();
+    std::shared_ptr<Theme> &theme();
 
     void executeLater(GUITask func);
 

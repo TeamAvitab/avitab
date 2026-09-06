@@ -20,11 +20,15 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include <memory>
 #include <lvgl.h>
 
 namespace avitab {
 
-class Theme {
+// enable_shared_from_this lets a holder of the raw Theme* stored in the LVGL
+// theme's user_data (see Screen) recover a shared_ptr that shares ownership
+// with the one held by LVGLToolkit.
+class Theme : public std::enable_shared_from_this<Theme> {
 public:
     Theme(std::string themesDir, std::string themeName, lv_display_t *display);
 

@@ -21,6 +21,7 @@
 #include <functional>
 #include <string>
 #include <lvgl.h>
+#include "gui/Theme.h"
 
 namespace avitab {
 class Widget {
@@ -93,8 +94,13 @@ public:
 
 protected:
     void setObj(lv_obj_t *obj);
+    // The active theme, shared by every widget. Set once from Screen's
+    // constructor. Co-owned with LVGLToolkit via shared_ptr.
+    static void setTheme(std::shared_ptr<Theme> th) { theme = std::move(th); }
     lv_image_dsc_t toLVImage(const uint32_t *pix, int width, int height);
     const void *symbolToLVSymbol(Symbol symbol);
+
+    inline static std::shared_ptr<Theme> theme;
 
 private:
     bool managed = false;

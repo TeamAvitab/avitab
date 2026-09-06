@@ -68,6 +68,7 @@ public:
     std::filesystem::path getAvitabThemeDir() override;
     std::filesystem::path getAirplanePath() override;
     std::filesystem::path getFlightPlansPath() override;
+    std::shared_ptr<Theme> getGUITheme() override;
     std::shared_ptr<Container> createGUIContainer() override;
     void showGUIContainer(std::shared_ptr<Container> container) override;
     void onHomeButton() override;
@@ -449,6 +450,10 @@ void AviTab::showApp(AppId id) {
 
 void AviTab::setIsInMenu(bool inMenu) {
     simDriver->setIsInMenu(inMenu);
+}
+
+std::shared_ptr<Theme> AviTab::getGUITheme() {
+    return guiLib->theme();
 }
 
 std::shared_ptr<Container> AviTab::createGUIContainer() {

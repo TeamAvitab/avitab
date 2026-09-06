@@ -18,7 +18,6 @@
 
 #include <stdexcept>
 #include "Widget.h"
-#include "gui/LVGLToolkit.h"
 
 namespace avitab {
 
@@ -210,7 +209,7 @@ void Widget::setPaddingVer(int padVer) {
 }
 
 void Widget::setLocalStyle(const std::string style) {
-    LVGLToolkit::theme().setLocalStyle(lvObj, style);
+    theme->setLocalStyle(lvObj, style);
 }
 
 lv_image_dsc_t Widget::toLVImage(const uint32_t* pix, int width, int height) {

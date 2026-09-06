@@ -21,6 +21,7 @@
 #include <memory>
 #include <string>
 #include "gui/widgets/Container.h"
+#include "gui/Theme.h"
 #include "Navigation.h"
 #include "charts/ChartService.h"
 #include "SimDriver.h"
@@ -55,6 +56,7 @@ public:
     virtual std::filesystem::path getAvitabThemeDir() = 0;
     virtual std::filesystem::path getAirplanePath() = 0;
     virtual std::filesystem::path getFlightPlansPath() = 0;
+    virtual std::shared_ptr<Theme> getGUITheme() = 0;
     virtual std::shared_ptr<Container> createGUIContainer() = 0;
     virtual void showGUIContainer(std::shared_ptr<Container> container) = 0;
     virtual void onHomeButton() = 0;

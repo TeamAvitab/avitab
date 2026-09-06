@@ -20,6 +20,7 @@
 #include <memory>
 #include "SimDriver.h"
 #include "gui/widgets/Container.h"
+#include "gui/Theme.h"
 #include "AppFunctions.h"
 
 namespace avitab {
@@ -29,6 +30,7 @@ public:
     using ExitFunct = std::function<void()>;
     using FuncsPtr = AppFunctions *;
     using ContPtr = std::shared_ptr<Container>;
+    using ThemePtr = std::shared_ptr<Theme>;
 
     App(FuncsPtr appFuncs);
     virtual void onScreenResize(int width, int height);
@@ -36,6 +38,7 @@ public:
     virtual void suspend();
     void setOnExit(ExitFunct onExitFunct);
     ContPtr getUIContainer();
+    ThemePtr getUITheme();
     virtual void show();
     virtual void onPlaneLoad();
     virtual void onMouseWheel(int dir, int x, int y);
@@ -58,6 +61,7 @@ protected:
 private:
     FuncsPtr funcs;
     ContPtr uiContainer;
+    ThemePtr uiTheme;
     ExitFunct onExit;
 };
 
