@@ -52,13 +52,11 @@ void DocumentsApp::resetLayout() {
     tabs->setCallback([this]() {
         if (settingsContainer) settingsContainer->setVisible(false);
     });
-    tabs->centerInParent();
     createBrowseTab();
 }
 
 void DocumentsApp::createBrowseTab() {
     browsePage = tabs->addTab(tabs, "Files");
-    browsePage->setPadding();
     browseWindow = std::make_shared<Window>(browsePage, appTitle);
     browseWindow->setDimensionsPct(100, 100);
     browseWindow->setLocalStyle("windowContent");

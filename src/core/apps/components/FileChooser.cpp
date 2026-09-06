@@ -41,9 +41,8 @@ void FileChooser::setFilterRegex(const std::string &regex) {
 
 void FileChooser::show(std::shared_ptr<Container> parent) {
     window = std::make_shared<Window>(parent, "");
-    window->setPadding();
-    window->getContent()->setPadding();
     window->setDimensionsPct(100, 100);
+    window->setLocalStyle("windowContent");
     window->addSymbol(Widget::Symbol::CLOSE, [this] () {
         if (onCancel) {
             onCancel();
@@ -51,7 +50,6 @@ void FileChooser::show(std::shared_ptr<Container> parent) {
     });
     list = window->addContent(std::make_shared<List>(window));
     list->setDimensionsPct(100,100);
-    list->centerInParent();
     list->setCallback([this] (int data) {
         api->executeLater([this, data] {
             onListSelect(data);
