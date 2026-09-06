@@ -34,7 +34,7 @@ public:
     using GUITask = std::function<void()>;
     using MouseWheelCallback = std::function<void(int, int, int)>;
 
-    LVGLToolkit(std::shared_ptr<UiDriverBase> drv, const std::string dataDir);
+    LVGLToolkit(std::shared_ptr<UiDriverBase> drv, const std::string themedir, const std::string themename);
 
     void setMouseWheelCallback(MouseWheelCallback cb);
     void createNativeWindow(const std::string &title, const WindowRect &rect);

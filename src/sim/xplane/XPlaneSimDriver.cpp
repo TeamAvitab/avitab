@@ -239,6 +239,10 @@ std::filesystem::path XPlaneSimDriver::getFontDirectory() {
     return xplaneRootPath / "Resources"/"fonts";
 }
 
+std::filesystem::path XPlaneSimDriver::getThemeDirectory() {
+    return pluginPath / "themes";
+}
+
 std::filesystem::path XPlaneSimDriver::getFlightPlansPath() {
     return xplaneRootPath / "Output"/"FMS Plans";
 }

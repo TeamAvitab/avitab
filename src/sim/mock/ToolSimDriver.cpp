@@ -62,6 +62,10 @@ std::filesystem::path ToolSimDriver::getFontDirectory() {
     return ourPath;
 }
 
+std::filesystem::path ToolSimDriver::getThemeDirectory() {
+    return ourPath / "themes";
+}
+
 std::filesystem::path ToolSimDriver::getXpNavDataRootPath() {
     return xplaneRootPath;
 }

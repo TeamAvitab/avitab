@@ -29,7 +29,7 @@ namespace fs = std::filesystem;
 
 namespace avitab {
 
-Theme::Theme(std::string dir, lv_display_t *disp):
+Theme::Theme(std::string dir, std::string name, lv_display_t *disp):
     themesDir(std::move(dir)),
     display(disp)
 {
@@ -41,7 +41,7 @@ Theme::Theme(std::string dir, lv_display_t *disp):
     lv_theme_set_parent(&lvTheme, lv_display_get_theme(disp));
     lv_display_set_theme(disp, &lvTheme);
 
-    load("default");
+    load(name);
 }
 
 // ── load (by name) ───────────────────────────────────────────

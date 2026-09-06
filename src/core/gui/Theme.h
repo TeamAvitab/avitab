@@ -26,7 +26,7 @@ namespace avitab {
 
 class Theme {
 public:
-    Theme(std::string themesDir, lv_display_t *display);
+    Theme(std::string themesDir, std::string themeName, lv_display_t *display);
 
     // Non-copyable / non-movable: the instance registers the address of its
     // lvTheme member with LVGL and stores `this` in lvTheme.user_data.

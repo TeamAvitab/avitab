@@ -96,6 +96,7 @@ public:
     virtual std::filesystem::path getSettingsDir() = 0;
     virtual std::filesystem::path getFlightPlansPath() = 0;
     virtual std::filesystem::path getFontDirectory() = 0;
+    virtual std::filesystem::path getThemeDirectory() = 0;
     virtual std::filesystem::path getAirplanePath() = 0;
     virtual std::filesystem::path getXpNavDataRootPath() = 0;
     virtual std::filesystem::path getMsfsNavDataRootPath() = 0;

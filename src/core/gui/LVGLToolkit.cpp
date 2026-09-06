@@ -35,7 +35,7 @@ std::vector<uint8_t> tmpBuffer;
 LVGLToolkit *toolkitInstance = nullptr;
 }
 
-LVGLToolkit::LVGLToolkit(std::shared_ptr<UiDriverBase> drv, const std::string dataDir):
+LVGLToolkit::LVGLToolkit(std::shared_ptr<UiDriverBase> drv, const std::string themedir, const std::string themename):
     driver(drv)
 {
     driver->init(INITIAL_WIDTH, INITIAL_HEIGHT);
@@ -67,7 +67,7 @@ LVGLToolkit::LVGLToolkit(std::shared_ptr<UiDriverBase> drv, const std::string da
     initDisplay();
     initInputDevice();
 
-    mainTheme = std::make_shared<Theme>(dataDir + "/themes", display);
+    mainTheme = std::make_shared<Theme>(themedir, themename, display);
     toolkitInstance = this;
 
     // if keepAlive if true, the window was hidden without us noticing

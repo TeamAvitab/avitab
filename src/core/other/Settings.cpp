@@ -287,6 +287,10 @@ void Settings::initMissing() {
         };
         setGeneralSetting("remote_georefs_urls", default_url_list);
     }
+    if (!database->contains("/general/theme"_json_pointer)) {
+        const std::string name = "default";
+        setGeneralSetting("theme", name);
+    }
 }
 
 void Settings::saveAll() {

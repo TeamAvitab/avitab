@@ -52,6 +52,7 @@ public:
     virtual void executeLater(std::function<void()> func) = 0;
     virtual std::filesystem::path getAvitabInstallDir() = 0;
     virtual std::filesystem::path getAvitabDataDir() = 0;
+    virtual std::filesystem::path getAvitabThemeDir() = 0;
     virtual std::filesystem::path getAirplanePath() = 0;
     virtual std::filesystem::path getFlightPlansPath() = 0;
     virtual std::shared_ptr<Container> createGUIContainer() = 0;

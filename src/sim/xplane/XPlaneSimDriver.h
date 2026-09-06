@@ -50,6 +50,7 @@ public:
     std::filesystem::path getSettingsDir() override;
     std::filesystem::path getAirplanePath() override;
     std::filesystem::path getFontDirectory() override;
+    std::filesystem::path getThemeDirectory() override;
     std::filesystem::path getFlightPlansPath() override;
     std::filesystem::path getXpNavDataRootPath() override;
     std::filesystem::path getMsfsNavDataRootPath() override { return ""; }

@@ -65,6 +65,7 @@ public:
     void executeLater(std::function<void()> func) override;
     std::filesystem::path getAvitabInstallDir() override;
     std::filesystem::path getAvitabDataDir() override;
+    std::filesystem::path getAvitabThemeDir() override;
     std::filesystem::path getAirplanePath() override;
     std::filesystem::path getFlightPlansPath() override;
     std::shared_ptr<Container> createGUIContainer() override;
@@ -139,7 +140,8 @@ AviTab::AviTab(std::shared_ptr<SimDriverBase> e, std::shared_ptr<UiDriverBase> g
     // runs in simDriver thread, called by XPluginEnable
     // NOTE order here is important. NAV db must be created before GUI is started.
     navManager = std::make_unique<navdb::NavDbManager>(simDriver->getXpNavDataRootPath(), simDriver->getMsfsNavDataRootPath());
-    guiLib = std::make_shared<LVGLToolkit>(uiDriver, getAvitabDataDir());
+    std::string themename = simDriver->getSettings()->getGeneralSetting<std::string>("theme");
+    guiLib = std::make_shared<LVGLToolkit>(uiDriver, getAvitabThemeDir(), themename);
     img::TTFStamper::setFontDirectory(simDriver->getFontDirectory());
     std::vector<std::string> remote_georefs_urls = simDriver->getSettings()->getGeneralSetting<std::vector<std::string>>("remote_georefs_urls");
     chartService = std::make_shared<apis::ChartService>(simDriver->getDataRootPath(), remote_georefs_urls);
@@ -506,6 +508,10 @@ std::filesystem::path AviTab::getAvitabInstallDir() {
 
 std::filesystem::path AviTab::getAvitabDataDir() {
     return simDriver->getDataRootPath();
+}
+
+std::filesystem::path AviTab::getAvitabThemeDir() {
+    return simDriver->getThemeDirectory();
 }
 
 std::filesystem::path AviTab::getFlightPlansPath() {
