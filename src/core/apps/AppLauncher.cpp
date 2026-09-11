@@ -37,18 +37,18 @@ AppLauncher::AppLauncher(FuncsPtr appFuncs):
     cont->setLocalStyle("uiContainer");
     auto iconDir = api().getAvitabThemeDir()/theme->currentName();
 
-    addEntry<ChartsApp>("Charts", iconDir / "folder.png", AppId::CHARTS);
-    addEntry<AirportApp>("Airports", iconDir / "if_xmag_3617.png", AppId::AIRPORTS);
-    addEntry<RouteApp>("Routes", iconDir / "if_applications-internet_118835.png", AppId::ROUTES);
-    addEntry<MapApp>("Maps", iconDir / "if_starthere_18227.png", AppId::MAPS);
-    addEntry<PlaneManualApp>("Aircraft", iconDir / "if_ilustracoes_04-11_1519786.png", AppId::PLANE_MANUAL);
-    addEntry<NotesApp>("Notes", iconDir / "if_txt2_3783.png", AppId::NOTES);
+    addEntry<ChartsApp>("Charts", iconDir / Theme::Icons::Charts, AppId::CHARTS);
+    addEntry<AirportApp>("Airports", iconDir / Theme::Icons::Airports, AppId::AIRPORTS);
+    addEntry<RouteApp>("Routes", iconDir / Theme::Icons::Routes, AppId::ROUTES);
+    addEntry<MapApp>("Maps", iconDir / Theme::Icons::Maps, AppId::MAPS);
+    addEntry<PlaneManualApp>("Aircraft", iconDir / Theme::Icons::PlaneManual, AppId::PLANE_MANUAL);
+    addEntry<NotesApp>("Notes", iconDir / Theme::Icons::Notes, AppId::NOTES);
 
     if (api().getChartService()->getNavigraph()->isSupported() || api().getChartService()->getChartFox()->isSupported()) {
-        addEntry<ProvidersApp>("Providers", iconDir / "if_Airport_22906.png", AppId::NAVIGRAPH);
+        addEntry<ProvidersApp>("Providers", iconDir / Theme::Icons::Providers, AppId::NAVIGRAPH);
     }
 
-    addEntry<About>("About", iconDir / "if_Help_1493288.png", AppId::ABOUT);
+    addEntry<About>("About", iconDir / Theme::Icons::About, AppId::ABOUT);
 }
 
 void AppLauncher::onScreenResize(int width, int height) {

@@ -1,16 +1,31 @@
 {
   "_comment": "AviTab default theme — LVGL standard look",
 
+  "icons": {
+    "charts": "folder.png",
+    "airports": "if_xmag_3617.png",
+    "routes": "if_applications-internet_118835.png",
+    "maps": "if_starthere_18227.png",
+    "planemanual": "if_ilustracoes_04-11_1519786.png",
+    "notes": "if_txt2_3783.png",
+    "providers": "if_Airport_22906.png",
+    "about": "if_Help_1493288.png"
+  },
+
   "colors": {
     "background":     "#1A1A1A",
     "surface":        "#2B2B2B",
+    "headerArea":     "#004052",
     "primary":        "#1565C0",
     "primaryPressed": "#0D47A1",
     "onPrimary":      "#FFFFFF",
+    "hovered":        "#0c6074",
+    "headerText":     "#eee8d5",
     "text":           "#E0E0E0",
     "textMuted":      "#9E9E9E",
     "border":         "#444444",
-    "error":          "#CF6679"
+    "error":          "#CF6679",
+    "appButtonBackground": "#004052"
   },
 
   "fonts": {

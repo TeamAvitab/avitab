@@ -102,6 +102,17 @@ void Theme::parseJson(const std::string &path) {
 
     json j = json::parse(f, nullptr, /*exceptions=*/true, /*ignore_comments=*/true);
 
+    auto &i  = icons;
+    auto &ji = j.at("icons");
+    i.Charts      = ji.at("charts");
+    i.Airports    = ji.at("airports");
+    i.Routes      = ji.at("routes");
+    i.Maps        = ji.at("maps");
+    i.PlaneManual = ji.at("planemanual");
+    i.Notes       = ji.at("notes");
+    i.Providers   = ji.at("providers");
+    i.About       = ji.at("about");
+
     auto &c  = colors;
     auto &jc = j.at("colors");
     c.background     = parseColor(jc.at("background"));

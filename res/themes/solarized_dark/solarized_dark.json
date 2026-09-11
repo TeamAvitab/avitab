@@ -1,6 +1,17 @@
 {
   "_comment": "AviTab Solarized Dark theme",
 
+  "icons": {
+    "charts": "folder-open-outline.png",
+    "airports": "airport.png",
+    "routes": "earth.png",
+    "maps": "map-outline.png",
+    "planemanual": "bookshelf.png",
+    "notes": "note-multiple-outline.png",
+    "providers": "airplane-cog.png",
+    "about": "information-variant-box-outline.png"
+  },
+
   "colors": {
     "background":     "#ffffff",
     "surface":        "#002b36",

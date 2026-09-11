@@ -38,6 +38,17 @@ public:
     Theme(const Theme &) = delete;
     Theme &operator=(const Theme &) = delete;
 
+    struct Icons {
+        inline static std::string Charts;
+        inline static std::string Airports;
+        inline static std::string Routes;
+        inline static std::string Maps;
+        inline static std::string PlaneManual;
+        inline static std::string Notes;
+        inline static std::string Providers;
+        inline static std::string About;
+    };
+
     struct Colors {
         lv_color_t background;
         lv_color_t surface;
@@ -70,6 +81,7 @@ public:
         int32_t borderWidth;
     };
 
+    Icons   icons;
     Colors  colors;
     Fonts   fonts;
     Spacing spacing;
