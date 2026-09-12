@@ -70,8 +70,11 @@ std::vector<std::string> Theme::available() {
     if (!fs::exists(themesDir)) return names;
 
     for (auto &entry : fs::directory_iterator(themesDir)) {
-        if (entry.path().extension() == ".json") {
-            names.push_back(entry.path().stem().string());
+        if (!entry.is_directory()) continue;
+
+        std::string name = entry.path().filename().string();
+        if (fs::exists(entry.path() / (name + ".json"))) {
+            names.push_back(name);
         }
     }
     return names;
