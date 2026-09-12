@@ -26,19 +26,5 @@
     "border":         "#444444",
     "error":          "#CF6679",
     "appButtonBackground": "#004052"
-  },
-
-  "fonts": {
-    "small":   "montserrat_12",
-    "body":    "montserrat_16",
-    "heading": "montserrat_20"
-  },
-
-  "spacing": {
-    "paddingSmall":  4,
-    "paddingNormal": 8,
-    "paddingLarge":  16,
-    "borderRadius":  4,
-    "borderWidth":   1
   }
 }

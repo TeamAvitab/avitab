@@ -18,7 +18,6 @@
 #include <lvgl.h>
 #include <fstream>
 #include <stdexcept>
-#include <unordered_map>
 #include <utility>
 #include "Logger.h"
 #include "Theme.h"
@@ -33,6 +32,17 @@ Theme::Theme(std::string dir, std::string name, lv_display_t *disp):
     themesDir(std::move(dir)),
     display(disp)
 {
+    spacing.paddingNone = 0;
+    spacing.paddingSmall = 4;
+    spacing.paddingNormal = 8;
+    spacing.paddingLarge = 16;
+    spacing.borderRadius = 4;
+    spacing.borderWidth = 1;
+
+    fonts.small   = &lv_font_montserrat_12;
+    fonts.body    = &lv_font_montserrat_16;
+    fonts.heading = &lv_font_montserrat_20;
+
     initStyles();
 
     // Register our theme on the display, chained after the current one.
@@ -132,20 +142,6 @@ void Theme::parseJson(const std::string &path) {
     c.border         = parseColor(jc.at("border"));
     c.error          = parseColor(jc.at("error"));
     c.appButtonBackground = parseColor(jc.at("appButtonBackground"));
-
-    auto &fo = fonts;
-    auto &jf = j.at("fonts");
-    fo.small   = parseFont(jf.at("small"));
-    fo.body    = parseFont(jf.at("body"));
-    fo.heading = parseFont(jf.at("heading"));
-
-    auto &s  = spacing;
-    auto &js = j.at("spacing");
-    s.paddingSmall  = js.at("paddingSmall");
-    s.paddingNormal = js.at("paddingNormal");
-    s.paddingLarge  = js.at("paddingLarge");
-    s.borderRadius  = js.at("borderRadius");
-    s.borderWidth   = js.at("borderWidth");
 }
 
 // ── LVGL callback ────────────────────────────────────────────
@@ -324,23 +320,6 @@ lv_color_t Theme::parseColor(const std::string &hex) {
         throw std::runtime_error("GUI: invalid Theme color value: " + hex);
     }
     return lv_color_hex(std::stoul(s, nullptr, 16));
-}
-
-// ── parseFont ────────────────────────────────────────────────
-const lv_font_t *Theme::parseFont(const std::string &name) {
-    static const std::unordered_map<std::string, const lv_font_t *> map = {
-        { "montserrat_10", &lv_font_montserrat_10 },
-        { "montserrat_12", &lv_font_montserrat_12 },
-        { "montserrat_14", &lv_font_montserrat_14 },
-        { "montserrat_16", &lv_font_montserrat_16 },
-        { "montserrat_18", &lv_font_montserrat_18 },
-        { "montserrat_20", &lv_font_montserrat_20 },
-    };
-    auto it = map.find(name);
-    if (it == map.end()) {
-        throw std::runtime_error("GUI: unknown Theme font: " + name);
-    }
-    return it->second;
 }
 
 } // namespace avitab

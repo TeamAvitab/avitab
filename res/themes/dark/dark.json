@@ -11,19 +11,5 @@
     "textMuted":      "#660000",
     "border":         "#330000",
     "error":          "#FF6D00"
-  },
-
-  "fonts": {
-    "small":   "montserrat_12",
-    "body":    "montserrat_16",
-    "heading": "montserrat_20"
-  },
-
-  "spacing": {
-    "paddingSmall":  4,
-    "paddingNormal": 8,
-    "paddingLarge":  16,
-    "borderRadius":  3,
-    "borderWidth":   1
   }
 }

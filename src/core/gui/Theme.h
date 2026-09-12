@@ -74,7 +74,7 @@ public:
     };
 
     struct Spacing {
-        int32_t paddingNone = 0;
+        int32_t paddingNone;
         int32_t paddingSmall;
         int32_t paddingNormal;
         int32_t paddingLarge;
@@ -115,7 +115,6 @@ private:
     void notifyListeners();
 
     static lv_color_t parseColor(const std::string &hex);
-    static const lv_font_t *parseFont(const std::string &name);
 
     // Attaches the shared style objects to a newly created widget, by class.
     // Called once per object at creation time (via the LVGL theme mechanism).
