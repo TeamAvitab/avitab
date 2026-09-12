@@ -19,6 +19,7 @@
 
 #include <string>
 #include <vector>
+#include <filesystem>
 #include <functional>
 #include <memory>
 #include <lvgl.h>
@@ -140,6 +141,7 @@ private:
         lv_style_t dropdownlist {};
         lv_style_t headerArea {};
         lv_style_t windowContent {};
+        lv_style_t backdrop {};
     };
     void initStyles();
     void rebuildStyles();
@@ -148,8 +150,10 @@ private:
     bool          stylesInited = false;
     lv_theme_t    lvTheme {};
     lv_display_t *display = nullptr;
-    std::string   themesDir;
+    std::filesystem::path themesDir;
     std::string   activeName;
+    std::string   backdrop;
+    std::filesystem::path backdropPath;
     std::vector<ChangeCallback> listeners;
 };
 

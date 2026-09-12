@@ -480,6 +480,7 @@ void AviTab::showGUIContainer(std::shared_ptr<Container> container) {
 
     auto screen = guiLib->screen();
     centerContainer = container;
+    centerContainer->setLocalStyle("contentArea");
     if (hideHeader) {
         centerContainer->setPosition(0, 0);
         centerContainer->setDimensions(screen->getWidth(), screen->getHeight());

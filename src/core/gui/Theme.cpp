@@ -17,7 +17,6 @@
  */
 #include <lvgl.h>
 #include <fstream>
-#include <filesystem>
 #include <stdexcept>
 #include <unordered_map>
 #include <utility>
@@ -48,9 +47,9 @@ Theme::Theme(std::string dir, std::string name, lv_display_t *disp):
 // ── load (by name) ───────────────────────────────────────────
 void Theme::load(const std::string &name) {
     logger::verbose("GUI: loading Theme %s", name.c_str());
-    std::string path = themesDir + "/" + name + "/" + name + ".json";
-    loadFromPath(path);
     activeName = name;
+    std::filesystem::path path = themesDir / name / (name + ".json");
+    loadFromPath(path);
 }
 
 // ── loadFromPath ─────────────────────────────────────────────
@@ -101,6 +100,8 @@ void Theme::parseJson(const std::string &path) {
     }
 
     json j = json::parse(f, nullptr, /*exceptions=*/true, /*ignore_comments=*/true);
+
+    backdrop = j.value("backdrop", std::string());
 
     auto &i  = icons;
     auto &ji = j.at("icons");
@@ -203,6 +204,9 @@ void Theme::initStyles() {
     lv_style_init(&styles.textareaFocused);
     lv_style_init(&styles.dropdown);
     lv_style_init(&styles.dropdownlist);
+    lv_style_init(&styles.headerArea);
+    lv_style_init(&styles.windowContent);
+    lv_style_init(&styles.backdrop);
     stylesInited = true;
 }
 
@@ -268,6 +272,13 @@ void Theme::rebuildStyles() {
     lv_style_set_pad_hor   (&styles.windowContent, spacing.paddingSmall);
     lv_style_set_pad_ver   (&styles.windowContent, spacing.paddingSmall);
     lv_style_set_text_color(&styles.windowContent, colors.textMuted);
+
+    lv_style_reset(&styles.backdrop);
+    backdropPath.clear();
+    if (! backdrop.empty()) {
+        backdropPath = themesDir / activeName / backdrop;
+        lv_style_set_bg_image_src(&styles.backdrop, backdropPath.c_str());
+    }
 }
 
 void Theme::setLocalStyle(lv_obj_t* obj, const std::string style) {
@@ -285,6 +296,12 @@ void Theme::setLocalStyle(lv_obj_t* obj, const std::string style) {
     }
     else if (style == "headerArea") {
         lv_obj_add_style(obj, &styles.headerArea, LV_PART_MAIN);
+    }
+    else if (style == "contentArea") {
+        if (! backdrop.empty()) {
+            lv_obj_set_style_bg_opa(obj, LV_OPA_TRANSP, LV_PART_MAIN);
+            lv_obj_add_style(lv_screen_active(), &styles.backdrop, LV_PART_MAIN);
+        }
     }
     else if (style == "settings") {
         lv_obj_add_style(obj, &styles.dropdownlist, LV_PART_MAIN);

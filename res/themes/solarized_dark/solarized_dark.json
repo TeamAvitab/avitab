@@ -12,6 +12,8 @@
     "about": "information-variant-box-outline.png"
   },
 
+  "backdrop": "backdrop.png",
+
   "colors": {
     "background":     "#ffffff",
     "surface":        "#002b36",
