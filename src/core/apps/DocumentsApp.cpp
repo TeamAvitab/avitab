@@ -149,7 +149,7 @@ void DocumentsApp::createDocumentTab(const std::filesystem::path &docPath) {
     tab->path = docPath;
     tab->page = tabs->addTab(tabs, name);
     tab->window = std::make_shared<Window>(tab->page, name);
-    tab->window->setDimensionsPct(100, 100);
+    tab->window->setLocalStyle("windowContent");
 
     tab->pixMap = tab->window->addContent(std::make_shared<PixMap>(tab->window));
     tab->rasterImage = std::make_shared<img::Image>(tab->window->getContentWidth(), tab->window->getContentHeight(), img::COLOR_TRANSPARENT);
