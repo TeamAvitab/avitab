@@ -41,6 +41,7 @@ AirportApp::AirportApp(FuncsPtr appFuncs):
 
 void AirportApp::resetLayout() {
     tabs = std::make_shared<TabGroup>(getUIContainer());
+    tabs->setBGTransparent();
 
     searchPage = tabs->addTab(tabs, "Search");
     searchWindow = std::make_shared<Window>(searchPage, "");

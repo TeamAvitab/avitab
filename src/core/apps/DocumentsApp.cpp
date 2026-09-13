@@ -49,6 +49,7 @@ void DocumentsApp::ChangeBrowseDirectory(const std::filesystem::path &dir) {
 
 void DocumentsApp::resetLayout() {
     tabs = std::make_shared<TabGroup>(getUIContainer());
+    tabs->setBGTransparent();
     tabs->setCallback([this]() {
         if (settingsContainer) settingsContainer->setVisible(false);
     });
