@@ -70,6 +70,7 @@ public:
     struct Fonts {
         const lv_font_t *small;
         const lv_font_t *body;
+        const lv_font_t *header;
         const lv_font_t *heading;
     };
 

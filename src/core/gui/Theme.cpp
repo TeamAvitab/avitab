@@ -41,6 +41,7 @@ Theme::Theme(std::string dir, std::string name, lv_display_t *disp):
 
     fonts.small   = &lv_font_montserrat_12;
     fonts.body    = &lv_font_montserrat_16;
+    fonts.header  = &lv_font_montserrat_18;
     fonts.heading = &lv_font_montserrat_20;
 
     initStyles();
@@ -263,6 +264,7 @@ void Theme::rebuildStyles() {
     lv_style_reset(&styles.headerArea);
     lv_style_set_bg_color  (&styles.headerArea, colors.headerArea);
     lv_style_set_text_color(&styles.headerArea, colors.headerText);
+    lv_style_set_text_font (&styles.headerArea, fonts.header);
 
     lv_style_reset(&styles.windowContent);
     lv_style_set_pad_hor   (&styles.windowContent, spacing.paddingSmall);
