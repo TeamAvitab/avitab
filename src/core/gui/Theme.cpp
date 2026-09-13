@@ -215,7 +215,6 @@ void Theme::rebuildStyles() {
     lv_style_reset(&styles.obj);
     lv_style_set_bg_color    (&styles.obj, colors.surface);
     lv_style_set_text_color  (&styles.obj, colors.text);
-    lv_style_set_text_font   (&styles.obj, fonts.body);
     lv_style_set_border_color(&styles.obj, colors.border);
     lv_style_set_border_width(&styles.obj, 0);
     lv_style_set_radius      (&styles.obj, 0);
@@ -237,13 +236,11 @@ void Theme::rebuildStyles() {
     lv_style_set_text_color(&styles.keyboardItems, colors.text);
 
     lv_style_reset(&styles.label);
-    lv_style_set_text_font (&styles.label, fonts.body);
     lv_style_set_text_color(&styles.label, colors.text);
 
     lv_style_reset(&styles.textarea);
     lv_style_set_bg_color  (&styles.textarea, colors.surface);
     lv_style_set_text_color(&styles.textarea, colors.text);
-    lv_style_set_text_font (&styles.textarea, fonts.body);
 
     lv_style_reset(&styles.textareaFocused);
     lv_style_set_border_color(&styles.textareaFocused, colors.border);
