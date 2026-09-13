@@ -25,7 +25,6 @@ NotesApp::NotesApp(FuncsPtr appFuncs):
     App(appFuncs),
     window(std::make_shared<Window>(getUIContainer(), "Notes"))
 {
-    window->setDimensionsPct(100, 100);
     window->setLocalStyle("windowContent");
     image.resize(window->getContentWidth(), window->getContentHeight(), img::COLOR_WHITE);
 

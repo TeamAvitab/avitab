@@ -58,7 +58,6 @@ void DocumentsApp::resetLayout() {
 void DocumentsApp::createBrowseTab() {
     browsePage = tabs->addTab(tabs, "Files");
     browseWindow = std::make_shared<Window>(browsePage, appTitle);
-    browseWindow->setDimensionsPct(100, 100);
     browseWindow->setLocalStyle("windowContent");
 
     browseWindow->addSymbol(Widget::Symbol::UP, [this] () { onUp(); });

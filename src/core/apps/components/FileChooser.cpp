@@ -41,7 +41,6 @@ void FileChooser::setFilterRegex(const std::string &regex) {
 
 void FileChooser::show(std::shared_ptr<Container> parent) {
     window = std::make_shared<Window>(parent, "");
-    window->setDimensionsPct(100, 100);
     window->setLocalStyle("windowContent");
     window->addSymbol(Widget::Symbol::CLOSE, [this] () {
         if (onCancel) {

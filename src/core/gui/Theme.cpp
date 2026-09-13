@@ -287,6 +287,7 @@ void Theme::setLocalStyle(lv_obj_t* obj, const std::string style) {
     }
     else if (style == "windowContent") {
         lv_obj_add_style(obj, &styles.windowContent, LV_PART_MAIN);
+        lv_obj_set_size(obj, lv_pct(100), lv_pct(100));
     }
     else if (style == "appButton" ) {
         lv_obj_set_style_bg_color(obj, colors.appButtonBackground, LV_PART_MAIN);
