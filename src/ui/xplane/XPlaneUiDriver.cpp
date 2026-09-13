@@ -534,6 +534,11 @@ int XPlaneUiDriver::getWheelClicks() {
 }
 
 XPLMCursorStatus XPlaneUiDriver::getCursor(int x, int y) {
+    int px, py;
+    if (boxelToPixel(x, y, px, py)) {
+        mouseX = px;
+        mouseY = py;
+    }
     return xplm_CursorDefault;
 }
 
