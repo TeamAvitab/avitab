@@ -287,6 +287,11 @@ void Theme::setLocalStyle(lv_obj_t* obj, const std::string style) {
     else if (style == "windowContent") {
         lv_obj_add_style(obj, &styles.windowContent, LV_PART_MAIN);
         lv_obj_set_size(obj, lv_pct(100), lv_pct(100));
+        lv_obj_t *cnt = lv_win_get_content(obj);
+        lv_obj_set_style_pad_hor(cnt, spacing.paddingNormal, LV_PART_MAIN);
+        lv_obj_set_style_pad_ver(cnt, spacing.paddingSmall, LV_PART_MAIN);
+        lv_obj_t *hdr = lv_win_get_header(obj);
+        lv_obj_set_style_pad_hor(hdr, spacing.paddingSmall, LV_PART_MAIN);
     }
     else if (style == "appButton" ) {
         lv_obj_set_style_bg_color(obj, colors.appButtonBackground, LV_PART_MAIN);
