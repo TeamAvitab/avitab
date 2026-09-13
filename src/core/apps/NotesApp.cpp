@@ -86,7 +86,6 @@ void NotesApp::createLayout() {
 
 void NotesApp::onDraw(int x, int y, bool start, bool stop) {
     if (x < 0 || x >= image.getWidth() || y < 0 || y >= image.getHeight()) {
-    //if (x < 0 || x >= windowContent->getWidth() || y < 0 || y >= windowContent->getHeight()) {
         return;
     }
 
