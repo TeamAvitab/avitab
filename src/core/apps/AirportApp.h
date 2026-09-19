@@ -79,7 +79,7 @@ private:
     std::shared_ptr<Checkbox> sortCheckbox, sortAscCheckbox;
     std::shared_ptr<TabGroup> tabs;
     std::shared_ptr<TextArea> searchField;
-    std::shared_ptr<DropDownList> resultList;
+    std::shared_ptr<DropDownList> resultList = nullptr;
     std::shared_ptr<Keyboard> keys;
     std::shared_ptr<Button> nearestButton;
     std::shared_ptr<avitab::AirportConfig> airportConfig;

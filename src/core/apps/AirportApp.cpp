@@ -624,6 +624,13 @@ void AirportApp::onMouseWheel(int dir, int x, int y) {
             }
         }
     }
+    if ((activeTabIndex == 0) && (resultList != nullptr)) {
+        if (dir > 0) {
+            resultList->scrollUp();
+        } else {
+            resultList->scrollDown();
+        }
+    }
     onTimer();
 }
 

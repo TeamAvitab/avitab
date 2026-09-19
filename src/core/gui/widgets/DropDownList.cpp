@@ -26,6 +26,7 @@ DropDownList::DropDownList(WidgetPtr parent, const std::vector<std::string>& cho
 
     std::string choiceStr;
 
+    items = choices.size();
     for (auto &choice: choices) {
         choiceStr += choice + "\n";
     }
@@ -78,6 +79,32 @@ void DropDownList::setSelectAction(SelectCallback cb) {
         DropDownList *us = reinterpret_cast<DropDownList *>(lv_obj_get_user_data(o));
         us->onSelect();
     }, LV_EVENT_VALUE_CHANGED, nullptr);
+}
+
+void DropDownList::scrollUp() {
+    if (! lv_obj_has_state(obj(), LV_STATE_FOCUSED)) {
+        return;
+    }
+    uint32_t i = lv_dropdown_get_selected(obj());
+    if (i > 0) {
+        lv_dropdown_set_selected(obj(), i - 1);
+    }
+    else {
+        lv_dropdown_set_selected(obj(), items - 1);
+    }
+}
+
+void DropDownList::scrollDown() {
+    if (! lv_obj_has_state(obj(), LV_STATE_FOCUSED)) {
+        return;
+    }
+    uint32_t i = lv_dropdown_get_selected(obj());
+    if (i == (items - 1)) {
+        lv_dropdown_set_selected(obj(), 0);
+    }
+    else {
+        lv_dropdown_set_selected(obj(), i + 1);
+    }
 }
 
 } /* namespace avitab */

@@ -34,8 +34,12 @@ public:
     void setSymbol(Symbol smb);
     void setSelectAction(SelectCallback cb);
     int getSelectedIndex();
+
+    void scrollUp();
+    void scrollDown();
 private:
     SelectCallback onSelect;
+    int items = 0;
 };
 
 } /* namespace avitab */
