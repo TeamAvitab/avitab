@@ -156,6 +156,8 @@ void Theme::applyThemeTrampoline(lv_theme_t *th, lv_obj_t *obj) {
 void Theme::applyTheme(lv_obj_t *obj) {
     if (!stylesInited) return;
     const lv_obj_class_t *cls = lv_obj_get_class(obj);
+    lv_obj_t * parent = lv_obj_get_parent(obj);
+    lv_obj_t *child;
 
     if (cls == &lv_obj_class) {
         lv_obj_add_style(obj, &styles.obj, LV_PART_MAIN);
@@ -166,6 +168,7 @@ void Theme::applyTheme(lv_obj_t *obj) {
     }
     else if (cls == &lv_button_class) {
         lv_obj_add_style(obj, &styles.button, LV_PART_MAIN);
+        lv_obj_add_style(obj, &styles.textareaFocused, LV_STATE_FOCUSED);
     }
     else if (cls == &lv_keyboard_class) {
         lv_obj_add_style(obj, &styles.button, LV_PART_MAIN);
@@ -173,6 +176,23 @@ void Theme::applyTheme(lv_obj_t *obj) {
     }
     else if (cls == &lv_label_class) {
         lv_obj_add_style(obj, &styles.label, LV_PART_MAIN);
+    }
+    else if (cls == &lv_list_class) {
+        lv_obj_add_style(obj, &styles.dropdownlist, LV_PART_MAIN);
+        lv_obj_add_style(obj, &styles.textareaFocused, LV_PART_SELECTED);
+    }
+    else if (cls == &lv_list_button_class) {
+        lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN);
+        lv_obj_add_style(obj, &styles.dropdownlist, LV_PART_MAIN);
+        lv_obj_add_style(obj, &styles.textareaFocused, LV_STATE_FOCUSED);
+    }
+    else if (cls == &lv_tabview_class) {
+        lv_obj_add_style(obj, &styles.textarea, LV_PART_MAIN);
+    }
+    /*Tabview button container*/
+    else if((cls == &lv_tabview_class) && lv_obj_get_child(obj, 0) == child) {
+        lv_obj_add_style(child, &styles.button, LV_PART_MAIN);
+        lv_obj_add_style(child, &styles.textareaFocused, LV_STATE_FOCUS_KEY | LV_STATE_FOCUSED | LV_PART_ITEMS);
     }
     else if (cls == &lv_textarea_class) {
         lv_obj_add_style(obj, &styles.textarea, LV_PART_MAIN);
@@ -224,9 +244,6 @@ void Theme::rebuildStyles() {
     lv_style_reset(&styles.button);
     lv_style_set_bg_color  (&styles.button, colors.primary);
     lv_style_set_text_color(&styles.button, colors.headerText);
-    lv_style_set_radius    (&styles.button, spacing.borderRadius);
-    lv_style_set_pad_hor   (&styles.button, spacing.paddingNormal);
-    lv_style_set_pad_ver   (&styles.button, spacing.paddingSmall);
 
     lv_style_reset(&styles.buttonPressed);
     lv_style_set_bg_color(&styles.buttonPressed, colors.primaryPressed);
