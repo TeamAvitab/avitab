@@ -18,6 +18,7 @@
 #include <XPLM/XPLMGraphics.h>
 #include <XPLM/XPLMDisplay.h>
 #include <XPLM/XPLMUtilities.h>
+#include <XPLM/XPLMPlugin.h>
 #ifdef __APPLE__
 # include <OpenGL/gl.h>
 #else
@@ -62,6 +63,16 @@ XPlaneUiDriver::XPlaneUiDriver():
     panelMouseYref = std::make_unique<xdata::DataRefExport<float>>("avitab/panel_y_click", this,
         [] (void *self) { return (reinterpret_cast<XPlaneUiDriver *>(self))->panelClickY; },
         [] (void *self, float y) { (reinterpret_cast<XPlaneUiDriver *>(self))->panelClickY = y; });
+
+    // XPLMCreateAvionicsEx needs XPLM410 (X-Plane 12.1+); look it up at runtime so
+    // the plugin still loads and works on older versions.
+    int xplaneVersion, xplmVersion;
+    XPLMHostApplicationID hostId;
+    XPLMGetVersions(&xplaneVersion, &xplmVersion, &hostId);
+    if (xplmVersion >= 410) {
+        createAvionics = (CreateAvionicsPtr) XPLMFindSymbol("XPLMCreateAvionicsEx");
+        destroyAvionics = (DestroyAvionicsPtr) XPLMFindSymbol("XPLMDestroyAvionics");
+    }
 }
 
 void XPlaneUiDriver::init(int width, int height) {
@@ -282,10 +293,15 @@ int XPlaneUiDriver::onDraw3D(XPLMDrawingPhase phase, int isBefore, void *ref) {
 }
 
 void XPlaneUiDriver::createAvionicsPanel() {
+    if (!createAvionics || !destroyAvionics) {
+        logger::info("Avionics devices need X-Plane SDK 4.1.0 or later - panel not available");
+        return;
+    }
+
     logger::info("Creating avionics device 'teamavitab'");
 
     if (avionicsDevice) {
-        XPLMDestroyAvionics(avionicsDevice);
+        destroyAvionics(avionicsDevice);
         avionicsDevice = {};
     }
 
@@ -329,7 +345,7 @@ void XPlaneUiDriver::createAvionicsPanel() {
     params.deviceName = deviceNameStr;
     params.refcon = this;
 
-    avionicsDevice = XPLMCreateAvionicsEx(&params);
+    avionicsDevice = createAvionics(&params);
     if (!avionicsDevice) {
         throw std::runtime_error("Couldn't create avionics device");
     }
@@ -339,8 +355,8 @@ void XPlaneUiDriver::createAvionicsPanel() {
 
 void XPlaneUiDriver::hideAvionicsPanel() {
     logger::info("Removing avionics device");
-    if (avionicsDevice) {
-        XPLMDestroyAvionics(avionicsDevice);
+    if (avionicsDevice && destroyAvionics) {
+        destroyAvionics(avionicsDevice);
         avionicsDevice = {};
     }
     isPanelActive = false;
@@ -799,7 +815,7 @@ XPlaneUiDriver::~XPlaneUiDriver() {
         XPLMDestroyWindow(captureWindow);
     }
 
-    if (avionicsDevice) {
-        XPLMDestroyAvionics(avionicsDevice);
+    if (avionicsDevice && destroyAvionics) {
+        destroyAvionics(avionicsDevice);
     }
 }

@@ -68,6 +68,10 @@ private:
     bool deferPop = false;
     XPLMWindowID window{}, captureWindow{};
     XPLMAvionicsID avionicsDevice{};
+    using CreateAvionicsPtr = XPLMAvionicsID(*)(XPLMCreateAvionics_t *);
+    using DestroyAvionicsPtr = void(*)(XPLMAvionicsID);
+    CreateAvionicsPtr createAvionics{};
+    DestroyAvionicsPtr destroyAvionics{};
     std::atomic_int mouseX {0}, mouseY {0};
     std::atomic_bool mousePressed {false};
     std::atomic_int wheelClicks {0};
