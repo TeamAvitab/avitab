@@ -375,14 +375,19 @@ void AviTab::createPanel() {
                                         : (disableCaptureWindow ? UiDriverBase::PanelControlMode::COMMAND_ONLY
                                                                 : UiDriverBase::PanelControlMode::CAPTURE_WINDOW);
 
+        guiLib->hideAvionicsPanel();
         guiLib->createPanel(left, bottom, width, height, mode);
         if (enable) {
             simDriver->enableAndPowerPanel();
         }
     } catch (const std::exception &e) {
-        logger::info("No panel config - window only mode");
+        // No AviTab.json - create a self-contained avionics device instead, so aircraft
+        // that reference it via ATTR_cockpit_device "teamavitab" work without any config.
+        logger::info("No panel config - using avionics device");
         hideHeader = false;
         guiLib->hidePanel();
+        guiLib->createAvionicsPanel();
+        simDriver->enableAndPowerPanel();
     }
 }
 

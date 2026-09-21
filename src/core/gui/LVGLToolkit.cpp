@@ -170,6 +170,14 @@ void LVGLToolkit::hidePanel() {
     driver->hidePanel();
 }
 
+void LVGLToolkit::createAvionicsPanel() {
+    driver->createAvionicsPanel();
+}
+
+void LVGLToolkit::hideAvionicsPanel() {
+    driver->hideAvionicsPanel();
+}
+
 void LVGLToolkit::signalStop() {
     guiActive = false;
 }

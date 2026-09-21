@@ -53,6 +53,12 @@ void UiDriverBase::createPanel(int left, int bottom, int width, int height, Pane
 void UiDriverBase::hidePanel() {
 }
 
+void UiDriverBase::createAvionicsPanel() {
+}
+
+void UiDriverBase::hideAvionicsPanel() {
+}
+
 void UiDriverBase::blit(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const uint32_t* data) {
     if(x2 < 0 || y2 < 0 || x1 > bufferWidth - 1 || y1 > bufferHeight - 1) {
         return;

@@ -281,6 +281,127 @@ int XPlaneUiDriver::onDraw3D(XPLMDrawingPhase phase, int isBefore, void *ref) {
     return 1;
 }
 
+void XPlaneUiDriver::createAvionicsPanel() {
+    logger::info("Creating avionics device 'teamavitab'");
+
+    if (avionicsDevice) {
+        XPLMDestroyAvionics(avionicsDevice);
+        avionicsDevice = {};
+    }
+
+    static char deviceIdStr[] = "teamavitab";
+    static char deviceNameStr[] = "TeamAvitab";
+
+    XPLMCreateAvionics_t params;
+    params.structSize = sizeof(params);
+    params.screenWidth = this->width();
+    params.screenHeight = this->height();
+    // X-Plane requires the bezel rect to be at least as large as the screen; a
+    // bezel equal to the screen size (offset 0,0) means "no border", not size 0.
+    params.bezelWidth = this->width();
+    params.bezelHeight = this->height();
+    params.screenOffsetX = 0;
+    params.screenOffsetY = 0;
+    params.drawOnDemand = 0;
+    params.bezelDrawCallback = nullptr;
+    params.drawCallback = [] (void *ref) {
+        reinterpret_cast<XPlaneUiDriver *>(ref)->onAvionicsDraw();
+    };
+    params.bezelClickCallback = nullptr;
+    params.bezelRightClickCallback = nullptr;
+    params.bezelScrollCallback = nullptr;
+    params.bezelCursorCallback = nullptr;
+    params.screenTouchCallback = [] (int x, int y, XPLMMouseStatus status, void *ref) -> int {
+        return reinterpret_cast<XPlaneUiDriver *>(ref)->onAvionicsClick(x, y, status);
+    };
+    params.screenRightTouchCallback = [] (int x, int y, XPLMMouseStatus status, void *ref) -> int {
+        return 0;
+    };
+    params.screenScrollCallback = [] (int x, int y, int wheel, int clicks, void *ref) -> int {
+        return reinterpret_cast<XPlaneUiDriver *>(ref)->onAvionicsWheel(x, y, wheel, clicks);
+    };
+    params.screenCursorCallback = [] (int x, int y, void *ref) -> XPLMCursorStatus {
+        return xplm_CursorDefault;
+    };
+    params.keyboardCallback = nullptr;
+    params.brightnessCallback = nullptr;
+    params.deviceID = deviceIdStr;
+    params.deviceName = deviceNameStr;
+    params.refcon = this;
+
+    avionicsDevice = XPLMCreateAvionicsEx(&params);
+    if (!avionicsDevice) {
+        throw std::runtime_error("Couldn't create avionics device");
+    }
+
+    isPanelActive = true;
+}
+
+void XPlaneUiDriver::hideAvionicsPanel() {
+    logger::info("Removing avionics device");
+    if (avionicsDevice) {
+        XPLMDestroyAvionics(avionicsDevice);
+        avionicsDevice = {};
+    }
+    isPanelActive = false;
+}
+
+void XPlaneUiDriver::onAvionicsDraw() {
+    // The device's screen is a persistent framebuffer that X-Plane does not clear between
+    // calls, so an explicitly blanked screen is drawn whenever AviTab isn't showing content.
+    if (*panelEnabled == 0 || *panelPowered == 0) {
+        XPLMSetGraphicsState(0, 0, 0, 0, 0, 0, 0);
+        glClearColor(0, 0, 0, 1);
+        glClear(GL_COLOR_BUFFER_BIT);
+        return;
+    }
+
+    XPLMBindTexture2d(textureId, 0);
+    redrawTexture();
+
+    XPLMSetGraphicsState(0, 1, 0, 0, 0, 0, 0);
+    float b = *brightness;
+    glColor3f(b, b, b);
+    renderWindowTexture(0, height(), width(), 0);
+}
+
+bool XPlaneUiDriver::onAvionicsClick(int x, int y, XPLMMouseStatus status) {
+    if (*panelEnabled == 0) {
+        return false;
+    }
+
+    switch (status) {
+    case xplm_MouseDown:
+    case xplm_MouseDrag:
+        mousePressed = true;
+        break;
+    case xplm_MouseUp:
+        mousePressed = false;
+        break;
+    default:
+        return false;
+    }
+
+    // the device reports screen coordinates with y=0 at the bottom, but AviTab's own
+    // buffer coordinates have y=0 at the top
+    mouseX = x;
+    mouseY = height() - 1 - y;
+
+    return true;
+}
+
+bool XPlaneUiDriver::onAvionicsWheel(int x, int y, int wheel, int clicks) {
+    if (*panelEnabled == 0) {
+        return false;
+    }
+
+    mouseX = x;
+    mouseY = height() - 1 - y;
+    wheelClicks = clicks;
+
+    return true;
+}
+
 bool XPlaneUiDriver::hasWindow() {
     if (!window) {
         return false;
@@ -676,5 +797,9 @@ XPlaneUiDriver::~XPlaneUiDriver() {
 
     if (captureWindow) {
         XPLMDestroyWindow(captureWindow);
+    }
+
+    if (avionicsDevice) {
+        XPLMDestroyAvionics(avionicsDevice);
     }
 }

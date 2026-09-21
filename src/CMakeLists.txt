@@ -28,7 +28,7 @@ target_include_directories(avitab_xplane_lib PUBLIC
     "${XPLANE_SDK}/CHeaders"
 )
 target_compile_definitions(avitab_xplane_lib PUBLIC
-    XPLM400 XPLM303 XPLM301 XPLM300 XPLM210 XPLM200
+    XPLM410 XPLM400 XPLM303 XPLM301 XPLM300 XPLM210 XPLM200
     APL=$<BOOL:${APPLE}> IBM=$<BOOL:${WIN32}> LIN=$<AND:$<BOOL:${UNIX}>,$<NOT:$<BOOL:${APPLE}>>>
 )
 if(APPLE)

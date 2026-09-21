@@ -43,6 +43,8 @@ public:
     void setBrightnessPtr(std::shared_ptr<float> brightnessPtr);
     void createPanel(int left, int bottom, int width, int height, PanelControlMode mode) override;
     void hidePanel() override;
+    void createAvionicsPanel() override;
+    void hideAvionicsPanel() override;
 
     void readPointerState(int &x, int &y, bool &pressed) override;
     void blit(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const uint32_t *data) override;
@@ -65,6 +67,7 @@ private:
     int textureId = -1;
     bool deferPop = false;
     XPLMWindowID window{}, captureWindow{};
+    XPLMAvionicsID avionicsDevice{};
     std::atomic_int mouseX {0}, mouseY {0};
     std::atomic_bool mousePressed {false};
     std::atomic_int wheelClicks {0};
@@ -95,6 +98,10 @@ private:
     bool panelClickXYtoAvitabXY(float & px, float & py, int & mx, int & my);
     bool onPanelClick(XPLMMouseStatus status);
     bool onPanelWheel(int wheel, int clicks);
+
+    void onAvionicsDraw();
+    bool onAvionicsClick(int x, int y, XPLMMouseStatus status);
+    bool onAvionicsWheel(int x, int y, int wheel, int clicks);
 
     void setupKeyboard();
 

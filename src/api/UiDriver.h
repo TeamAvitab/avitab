@@ -63,6 +63,11 @@ public:
     virtual void createPanel(int left, int bottom, int width, int height, PanelControlMode mode);
     virtual void hidePanel();
 
+    // Modern alternative to createPanel/hidePanel for aircraft that don't ship an
+    // AviTab.json: creates a self-contained X-Plane 12 avionics device instead.
+    virtual void createAvionicsPanel();
+    virtual void hideAvionicsPanel();
+
     virtual void blit(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const uint32_t *data);
     virtual void readPointerState(int &x, int &y, bool &pressed) = 0;
 

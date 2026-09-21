@@ -39,6 +39,8 @@ public:
     void createNativeWindow(const std::string &title, const WindowRect &rect);
     void createPanel(int left, int bottom, int width, int height, UiDriverBase::PanelControlMode mode);
     void hidePanel();
+    void createAvionicsPanel();
+    void hideAvionicsPanel();
     void pauseNativeWindow();
     bool hasNativeWindow();
     WindowRect getNativeWindowRect();
