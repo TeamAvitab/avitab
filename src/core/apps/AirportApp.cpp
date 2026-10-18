@@ -386,8 +386,8 @@ void AirportApp::onChartsLoaded(std::shared_ptr<Page> page, const apis::ChartSer
     TabPage &tab = findPage(page);
     tab.label->setVisible(false);
     tab.charts = charts;
-    tab.chartSelect = std::make_shared<List>(tab.window);
-    tab.chartSelect->setDimensions(tab.window->getContentWidth() - 5, tab.window->getHeight() - padHeight);
+    tab.chartSelect = tab.window->addContent(std::make_shared<List>(tab.window));
+    tab.chartSelect->setDimensionsPct(100, 100);
 
     if (tab.requestedList == apis::ChartCategory::ROOT) {
         tab.chartSelect->add("Airport (" + std::to_string(countCharts(charts, apis::ChartCategory::APT)) + ")", -1);
@@ -405,7 +405,6 @@ void AirportApp::onChartsLoaded(std::shared_ptr<Page> page, const apis::ChartSer
         }
     }
 
-    tab.chartSelect->centerInParent();
     tab.chartSelect->setCallback([this, page] (int index) {
         api().executeLater([this, page, index] {
             TabPage &listTab = findPage(page);
@@ -428,19 +427,17 @@ void AirportApp::onChartsLoaded(std::shared_ptr<Page> page, const apis::ChartSer
 
             TabPage newTab;
             newTab.page = tabs->addTab(tabs, chart->getICAO() + " " + chart->getIndex());
-            newTab.page->setShowScrollbar(false);
             auto newPage = newTab.page;
 
             newTab.window = std::make_shared<Window>(newTab.page, chart->getIndex());
-            newTab.window->setDimensions(newTab.page->getContentWidth(), newTab.page->getHeight() + 30);
-            newTab.window->alignInTopLeft();
+            newTab.window->setDimensionsPct(100, 100);
             newTab.window->setOnClose([this, newPage] {
                 api().executeLater([this, newPage] {
                     removeTab(newPage);
                 });
             });
 
-            newTab.label = std::make_shared<Label>(newTab.window, "Loading...");
+            newTab.label = std::make_shared<Label>(newTab.window->getContent(), "Loading...");
             pages.push_back(newTab);
             tabs->showTab(newTab.page);
 
@@ -513,13 +510,11 @@ void AirportApp::onChartLoaded(std::shared_ptr<Page> page) {
     });
 
     try {
-        tab.mapImage = std::make_shared<img::Image>(tab.window->getContentWidth(), tab.window->getHeight(), 0);
-        tab.pixMap = std::make_shared<PixMap>(tab.window);
+        tab.mapImage = std::make_shared<img::Image>(tab.window->getContentWidth(), tab.window->getContentHeight(), 0);
+        tab.pixMap = tab.window->addContent(std::make_shared<PixMap>(tab.window));
         tab.pixMap->draw(*tab.mapImage);
         tab.pixMap->setClickable(true);
         tab.pixMap->setClickHandler([this, page] (int x, int y, bool pr, bool rel) { onMapPan(page, x, y, pr, rel); });
-        tab.pixMap->setDimensions(tab.window->getContentWidth(), tab.window->getHeight() - padHeight);
-        tab.pixMap->centerInParent();
 
         tab.mapSource = tab.chart->createTileSource(nightMode);
         tab.mapStitcher = std::make_shared<img::Stitcher>(tab.mapImage, tab.mapSource);
