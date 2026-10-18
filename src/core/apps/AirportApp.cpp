@@ -353,6 +353,7 @@ void AirportApp::toggleCharts(std::shared_ptr<Page> page, std::shared_ptr<navdb:
         fillChartsPage(page, airport);
     } else {
         tab.charts.clear();
+        tab.label->setVisible(true);
         fillPage(page, airport);
     }
 }
