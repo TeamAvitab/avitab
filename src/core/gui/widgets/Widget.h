@@ -74,7 +74,7 @@ public:
     void setVisible(bool visible);
     bool isVisible();
     void setShowScrollbar(bool show);
-    void setScrollable(bool visible);
+    void setScrollable(bool scrollable);
     bool isScrollable();
     void setBGColor (int color);
     void setBGTransparent();
