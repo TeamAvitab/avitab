@@ -26,6 +26,8 @@ NotesApp::NotesApp(FuncsPtr appFuncs):
     window(std::make_shared<Window>(getUIContainer(), "Notes"))
 {
     window->setDimensionsPct(100, 100);
+    window->getContent()->setScrollable(false);
+    window->getContent()->setPadding(0, 0, 0, 0);
     image.resize(window->getContentWidth(), window->getContentHeight(), img::COLOR_WHITE);
 
     keyboardButton = window->addSymbol(Widget::Symbol::KEYBOARD, [this] () {

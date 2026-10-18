@@ -510,6 +510,8 @@ void AirportApp::onChartLoaded(std::shared_ptr<Page> page) {
     });
 
     try {
+        tab.window->getContent()->setScrollable(false);
+        tab.window->getContent()->setPadding(0, 0, 0, 0);
         tab.mapImage = std::make_shared<img::Image>(tab.window->getContentWidth(), tab.window->getContentHeight(), 0);
         tab.pixMap = tab.window->addContent(std::make_shared<PixMap>(tab.window));
         tab.pixMap->draw(*tab.mapImage);
