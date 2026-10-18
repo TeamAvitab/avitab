@@ -431,11 +431,6 @@ void AirportApp::onChartsLoaded(std::shared_ptr<Page> page, const apis::ChartSer
 
             newTab.window = std::make_shared<Window>(newTab.page, chart->getIndex());
             newTab.window->setDimensionsPct(100, 100);
-            newTab.window->setOnClose([this, newPage] {
-                api().executeLater([this, newPage] {
-                    removeTab(newPage);
-                });
-            });
 
             newTab.label = std::make_shared<Label>(newTab.window->getContent(), "Loading...");
             pages.push_back(newTab);
@@ -473,22 +468,11 @@ void AirportApp::onChartLoaded(std::shared_ptr<Page> page) {
     } else {
         tab.overlays = std::make_shared<maps::OverlayConfig>();
     }
-    tab.window->addSymbol(Widget::Symbol::MINUS, [this, page] {
+    tab.trackButton = tab.window->addSymbol(Widget::Symbol::GPS, [this, page] {
         TabPage &tab = findPage(page);
         if (tab.map) {
-            tab.map->zoomOut();
-        }
-    });
-    tab.window->addSymbol(Widget::Symbol::PLUS, [this, page] {
-        TabPage &tab = findPage(page);
-        if (tab.map) {
-            tab.map->zoomIn();
-        }
-    });
-    tab.window->addSymbol(Widget::Symbol::ROTATE, [this, page] {
-        TabPage &tab = findPage(page);
-        if (tab.map) {
-            tab.mapStitcher->rotateRight();
+            tab.trackPlane = !tab.trackPlane;
+            tab.trackButton->setToggleState(tab.trackPlane);
         }
     });
     tab.nightModeButton = tab.window->addSymbol(Widget::Symbol::IMAGE, [this, page] () {
@@ -501,12 +485,28 @@ void AirportApp::onChartLoaded(std::shared_ptr<Page> page) {
         }
     });
     tab.nightModeButton->setToggleState(nightMode);
-    tab.trackButton = tab.window->addSymbol(Widget::Symbol::GPS, [this, page] {
+    tab.window->addSymbol(Widget::Symbol::ROTATE, [this, page] {
         TabPage &tab = findPage(page);
         if (tab.map) {
-            tab.trackPlane = !tab.trackPlane;
-            tab.trackButton->setToggleState(tab.trackPlane);
+            tab.mapStitcher->rotateRight();
         }
+    });
+    tab.window->addSymbol(Widget::Symbol::PLUS, [this, page] {
+        TabPage &tab = findPage(page);
+        if (tab.map) {
+            tab.map->zoomIn();
+        }
+    });
+    tab.window->addSymbol(Widget::Symbol::MINUS, [this, page] {
+        TabPage &tab = findPage(page);
+        if (tab.map) {
+            tab.map->zoomOut();
+        }
+    });
+    tab.window->setOnClose([this, page] {
+        api().executeLater([this, page] {
+            removeTab(page);
+        });
     });
 
     try {
