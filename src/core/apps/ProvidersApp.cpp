@@ -26,6 +26,7 @@ ProvidersApp::ProvidersApp(FuncsPtr appFuncs):
 {
     tabs = std::make_shared<TabGroup>(getUIContainer());
     tabs->setBGTransparent();
+    tabs->setSliding(false);
     tabs->centerInParent();
 
     if (api().getChartService()->getNavigraph()->isSupported()) {

@@ -79,6 +79,15 @@ size_t TabGroup::getActiveTab() {
     return lv_tabview_get_tab_active(obj());
 }
 
+void TabGroup::setSliding(bool sliding) {
+    if (sliding) {
+        lv_obj_add_flag(lv_tabview_get_content(obj()), LV_OBJ_FLAG_SCROLLABLE);
+    }
+    else {
+        lv_obj_clear_flag(lv_tabview_get_content(obj()), LV_OBJ_FLAG_SCROLLABLE);
+    }
+}
+
 size_t TabGroup::getTabCount() {
     lv_obj_t *content = lv_tabview_get_content(obj());
     size_t i;
