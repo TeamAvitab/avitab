@@ -140,6 +140,7 @@ private:
         lv_style_t dropdown {};
         lv_style_t dropdownlist {};
         lv_style_t headerArea {};
+        lv_style_t bg_header {};
         lv_style_t windowContent {};
         lv_style_t backdrop {};
     };

@@ -156,19 +156,59 @@ void Theme::applyThemeTrampoline(lv_theme_t *th, lv_obj_t *obj) {
 void Theme::applyTheme(lv_obj_t *obj) {
     if (!stylesInited) return;
     const lv_obj_class_t *cls = lv_obj_get_class(obj);
-    lv_obj_t * parent = lv_obj_get_parent(obj);
-    lv_obj_t *child;
+    lv_obj_t *parent = lv_obj_get_parent(obj);
+
+    if (parent == nullptr) {
+        return;
+    }
 
     if (cls == &lv_obj_class) {
         lv_obj_add_style(obj, &styles.obj, LV_PART_MAIN);
+
+        /*Tabview content area*/
+        if (lv_obj_check_type(parent, &lv_tabview_class) && lv_obj_get_child(parent, 1) == obj) {
+            lv_obj_add_style(obj, &styles.textarea, LV_PART_MAIN);
+            return;
+        }
+        /*Tabview button container*/
+        else if (lv_obj_check_type(parent, &lv_tabview_class) && lv_obj_get_child(parent, 0) == obj) {
+            lv_obj_add_style(obj, &styles.button, LV_PART_MAIN);
+        //    lv_obj_add_style(obj, &styles.textareaFocused, LV_STATE_FOCUS_KEY | LV_STATE_FOCUSED | LV_STATE_CHECKED | LV_STATE_PRESSED);
+            return;
+        }
+        /*Tabview pages*/
+        else if (lv_obj_check_type(lv_obj_get_parent(parent), &lv_tabview_class)) {
+            return;
+        }
+
+        //Win Header
+        if (lv_obj_check_type(parent, &lv_win_class) && lv_obj_get_child(parent, 0) == obj) {
+            lv_obj_add_style(parent, &styles.windowContent, LV_PART_MAIN);
+            lv_obj_set_style_pad_hor(obj, spacing.paddingSmall, LV_PART_MAIN);
+            return;
+        }
+        //Win Content
+        else if (lv_obj_check_type(parent, &lv_win_class) && lv_obj_get_child(parent, 1) == obj) {
+            lv_obj_set_style_pad_hor(obj, spacing.paddingNormal, LV_PART_MAIN);
+            lv_obj_set_style_pad_ver(obj, spacing.paddingSmall, LV_PART_MAIN);
+            return;
+        }
+    }
+    else if (cls == &lv_button_class) {
+        lv_obj_t * tv = lv_obj_get_parent(parent); /*parent is the tabview header*/
+        if(tv && lv_obj_get_child(tv, 0) == parent) { /*The button is on the tab view header*/
+            if(lv_obj_check_type(tv, &lv_tabview_class)) {
+                lv_obj_add_style(obj, &styles.bg_header, LV_STATE_CHECKED);
+                return;
+            }
+        }
+
+        lv_obj_add_style(obj, &styles.button, LV_PART_MAIN);
+        lv_obj_add_style(obj, &styles.textareaFocused, LV_STATE_FOCUSED);
     }
     else if (cls == &lv_checkbox_class) {
         lv_obj_add_style(obj, &styles.button, LV_PART_MAIN);
         lv_obj_add_style(obj, &styles.button, LV_PART_INDICATOR);
-    }
-    else if (cls == &lv_button_class) {
-        lv_obj_add_style(obj, &styles.button, LV_PART_MAIN);
-        lv_obj_add_style(obj, &styles.textareaFocused, LV_STATE_FOCUSED);
     }
     else if (cls == &lv_keyboard_class) {
         lv_obj_add_style(obj, &styles.button, LV_PART_MAIN);
@@ -185,14 +225,6 @@ void Theme::applyTheme(lv_obj_t *obj) {
         lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN);
         lv_obj_add_style(obj, &styles.dropdownlist, LV_PART_MAIN);
         lv_obj_add_style(obj, &styles.textareaFocused, LV_STATE_FOCUSED);
-    }
-    else if (cls == &lv_tabview_class) {
-        lv_obj_add_style(obj, &styles.textarea, LV_PART_MAIN);
-    }
-    /*Tabview button container*/
-    else if((cls == &lv_tabview_class) && lv_obj_get_child(obj, 0) == child) {
-        lv_obj_add_style(child, &styles.button, LV_PART_MAIN);
-        lv_obj_add_style(child, &styles.textareaFocused, LV_STATE_FOCUS_KEY | LV_STATE_FOCUSED | LV_PART_ITEMS);
     }
     else if (cls == &lv_textarea_class) {
         lv_obj_add_style(obj, &styles.textarea, LV_PART_MAIN);
@@ -225,6 +257,7 @@ void Theme::initStyles() {
     lv_style_init(&styles.dropdown);
     lv_style_init(&styles.dropdownlist);
     lv_style_init(&styles.headerArea);
+    lv_style_init(&styles.bg_header);
     lv_style_init(&styles.windowContent);
     lv_style_init(&styles.backdrop);
     stylesInited = true;
@@ -279,9 +312,12 @@ void Theme::rebuildStyles() {
     lv_style_set_pad_ver     (&styles.dropdownlist, spacing.paddingSmall);
 
     lv_style_reset(&styles.headerArea);
-    lv_style_set_bg_color  (&styles.headerArea, colors.headerArea);
     lv_style_set_text_color(&styles.headerArea, colors.headerText);
     lv_style_set_text_font (&styles.headerArea, fonts.header);
+
+    lv_style_reset(&styles.bg_header);
+    lv_style_set_bg_color  (&styles.bg_header, colors.headerArea);
+    lv_style_set_border_color(&styles.bg_header, colors.border);
 
     lv_style_reset(&styles.windowContent);
     lv_style_set_pad_hor   (&styles.windowContent, spacing.paddingSmall);
@@ -301,21 +337,13 @@ void Theme::setLocalStyle(lv_obj_t* obj, const std::string style) {
         lv_obj_set_style_pad_hor(obj, spacing.paddingNormal, LV_PART_MAIN);
         lv_obj_set_style_pad_ver(obj, spacing.paddingNormal, LV_PART_MAIN);
     }
-    else if (style == "windowContent") {
-        lv_obj_add_style(obj, &styles.windowContent, LV_PART_MAIN);
-        lv_obj_set_size(obj, lv_pct(100), lv_pct(100));
-        lv_obj_t *cnt = lv_win_get_content(obj);
-        lv_obj_set_style_pad_hor(cnt, spacing.paddingNormal, LV_PART_MAIN);
-        lv_obj_set_style_pad_ver(cnt, spacing.paddingSmall, LV_PART_MAIN);
-        lv_obj_t *hdr = lv_win_get_header(obj);
-        lv_obj_set_style_pad_hor(hdr, spacing.paddingSmall, LV_PART_MAIN);
-    }
     else if (style == "appButton" ) {
         lv_obj_set_style_bg_color(obj, colors.appButtonBackground, LV_PART_MAIN);
         lv_obj_set_style_text_color(obj, colors.text, LV_PART_MAIN);
         lv_obj_add_style(obj, &styles.buttonHovered, LV_STATE_HOVERED);
     }
     else if (style == "headerArea") {
+        lv_obj_add_style(obj, &styles.bg_header, LV_PART_MAIN);
         lv_obj_add_style(obj, &styles.headerArea, LV_PART_MAIN);
     }
     else if (style == "contentArea") {

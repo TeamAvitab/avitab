@@ -59,7 +59,7 @@ void DocumentsApp::resetLayout() {
 void DocumentsApp::createBrowseTab() {
     browsePage = tabs->addTab(tabs, "Files");
     browseWindow = std::make_shared<Window>(browsePage, appTitle);
-    browseWindow->setLocalStyle("windowContent");
+    browseWindow->setDimensionsPct(100, 100);
 
     browseWindow->addSymbol(Widget::Symbol::UP, [this] () { onUp(); });
     browseWindow->addSymbol(Widget::Symbol::DOWN, [this] () { onDown(); });
@@ -150,7 +150,7 @@ void DocumentsApp::createDocumentTab(const std::filesystem::path &docPath) {
     tab->path = docPath;
     tab->page = tabs->addTab(tabs, name);
     tab->window = std::make_shared<Window>(tab->page, name);
-    tab->window->setLocalStyle("windowContent");
+    tab->window->setDimensionsPct(100, 100);
 
     tab->pixMap = tab->window->addContent(std::make_shared<PixMap>(tab->window));
     tab->rasterImage = std::make_shared<img::Image>(tab->window->getContentWidth(), tab->window->getContentHeight(), img::COLOR_TRANSPARENT);
