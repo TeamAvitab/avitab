@@ -503,11 +503,6 @@ void AirportApp::onChartLoaded(std::shared_ptr<Page> page) {
             tab.map->zoomOut();
         }
     });
-    tab.window->setOnClose([this, page] {
-        api().executeLater([this, page] {
-            removeTab(page);
-        });
-    });
 
     try {
         tab.window->getContent()->setScrollable(false);
@@ -529,14 +524,14 @@ void AirportApp::onChartLoaded(std::shared_ptr<Page> page) {
         tab.trackButton->setToggleState(tab.trackPlane);
 
         if (tab.mapSource->getPageCount() > 1) {
-            tab.window->addSymbol(Widget::Symbol::RIGHT, [this, page] {
-                TabPage &tab = findPage(page);
-                tab.mapStitcher->nextPage();
-            });
-
             tab.window->addSymbol(Widget::Symbol::LEFT, [this, page] {
                 TabPage &tab = findPage(page);
                 tab.mapStitcher->prevPage();
+            });
+
+            tab.window->addSymbol(Widget::Symbol::RIGHT, [this, page] {
+                TabPage &tab = findPage(page);
+                tab.mapStitcher->nextPage();
             });
         }
         tab.label->setVisible(false);
@@ -544,6 +539,11 @@ void AirportApp::onChartLoaded(std::shared_ptr<Page> page) {
         logger::warn("Couldn't load chart: %s", e.what());
         tab.label->setText(e.what());
     }
+    tab.window->setOnClose([this, page] {
+        api().executeLater([this, page] {
+            removeTab(page);
+        });
+    });
 
     onTimer();
 }
