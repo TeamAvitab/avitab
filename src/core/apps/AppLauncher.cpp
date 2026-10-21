@@ -40,11 +40,11 @@ AppLauncher::AppLauncher(FuncsPtr appFuncs):
     addEntry<AirportApp>("Airports", root / "if_xmag_3617.png", AppId::AIRPORTS);
     addEntry<RouteApp>("Routes", root / "if_applications-internet_118835.png", AppId::ROUTES);
     addEntry<MapApp>("Maps", root / "if_starthere_18227.png", AppId::MAPS);
-    addEntry<PlaneManualApp>("Aircraft", root / "if_ilustracoes_04-11_1519786.png", AppId::PLANE_MANUAL);
+    addEntry<PlaneManualApp>("Aircraft", root / "if_ilustracoes_04-11_1519786.png", AppId::MANUALS);
     addEntry<NotesApp>("Notes", root / "if_txt2_3783.png", AppId::NOTES);
 
     if (api().getChartService()->getNavigraph()->isSupported() || api().getChartService()->getChartFox()->isSupported()) {
-        addEntry<ProvidersApp>("Providers", root / "if_Airport_22906.png", AppId::NAVIGRAPH);
+        addEntry<ProvidersApp>("Providers", root / "if_Airport_22906.png", AppId::PROVIDERS);
     }
 
     addEntry<About>("About", root / "if_Help_1493288.png", AppId::ABOUT);
@@ -61,7 +61,7 @@ void AppLauncher::show() {
         activeApp->suspend();
     }
     App::show();
-    api().setIsInMenu(true);
+    api().notifyHomeScreenActive(true);
 }
 
 void AppLauncher::showApp(AppId id) {
@@ -73,7 +73,7 @@ void AppLauncher::showApp(AppId id) {
             activeApp = entry.app;
             activeApp->resume();
             activeApp->show();
-            api().setIsInMenu(false);
+            api().notifyHomeScreenActive(false);
             break;
         }
     }
@@ -116,6 +116,7 @@ void AppLauncher::onMouseWheel(int dir, int x, int y) {
         activeApp->onMouseWheel(dir, x, y);
     }
 }
+
 void AppLauncher::changeChartTab(bool next) {
     if (activeApp) {
         activeApp->changeChartTab(next);

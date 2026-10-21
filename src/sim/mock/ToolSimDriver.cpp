@@ -17,25 +17,11 @@
  */
 #include "ToolSimDriver.h"
 #include "platform/Platform.h"
+#include <list>
 
 ToolSimDriver::ToolSimDriver() : SimDriverBase() {
     xplaneRootPath = findXPlaneInstallationPath();
     ourPath = platform::getExectuablePath();
-}
-
-void ToolSimDriver::createMenu(const std::string& name) {
-}
-
-void ToolSimDriver::addMenuEntry(const std::string& label, MenuCallback cb) {
-}
-
-void ToolSimDriver::destroyMenu() {
-}
-
-void ToolSimDriver::createCommand(const std::string& name, const std::string& desc, CommandCallback cb) {
-}
-
-void ToolSimDriver::destroyCommands() {
 }
 
 std::filesystem::path ToolSimDriver::getAirplanePath() {

@@ -25,20 +25,34 @@
 
 class GlfwUiDriver: public avitab::UiDriverBase {
 public:
-    void init(int width, int height) override;
-    void createWindow(const std::string &title, const avitab::WindowRect &rect) override;
-    bool hasWindow() override;
-    void killWindow() override;
+    GlfwUiDriver();
+    ~GlfwUiDriver();
+
+    // The top-level state machine is start -> enable -> disable { -> enable -> disable } -> stop
+    void start(std::shared_ptr<avitab::Settings> prefs, std::shared_ptr<avitab::AviTabCore> core);
+    void enable();
+    void disable();
+    void stop();
+
     void setBrightness(float b) override;
     float getBrightness() override;
 
-    bool handleEvents();
+    bool handleEvents(bool &disableReq);
     uint32_t getLastDrawTime();
 
     void blit(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const uint32_t *newData) override;
     void readPointerState(int &x, int &y, bool &pressed) override;
     int getWheelClicks() override;
-    ~GlfwUiDriver();
+
+    void requestCloseWindow() override;
+
+protected:
+    void createWindow(const std::string &title);
+
+private:
+    void createTexture();
+    void render();
+
 private:
     static constexpr const float ZOOM = 1.5f;
 
@@ -48,11 +62,8 @@ private:
     std::atomic<uint32_t> lastDrawTime {0};
     float brightness = 1;
     bool needsRedraw = false;
+    bool disableRequested = false;
 
     std::atomic_int mouseX {0}, mouseY {0}, wheelDir {0};
     bool mousePressed {false};
-
-    void createTexture();
-    void render();
-    void onQuit();
 };

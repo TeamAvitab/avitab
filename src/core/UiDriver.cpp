@@ -22,16 +22,8 @@
 
 namespace avitab {
 
-void UiDriverBase::init(int width, int height) {
-    logger::verbose("Initializing GUI driver");
-
-    bufferWidth = width;
-    bufferHeight = height;
-    buffer.resize(width * height);
-}
-
-WindowRect UiDriverBase::getWindowRect() {
-    return {};
+UiDriverBase::UiDriverBase() {
+    resize(INITIAL_WIDTH, INITIAL_HEIGHT);
 }
 
 void UiDriverBase::setResizeCallback(ResizeCallback cb) {
@@ -45,12 +37,6 @@ void UiDriverBase::resize(int newWidth, int newHeight) {
     if (onResize) {
         onResize(newWidth, newHeight);
     }
-}
-
-void UiDriverBase::createPanel(int left, int bottom, int width, int height, PanelControlMode mode) {
-}
-
-void UiDriverBase::hidePanel() {
 }
 
 void UiDriverBase::blit(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const uint32_t* data) {
@@ -109,12 +95,6 @@ uint32_t UiDriverBase::popKeyPress() {
         }
     }
     return res;
-}
-
-void UiDriverBase::passLeftClick(bool, bool) {
-}
-
-void UiDriverBase::passWheel(int) {
 }
 
 UiDriverBase::~UiDriverBase() {

@@ -51,7 +51,7 @@ HeaderApp::HeaderApp(FuncsPtr appFuncs):
     fpsLabel->setVisible(showFps);
 
     homeButton = std::make_shared<Button>(container, Widget::Symbol::HOME);
-    homeButton->setCallback([this] (const Button &) { api().onHomeButton(); });
+    homeButton->setCallback([this] (const Button &) { api().onHomeButtonPressed(); });
     homeButton->centerInParent();
 
     navLabel = std::make_shared<Label>(container, "Loading NAV data");
@@ -102,7 +102,7 @@ void HeaderApp::createSettingsContainer() {
     nextButton->alignRightOf(pauseButton);
 
     closeButton = std::make_shared<Button>(prefContainer, "Close AviTab");
-    closeButton->setCallback([this] (const Button &) { toggleSettings(); api().close(); });
+    closeButton->setCallback([this] (const Button &) { toggleSettings(); api().onAppClosed(); });
     closeButton->alignBelow(mediaLabel, VERT_PADDING);
 }
 
