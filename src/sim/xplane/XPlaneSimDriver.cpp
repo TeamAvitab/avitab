@@ -20,6 +20,7 @@
 #include <XPLM/XPLMPlanes.h>
 #include <XPLM/XPLMScenery.h>
 #include <XPLM/XPLMWeather.h>
+#include <cassert>
 #include <stdexcept>
 #include <chrono>
 #include <cmath>
@@ -27,20 +28,36 @@
 #include <sstream>
 #include "XPlaneSimDriver.h"
 #include "ui/xplane/XPlaneUiDriver.h"
+#include "AviTabCore.h"
 #include "Logger.h"
 #include "platform/Platform.h"
-#include "AviTabBuildSettings.h"
+#include "JsonConfig.h"
 
-XPlaneSimDriver::XPlaneSimDriver() {
-    XPLMDebugString("AviTab version " AVITAB_VERSION_STR "\n");
-
-    // Called by the X-Plane thread via StartPlugin
+XPlaneSimDriver::XPlaneSimDriver()
+:   isStarted(false), isEnabled(false)
+{
+    // Constructed in XPluginStart, which also calls start(). Initialisation is partly here, mostly in start().
     pluginPath = getPluginPath();
     xplanePrefsDir = findPreferencesDir();
-    flightLoopId = createFlightLoop();
-
     xplaneRootPath = getXPlanePath();
+    aircraftPath = getXPlanePath(); // real, but bogus, path until first XPLM_MSG_PLANE_LOADED is received.
 
+}
+
+XPlaneSimDriver::~XPlaneSimDriver() {
+    // by the time we reach this point all of the X-Plane resources should have been cleaned up
+    // the only remaining stuff should be handled by smart pointers, so nothing explicit to do here
+    logger::verbose("~XPlaneSimDriver");
+}
+
+void XPlaneSimDriver::start(std::shared_ptr<avitab::Settings> prefs, std::shared_ptr<avitab::AviTabCore> c, std::shared_ptr<XPlaneUiDriver> ui) {
+    // Called once when the simulation is starting up.
+    assert(!isStarted);
+    assert(!isEnabled);
+    core = c;
+    uiDriver = ui;
+
+    // X-Plane version specific services
     int xplmVersion;
     XPLMHostApplicationID hostId;
     XPLMGetVersions(&xplaneVersion, &xplmVersion, &hostId);
@@ -52,26 +69,7 @@ XPlaneSimDriver::XPlaneSimDriver() {
         getWeatherAtLoc = nullptr;
     }
 
-    updatePlaneCount();
-
-    panelEnabled = std::make_shared<int>(0);
-    panelPowered = std::make_shared<int>(0);
-    brightness = std::make_shared<float>(1.0f);
-
-    reloadAircraftPath();
-
-    panelEnabledRef = std::make_unique<xdata::DataRefExport<int>>("avitab/panel_enabled", this,
-        [] (void *self) { return *((reinterpret_cast<XPlaneSimDriver *>(self))->panelEnabled); },
-        [] (void *self, int v) { *((reinterpret_cast<XPlaneSimDriver *>(self))->panelEnabled) = v; });
-
-    panelPoweredRef = std::make_unique<xdata::DataRefExport<int>>("avitab/panel_powered", this,
-        [] (void *self) { return *((reinterpret_cast<XPlaneSimDriver *>(self))->panelPowered); },
-        [] (void *self, int v) { *((reinterpret_cast<XPlaneSimDriver *>(self))->panelPowered) = v; });
-
-    brightnessRef = std::make_unique<xdata::DataRefExport<float>>("avitab/brightness", this,
-        [] (void *self) { return *((reinterpret_cast<XPlaneSimDriver *>(self))->brightness); },
-        [] (void *self, float v) { *((reinterpret_cast<XPlaneSimDriver *>(self))->brightness) = v; });
-
+    // Published datarefs exist for the lifetime of the plugin, whether enabled or disabled
     isInMenuRef = std::make_unique<xdata::DataRefExport<int>>("avitab/is_in_menu", this,
         [] (void *self) { return (reinterpret_cast<XPlaneSimDriver *>(self))->isInMenu; });
 
@@ -87,7 +85,106 @@ XPlaneSimDriver::XPlaneSimDriver() {
     mapVerticalRangeRef = std::make_unique<xdata::DataRefExport<float>>("avitab/map/vertical_range", this,
         [] (void *self) { return (reinterpret_cast<XPlaneSimDriver *>(self))->getMapVerticalRange(); });
 
-    XPLMScheduleFlightLoop(flightLoopId, -1, true);
+
+    isStarted = true;
+}
+
+void XPlaneSimDriver::enable() {
+    // create the flight loop, menus and commands when the plugin is enabled
+    assert(isStarted);
+    assert(!isEnabled);
+
+    otherAircraftCount = 0; // until updated in the next flight loop
+
+    // create the flight loop and schedule for callback
+    assert(!flightLoopHandle);
+    flightLoopHandle = createFlightLoop();
+    XPLMScheduleFlightLoop(flightLoopHandle, -1, true);
+
+    // create the menus
+    createMenu("AviTab");
+    addMenuEntry("Toggle Tablet", [this] { uiDriver->toggleTablet(); });
+    addMenuEntry("Reset Position", [this] { resetWindowPosition(); });
+
+    // create the commands
+    createCommand("AviTab/toggle_tablet", "Toggle Tablet", [this] (CommandState s) { if (s == CommandState::START) uiDriver->toggleTablet(); });
+
+    createCommand("AviTab/Home", "Home Button",[this] (CommandState s) { if (s == CommandState::START) core->commandShowApp(""); });
+    createCommand("AviTab/app_charts", "Charts App", [this] (CommandState s) { if (s == CommandState::START) core->commandShowApp("charts"); });
+    createCommand("AviTab/app_airports", "Airports App", [this] (CommandState s) { if (s == CommandState::START) core->commandShowApp("airports"); });
+    createCommand("AviTab/app_routes", "Routes App", [this] (CommandState s) { if (s == CommandState::START) core->commandShowApp("routes"); });
+    createCommand("AviTab/app_maps", "Maps App", [this] (CommandState s) { if (s == CommandState::START) core->commandShowApp("maps"); });
+    createCommand("AviTab/app_plane_manual", "Plane Manual App", [this] (CommandState s) { if (s == CommandState::START) core->commandShowApp("manuals"); });
+    createCommand("AviTab/app_notes", "Notes App", [this] (CommandState s) { if (s == CommandState::START) core->commandShowApp("notes"); });
+    createCommand("AviTab/app_navigraph", "Navigraph App", [this] (CommandState s) { if (s == CommandState::START) core->commandShowApp("providers"); });
+    createCommand("AviTab/app_about", "About App", [this] (CommandState s) { if (s == CommandState::START) core->commandShowApp("about"); });
+
+    createCommand("AviTab/zoom_in", "Zoom In", [this] (CommandState s) { if (s == CommandState::START) core->commandZoomIn(); });
+    createCommand("AviTab/zoom_out", "Zoom Out", [this] (CommandState s) { if (s == CommandState::START) core->commandZoomOut(); });
+    createCommand("AviTab/recentre", "Recentre", [this] (CommandState s) { if (s == CommandState::START) core->commandRecentre(); });
+    createCommand("AviTab/pan_left", "Pan left", [this] (CommandState s) { if (s == CommandState::START) core->commandPanLeft(); });
+    createCommand("AviTab/pan_right", "Pan right", [this] (CommandState s) { if (s == CommandState::START) core->commandPanRight(); });
+    createCommand("AviTab/pan_up", "Pan up", [this] (CommandState s) { if (s == CommandState::START) core->commandPanUp(); });
+    createCommand("AviTab/pan_down", "Pan down", [this] (CommandState s) { if (s == CommandState::START) core->commandPanDown(); });
+
+    createCommand("AviTab/chart_tab_next", "Chart tab next", [this] (CommandState s) { if (s == CommandState::START) core->commandTabNext(); });
+    createCommand("AviTab/chart_tab_prev", "Chart tab previous", [this] (CommandState s) { if (s == CommandState::START) core->commandTabPrevious(); });
+
+    // Direct control from panel integrations
+    createCommand("AviTab/click_left", "Left click", [this] (CommandState s) { uiDriver->leftClickFeed((s == CommandState::START) || (s == CommandState::CONTINUE)); });
+    createCommand("AviTab/wheel_up", "Wheel up", [this] (CommandState s) { if (s == CommandState::START) uiDriver->mouseWheelFeed(1); });
+    createCommand("AviTab/wheel_down", "Wheel down", [this] (CommandState s) { if (s == CommandState::START) uiDriver->mouseWheelFeed(-1); });
+
+    // Which plane is being flown?
+    onPlaneLoad();
+
+    resumeSimDriverJobs();
+
+    isEnabled = true;
+}
+
+void XPlaneSimDriver::disable() {
+    // destroy the flight loop, menus and commands when the plugin is disabled
+    // (the plugin might get enabled again, or it might get stopped)
+    assert(isStarted);
+    assert(isEnabled);
+
+    pauseSimDriverJobs();
+
+    // destroy the commands and the menus
+    destroyCommands();
+    destroyMenu();
+
+    // remove the flight loop, we don't need it while we're disabled!
+    assert(flightLoopHandle);
+    XPLMDestroyFlightLoop(flightLoopHandle);
+    flightLoopHandle = nullptr;
+
+    isEnabled = false;
+}
+
+void XPlaneSimDriver::stop() {
+    // called just once before end of simulation, tidy up X-Plane resources
+    assert(isStarted);
+    assert(!isEnabled);
+
+    // get rid of data references
+    isInMenuRef.reset();
+    mapLatitudeRef.reset();
+    mapLongitudeRef.reset();
+    mapZoomRef.reset();
+    mapVerticalRangeRef.reset();
+
+    isStarted = false;
+}
+
+void XPlaneSimDriver::onPlaneLoad() {
+    char file[512];
+    char path[512];
+    XPLMGetNthAircraftModel(0, file, path);
+    std::filesystem::path acf(path);
+    std::lock_guard<std::mutex> lock(stateMutex);
+    aircraftPath = acf.parent_path();
 }
 
 std::filesystem::path XPlaneSimDriver::getXPlanePath() {
@@ -129,14 +226,6 @@ XPLMFlightLoopID XPlaneSimDriver::createFlightLoop() {
         throw std::runtime_error("Couldn't create flight loop");
     }
     return id;
-}
-
-std::shared_ptr<avitab::UiDriverBase> XPlaneSimDriver::createUiDriver() {
-    std::shared_ptr<XPlaneUiDriver> driver = std::make_shared<XPlaneUiDriver>();
-    driver->setPanelEnabledPtr(panelEnabled);
-    driver->setPanelPoweredPtr(panelPowered);
-    driver->setBrightnessPtr(brightness);
-    return driver;
 }
 
 void XPlaneSimDriver::createMenu(const std::string& name) {
@@ -202,9 +291,9 @@ int XPlaneSimDriver::handleCommand(XPLMCommandRef cmd, XPLMCommandPhase phase, v
     CommandCallback f = us->commandHandlers[cmd].callback;
     if (f) {
         switch (phase) {
-        case xplm_CommandBegin:     f(avitab::CommandState::START); break;
-        case xplm_CommandContinue:  f(avitab::CommandState::CONTINUE); break;
-        case xplm_CommandEnd:       f(avitab::CommandState::END); break;
+        case xplm_CommandBegin:     f(CommandState::START); break;
+        case xplm_CommandContinue:  f(CommandState::CONTINUE); break;
+        case xplm_CommandEnd:       f(CommandState::END); break;
         }
     }
 
@@ -216,6 +305,19 @@ void XPlaneSimDriver::destroyCommands() {
         XPLMUnregisterCommandHandler(iter.first, handleCommand, true, this);
     }
     commandHandlers.clear();
+}
+
+void XPlaneSimDriver::resetWindowPosition() {
+    uiDriver->resetWindowPosition();
+#if 0 // TODO
+    settings->saveWindowRect({});
+    if (uiDriver->hasNativeWindow()) {
+        uiDriver->pauseNativeWindow();
+    }
+    resetWindowRect = true;
+    toggleTablet();
+    resetWindowRect = false;
+#endif
 }
 
 std::filesystem::path XPlaneSimDriver::getAirplanePath() {
@@ -288,9 +390,11 @@ float XPlaneSimDriver::onFlightLoop(float elapsedSinceLastCall, float elapseSinc
         localTimeSecs = static_cast<unsigned int>(dataCache.getData("sim/time/local_time_sec").floatValue);
     }
 
-    reportFrameDuration(dataCache.getData("sim/operation/misc/frame_rate_period").floatValue * 1000);
+    notifyFrameDuration(dataCache.getData("sim/operation/misc/frame_rate_period").floatValue * 1000);
 
     runSimDriverCallbacks();
+    uiDriver->watchdog();
+
     return -1;
 }
 
@@ -462,25 +566,11 @@ std::string XPlaneSimDriver::getNearestAirportId() {
     return nearestId;
 }
 
-void XPlaneSimDriver::enableAndPowerPanel() {
-    *panelEnabled = true;
-    *panelPowered = true;
-}
-
-void XPlaneSimDriver::setIsInMenu(bool menu) {
+void XPlaneSimDriver::notifyIsInMenu(bool menu) {
     isInMenu = menu;
 }
 
-XPlaneSimDriver::~XPlaneSimDriver() {
-    if (flightLoopId) {
-        XPLMDestroyFlightLoop(flightLoopId);
-    }
-
-    destroyMenu();
-    logger::verbose("~XPlaneSimDriver");
-}
-
-void XPlaneSimDriver::updateMapExports(float lat, float lon, int zoom, float vrange) {
+void XPlaneSimDriver::notifyMapConfiguration(float lat, float lon, int zoom, float vrange) {
     std::lock_guard<std::mutex> lock(stateMutex);
     mapLatitude = lat;
     mapLongitude = lon;
@@ -518,19 +608,6 @@ float XPlaneSimDriver::getMapVerticalRange() {
     return mapVerticalRange;
 }
 
-void XPlaneSimDriver::reloadAircraftPath() {
-    std::lock_guard<std::mutex> lock(stateMutex);
-    char file[512];
-    char path[512];
-    XPLMGetNthAircraftModel(0, file, path);
-    std::filesystem::path acf(path);
-    aircraftPath = acf.parent_path();
-}
-
-void XPlaneSimDriver::onAircraftReload() {
-    reloadAircraftPath();
-}
-
 std::string XPlaneSimDriver::cloudCoverageToText(const float coverage) {
     int c =  std::round(coverage * 100);
     std::string cloudLayer = "overcast";
@@ -562,4 +639,18 @@ void XPlaneSimDriver::updatePlaneCount() {
     if (tcasAircraftCount > 1) {
         otherAircraftCount = tcasAircraftCount - 1;
     }
+}
+
+bool XPlaneSimDriver::getLogToStdout() {
+    try {
+        auto config = std::make_unique<avitab::JsonConfig>(getDataRootPath() / "config.json");
+        return config->getBool("/AviTab/logToStdOut");
+    } catch(...) {
+    }
+    return false;
+}
+
+void XPlaneSimDriver::getMouseLoc(int &x, int &y) {
+    bool ignored;
+    uiDriver->readPointerState(x, y, ignored);
 }

@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <vector>
 #include <queue>
+#include <memory>
 #include <mutex>
 #include <atomic>
 #include <functional>
@@ -36,61 +37,55 @@ struct WindowRect {
     bool poppedOut = false;
 };
 
-// The UiDriverBase interface defines abstract methods for the Avitab core to interact with the user,
+class Settings;
+class AviTabCore;
+
+// The UiDriverBase defines interfaces for the Avitab core to interact with the user
 // using the mouse, scroll wheel, keyboard and a displayed image.
 // Implementations are specialised for X-Plane, MSFS and a GLFW desktop application.
 
 class UiDriverBase {
 public:
-    using ResizeCallback = std::function<void(int, int)>;
+    static const int INITIAL_WIDTH = 800;
+    static const int INITIAL_HEIGHT = 480;
 
-    virtual void init(int width, int height);
+    UiDriverBase();
+    virtual ~UiDriverBase();
 
-    void setResizeCallback(ResizeCallback cb);
+public: // API must be implemented by derived class
+    virtual void requestCloseWindow() = 0;
 
-    virtual void createWindow(const std::string &title, const WindowRect &rect) = 0;
-    virtual bool hasWindow() = 0;
-    virtual void killWindow() = 0;
-    virtual WindowRect getWindowRect();
+    virtual void blit(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const uint32_t *data) = 0;
 
-    enum class PanelControlMode {
-        CAPTURE_WINDOW,
-        COMMAND_ONLY,
-        AIRCRAFT_MANAGED
-    };
-
-    // REFACTOR - move into X-Plane SimDriver, is not a common interface
-    virtual void createPanel(int left, int bottom, int width, int height, PanelControlMode mode);
-    virtual void hidePanel();
-
-    virtual void blit(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const uint32_t *data);
     virtual void readPointerState(int &x, int &y, bool &pressed) = 0;
-
     virtual int getWheelClicks() = 0;
-    virtual void setWantKeyInput(bool wantKeys);
-    virtual uint32_t popKeyPress();
 
     virtual void setBrightness(float b) = 0;
     virtual float getBrightness() = 0;
 
-    virtual void passLeftClick(bool down, bool drag);
-    virtual void passWheel(int direction);
+public: // API implemented by (this) base class
+    void setWantKeyInput(bool wantKeys);
+    uint32_t popKeyPress();
 
-    virtual ~UiDriverBase();
+    using ResizeCallback = std::function<void(int, int)>;
+    void setResizeCallback(ResizeCallback cb);
+
 protected:
     uint32_t *data();
-    bool wantsKeyInput();
-    void pushKeyInput(uint32_t c);
     int width();
     int height();
     void resize(int newWidth, int newHeight);
+
+    bool wantsKeyInput();
+    void pushKeyInput(uint32_t c);
+
 private:
     ResizeCallback onResize;
     std::mutex keyMutex;
     bool enableKeyInput = false;
-    std::atomic_int bufferWidth{0}, bufferHeight{0};
-    std::vector<uint32_t> buffer;
     std::queue<uint32_t> keyInput;
+    std::atomic_int bufferWidth{ INITIAL_WIDTH }, bufferHeight{ INITIAL_HEIGHT };
+    std::vector<uint32_t> buffer;
 };
 
 }

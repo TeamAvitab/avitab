@@ -26,8 +26,6 @@
 #include <future>
 #include <atomic>
 #include <filesystem>
-#include "JsonConfig.h"
-#include "Settings.h"
 #include "WorldGeometry.h"
 #include "Navigation.h"
 
@@ -35,62 +33,18 @@ namespace avitab {
 
 using AircraftID = unsigned int;
 
-enum class CommandState {
-    START,
-    CONTINUE,
-    END
-};
+class Settings;
+class AviTabCore;
 
 // The SimDriverBase interface defines methods for the Avitab core to interact with a simulation,
 // which may be X-Plane, MSFS, or the mock simulator (used for desktop testing).
 
-// REFACTOR - there's stuff in here that's common to all simulations.
-// In that case, surely it should just go in the Avitab core?
-// And there's other stuff that is only relevant to X-Plane.
-// This should be moved into the X-Plane product or driver.
-// This should eventually be an abstract interface.
-
 class SimDriverBase {
 public:
-    using MenuCallback = std::function<void()>;
-    using CommandCallback = std::function<void(CommandState)>;
-    using SimDriverCallback = std::function<void()>;
-
-    // Must be called from the simDriver thread - do not call from Avitab's thread!
-
-
-    // REFACTOR - obsolete? combine with settings?
-    void loadConfig();
-    std::shared_ptr<JsonConfig> getConfig();
-
-    // REFACTOR - move into core, nothing to do with the simDriver
-    void loadSettings();
-    std::shared_ptr<Settings> getSettings();
-
-    virtual void onAircraftReload() = 0; // REFACTOR - move to AvitabCore interface
-    virtual std::shared_ptr<UiDriverBase> createUiDriver() = 0; // REFACTOR - move to product
-
-    // REFACTOR - move into X-Plane SimDriver, is not a common interface
-    virtual void createMenu(const std::string &name) = 0;
-    virtual void addMenuEntry(const std::string &label, MenuCallback cb) = 0;
-    virtual void destroyMenu() = 0;
-    virtual void createCommand(const std::string &name, const std::string &desc, CommandCallback cb) = 0;
-    virtual void destroyCommands() = 0;
-    virtual void enableAndPowerPanel() = 0;
+    SimDriverBase();
+    virtual ~SimDriverBase() = default;
 
     // Can be called from any thread
-
-    void pauseSimDriverJobs();
-    void resumeSimDriverJobs();
-
-
-    /**
-     * Stores a callback in the pending callbacks queue to
-     * be executed by the simDriver thread.
-     * @param cb the callback to enqueue
-     */
-    void runInSimDriver(SimDriverCallback cb);
-
     virtual std::filesystem::path getProgramPath() = 0;
     virtual std::filesystem::path getDataRootPath() = 0;
     virtual std::filesystem::path getSettingsDir() = 0;
@@ -103,6 +57,7 @@ public:
     // Getting magVar from XPlane is asynchronous and slow, so batch request
     virtual std::vector<float> getMagneticVariations(std::vector<world::Location> &locs) = 0;
 
+    // METAR/weather APIs
     virtual std::string getMETARForAirport(const std::string &icao) = 0;
     virtual int getWeatherAtLocation(const world::Location &loc, const float &altitude, std::string &weather) = 0;
 
@@ -111,25 +66,32 @@ public:
 
     // these relate to exporting Avitab internal state to the sim - only relevant to X-Plane.
     // we might want to consider a publish/subscribe pattern instead?
-    virtual void setIsInMenu(bool menu) = 0;
-    virtual void updateMapExports(float lat, float lon, int zoom, float vrange) = 0;
+    virtual void notifyIsInMenu(bool menu) = 0;
+    virtual void notifyMapConfiguration(float lat, float lon, int zoom, float vrange) = 0;
 
+    // Other aircraft APIs
     virtual AircraftID getActiveAircraftCount() = 0;
     virtual world::Position getAircraftPosition(AircraftID id) = 0;
+
+    // Time and performance APIs
     virtual unsigned int getZuluTimeSeconds() = 0;
     virtual unsigned int getLocalTimeSeconds() = 0;
-
     unsigned int getFramesPerSecond();
 
-    virtual ~SimDriverBase() = default;
+    // Job running is implemented in this base class
+    using SimDriverCallback = std::function<void()>;
+    void runInSimDriver(SimDriverCallback cb);
+
+public:
+    // APIs used by the product wrappers
+    void runSimDriverCallbacks();
+    void notifyFrameDuration(unsigned int tMs);
 
 protected:
-    void runSimDriverCallbacks(); // REFACTOR - probably not called by AvitabCore ??
-    void reportFrameDuration(unsigned int tMs);
+    void resumeSimDriverJobs();
+    void pauseSimDriverJobs();
 
 private:
-    std::shared_ptr<JsonConfig> config;
-    std::shared_ptr<Settings> settings;
     std::mutex lockMutex;
     std::vector<SimDriverCallback> simDriverCallbacks;
     bool stopped = false;

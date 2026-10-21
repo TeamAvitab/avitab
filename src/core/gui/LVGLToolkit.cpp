@@ -20,13 +20,11 @@
 #include "LVGLToolkit.h"
 #include "widgets/Keyboard.h"
 #include "platform/Platform.h"
-#include "platform/CrashHandler.h"
 #include "Logger.h"
 
 namespace avitab {
 
 namespace {
-bool lvglIsInitialized = false;
 lv_disp_buf_t lvDispBuf;
 lv_disp_drv_t lvDriver;
 lv_indev_drv_t inputDriver;
@@ -36,8 +34,7 @@ std::vector<uint32_t> tmpBuffer;
 LVGLToolkit::LVGLToolkit(std::shared_ptr<UiDriverBase> drv):
     driver(drv)
 {
-    driver->init(INITIAL_WIDTH, INITIAL_HEIGHT);
-
+    static bool lvglIsInitialized = false;
     if (!lvglIsInitialized) {
         // LVGL does not support de-initialization so we can only do this once
         lv_log_register_print_cb([] (lv_log_level_t level, const char *file, uint32_t line, const char *msg) {
@@ -64,11 +61,23 @@ LVGLToolkit::LVGLToolkit(std::shared_ptr<UiDriverBase> drv):
     initDisplayDriver();
     initInputDriver();
 
-    // if keepAlive if true, the window was hidden without us noticing
-    // so it's enough to re-create it without starting rendering again
     mainScreen = std::make_shared<Screen>();
-    guiActive = true;
-    guiThread = std::make_unique<std::thread>(&LVGLToolkit::guiLoop, this);
+}
+
+LVGLToolkit::~LVGLToolkit() {
+    logger::verbose("~LVGLToolkit");
+    driver->setWantKeyInput(false);
+    mainScreen.reset();
+    inputDriver.user_data = nullptr;
+    lvDriver.user_data = nullptr;
+}
+
+void LVGLToolkit::doLVGLtasks() {
+    lv_task_handler();
+}
+
+void LVGLToolkit::doLVGLtick(int t) {
+    lv_tick_inc(std::max(t, 1));
 }
 
 void LVGLToolkit::initDisplayDriver() {
@@ -81,8 +90,8 @@ void LVGLToolkit::initDisplayDriver() {
     lv_disp_drv_init(&lvDriver);
 
     lvDriver.user_data = this;
-    lvDriver.hor_res = INITIAL_WIDTH;
-    lvDriver.ver_res = INITIAL_HEIGHT;
+    lvDriver.hor_res = UiDriverBase::INITIAL_WIDTH;
+    lvDriver.ver_res = UiDriverBase::INITIAL_HEIGHT;
     lvDriver.buffer = &lvDispBuf;
 
     lvDriver.flush_cb = [] (lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *data) {
@@ -98,15 +107,8 @@ void LVGLToolkit::initDisplayDriver() {
 
         us->driver->blit(x1, y1, x2, y2, reinterpret_cast<const uint32_t *>(data));
         lv_disp_flush_ready(drv);
+        ++us->frameCounter;
     };
-
-    driver->setResizeCallback([this] (int w, int h) {
-        executeLater([w, h] {
-            lvDriver.hor_res = std::min(w, LV_HOR_RES_MAX);
-            lvDriver.ver_res = std::min(h, LV_VER_RES_MAX);
-            lv_disp_drv_update(lv_disp_get_default(), &lvDriver);
-        });
-    });
 
     if (isUpdate) {
         lv_disp_drv_update(lv_disp_get_default(), &lvDriver);
@@ -146,52 +148,14 @@ void LVGLToolkit::initInputDriver() {
     }
 }
 
-void LVGLToolkit::createNativeWindow(const std::string& title, const WindowRect &rect) {
-    driver->createWindow(title, rect);
-}
-
-bool LVGLToolkit::hasNativeWindow() {
-    return driver->hasWindow();
-}
-
-WindowRect LVGLToolkit::getNativeWindowRect() {
-    return driver->getWindowRect();
-}
-
-void LVGLToolkit::pauseNativeWindow() {
-    driver->killWindow();
-}
-
-void LVGLToolkit::createPanel(int left, int bottom, int width, int height, UiDriverBase::PanelControlMode mode) {
-    driver->createPanel(left, bottom, width, height, mode);
-}
-
-void LVGLToolkit::hidePanel() {
-    driver->hidePanel();
-}
-
-void LVGLToolkit::signalStop() {
-    guiActive = false;
-}
-
-void LVGLToolkit::destroyNativeWindow() {
-    if (guiThread) {
-        guiActive = false;
-        guiThread->join();
-        guiThread.reset();
-        mainScreen.reset();
-        driver->setWantKeyInput(false);
-        driver->hidePanel();
-        driver->killWindow();
-    }
+void LVGLToolkit::resizeScreen(int w, int h) {
+    lvDriver.hor_res = std::min(w, LV_HOR_RES_MAX);
+    lvDriver.ver_res = std::min(h, LV_VER_RES_MAX);
+    lv_disp_drv_update(lv_disp_get_default(), &lvDriver);
 }
 
 std::shared_ptr<Screen> &LVGLToolkit::screen() {
     return mainScreen;
-}
-
-void LVGLToolkit::setMouseWheelCallback(MouseWheelCallback cb) {
-    onMouseWheel = cb;
 }
 
 void LVGLToolkit::setBrightness(float b) {
@@ -202,62 +166,10 @@ float LVGLToolkit::getBrightness() {
     return driver->getBrightness();
 }
 
-void LVGLToolkit::guiLoop() {
-    using namespace std::chrono_literals;
-    crash::ThreadCookie crashCookie;
-
-    logger::verbose("LVGL thread has id %d", std::this_thread::get_id());
-
-    while (guiActive) {
-        // chrono clocks run at 64Hz precision in mingw, use something custom
-        auto startAt = platform::measureTime();
-
-        try {
-            // first run the actual GUI tasks, i.e. let LVGL do its animations etc.
-            lv_task_handler();
-
-            // then run our own tasks
-            // grab the mutex briefly to extract the tasks into a local list
-            // this avoids potential race and deadlock conditions.
-            std::vector<GUITask> tasks;
-            {
-                std::lock_guard<std::recursive_mutex> lock(guiMutex);
-                tasks = pendingTasks;
-                pendingTasks.clear();
-            }
-
-            for (GUITask &task: tasks) {
-                task();
-            }
-
-            // NB mouse button handling is done in the input driver callback
-            handleMouseWheel(driver->getWheelClicks());
-            handleKeyboard();
-        } catch (const std::exception &e) {
-            logger::error("Exception in GUI: %s", e.what());
-        }
-
-        std::this_thread::sleep_for(1ms);
-        auto elapsedMillis = platform::getElapsedMillis(startAt);
-
-        lv_tick_inc(std::max(elapsedMillis, 1));
-    }
-
-    logger::verbose("LVGL thread destroyed");
-}
-
-void LVGLToolkit::handleMouseWheel(int clicks) {
-    if (clicks && onMouseWheel) {
-        int x, y;
-        bool ignored;
-        driver->readPointerState(x, y, ignored);
-        onMouseWheel(clicks, x, y);
-    }
-}
-
 void LVGLToolkit::handleKeyboard() {
-    // check if we want keys
+    // check if the current widget hierarchy includes an active keyboard
     auto keyboard = searchActiveKeyboard(lv_scr_act());
+    driver->setWantKeyInput(keyboard != nullptr);
 
     // then process keys
     uint32_t c = 0;
@@ -282,8 +194,6 @@ void LVGLToolkit::handleKeyboard() {
             }
         }
     }
-
-    driver->setWantKeyInput(keyboard != nullptr);
 }
 
 lv_obj_t *LVGLToolkit::searchActiveKeyboard(lv_obj_t* obj) {
@@ -314,20 +224,6 @@ lv_obj_t *LVGLToolkit::searchActiveKeyboard(lv_obj_t* obj) {
         }
     }
     return nullptr;
-}
-
-void LVGLToolkit::executeLater(GUITask func) {
-    std::lock_guard<std::recursive_mutex> lock(guiMutex);
-    if (guiActive) {
-        pendingTasks.push_back(func);
-    }
-}
-
-LVGLToolkit::~LVGLToolkit() {
-    logger::verbose("~LVGLToolkit");
-    inputDriver.user_data = nullptr;
-    lvDriver.user_data = nullptr;
-    destroyNativeWindow();
 }
 
 } /* namespace avitab */

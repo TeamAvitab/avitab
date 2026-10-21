@@ -48,7 +48,7 @@ public:
     void saveDocReadingConfig(const std::string appName, DocumentReadingConfig &config);
 
     void saveWindowRect(const WindowRect &rect);
-    WindowRect getWindowRect();
+    WindowRect loadWindowRect();
 
     void saveAll();
 

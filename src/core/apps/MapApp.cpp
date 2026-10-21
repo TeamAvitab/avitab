@@ -922,7 +922,7 @@ bool MapApp::onTimer() {
     map->doWork();
 
     world::Location center = map->getCenterLocation();
-    api().updateMapExports(center.latDegrees(), center.lonDegrees(),
+    api().notifyMapConfiguration(center.latDegrees(), center.lonDegrees(),
                            map->getZoomLevel(), map->getVerticalRange());
 
     return true;
