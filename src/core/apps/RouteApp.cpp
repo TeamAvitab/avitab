@@ -29,13 +29,14 @@ RouteApp::RouteApp(FuncsPtr appFuncs):
 {
     auto ui = getUIContainer();
     window = std::make_shared<Window>(ui, "Route");
+    window->setDimensionsPct(100, 100);
     window->setOnClose([this] () {
         showDeparturePage();
         exit();
     });
 
     chooserContainer = std::make_shared<Container>();
-    chooserContainer->setDimensions(ui->getWidth() * 0.75, ui->getHeight() * 0.75);
+    chooserContainer->setDimensionsPct(75, 75);
     chooserContainer->centerInParent();
     chooserContainer->setVisible(false);
 
@@ -47,23 +48,23 @@ void RouteApp::showDeparturePage() {
 
     window->setCaption("Route Wizard - Departure");
 
-    loadContainer = std::make_shared<Container>(window);
+    loadContainer = window->addContent(std::make_shared<Container>(window));
     loadButton = std::make_shared<Button>(loadContainer, "Load");
-    loadContainer->setDimensions(window->getWidth(), loadButton->getHeight() + 2);
+    loadContainer->setWidthPct(100);
     loadButton->alignInTopRight();
     loadButton->setCallback([this] (const Button &) { selectFlightPlanFile(); });
 
-    label = std::make_shared<Label>(window, "Departure airport code:");
+    label = window->addContent(std::make_shared<Label>(window, "Departure airport code:"));
     label->alignBelow(loadContainer);
 
-    departureField = std::make_shared<TextArea>(window, "");
+    departureField = window->addContent(std::make_shared<TextArea>(window, ""));
     departureField->setMultiLine(false);
     departureField->alignBelow(label);
 
-    checkBox = std::make_shared<Checkbox>(window, "Upper airways");
+    checkBox = window->addContent(std::make_shared<Checkbox>(window, "Upper airways"));
     checkBox->alignBelow(departureField);
 
-    keys = std::make_shared<Keyboard>(window, departureField);
+    keys = window->addContent(std::make_shared<Keyboard>(window, departureField));
     keys->hideEnterKey();
 
     keys->setOnCancel([this] () {
@@ -78,8 +79,6 @@ void RouteApp::showDeparturePage() {
         }
         onDepartureEntered(departureField->getText());
      });});
-
-    keys->setPosition(0, window->getContentHeight() - keys->getHeight());
 }
 
 void RouteApp::onDepartureEntered(const std::string& departure) {
@@ -101,14 +100,14 @@ void RouteApp::showArrivalPage() {
 
     window->setCaption("Route Wizard - Arrival");
 
-    label = std::make_shared<Label>(window, "Arrival airport code:");
+    label = window->addContent(std::make_shared<Label>(window, "Arrival airport code:"));
     label->alignInTopLeft();
 
-    arrivalField = std::make_shared<TextArea>(window, "");
+    arrivalField = window->addContent(std::make_shared<TextArea>(window, ""));
     arrivalField->setMultiLine(false);
     arrivalField->alignBelow(label);
 
-    keys = std::make_shared<Keyboard>(window, arrivalField);
+    keys = window->addContent(std::make_shared<Keyboard>(window, arrivalField));
     keys->hideEnterKey();
 
     keys->setOnCancel([this] () {
@@ -118,8 +117,6 @@ void RouteApp::showArrivalPage() {
     keys->setOnOk([this] () { api().executeLater([this] () {
         onArrivalEntered(arrivalField->getText());
     });});
-
-    keys->setPosition(-5, window->getContentHeight() - keys->getHeight());
 }
 
 void RouteApp::onArrivalEntered(const std::string& arrival) {
@@ -203,11 +200,11 @@ void RouteApp::showRoute() {
     desc << "Direct distance: " << directKm << "km / " << directNm << "nm\n";
     desc << "Route distance: " << routeKm << "km / " << routeNm << "nm\n";
 
-    label = std::make_shared<Label>(window, "");
+    label = window->addContent(std::make_shared<Label>(window, ""));
     label->setAllowColors(true);
     label->setLongMode(true);
     label->setText(desc.str());
-    label->setDimensions(window->getContentWidth(), window->getHeight() - 40);
+    label->setWidthPct(100);
     label->alignBelow(loadContainer);
 }
 
