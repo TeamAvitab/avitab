@@ -35,6 +35,7 @@ PrepareExternPackages(
     openjpeg    "https://github.com/uclouvain/openjpeg/archive/refs/tags/v2.5.3.tar.gz"
     glfw        "https://github.com/glfw/glfw/archive/refs/tags/3.4.tar.gz"
     lvgl        "https://github.com/lvgl/lvgl/archive/refs/tags/v6.1.2.tar.gz"
+    clip        "https://github.com/dacap/clip/archive/refs/tags/v1.15.tar.gz"
 
     # Remaining packages have dependencies, so order matters.
 
@@ -130,12 +131,18 @@ elseif(APPLE)
         "-framework CoreServices" "-framework ApplicationServices"
         "-framework Cocoa" "-framework IOKit"
     )
+elseif(UNIX)
+    # clip uses xcb for X11 clipboard access on Linux
+    set(sys_libraries
+        xcb
+    )
 endif()
 
 target_link_libraries(avitab_extern INTERFACE
     Threads::Threads
     nlohmann_json_imp curl_imp mupdf_imp lvgl_imp sqlite3_imp
     freetype_imp mbedtls_imp stb_imp geotiff_imp zstd_imp zlibs_imp
+    clip_imp
     ${sys_libraries}
 )
 
