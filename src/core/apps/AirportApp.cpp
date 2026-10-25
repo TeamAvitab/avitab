@@ -449,6 +449,11 @@ void AirportApp::onChartsLoaded(std::shared_ptr<Page> page, const apis::ChartSer
                         TabPage &tab = findPage(newPage);
                         tab.label->setTextFormatted("Error: %s", e.what());
                         tab.label->setVisible(true);
+                        tab.window->setOnClose([this, newPage] {
+                            api().executeLater([this, newPage] {
+                                removeTab(newPage);
+                            });
+                        });
                     } catch (...) {
                         // but we can silently discard it since the user closed the page and thus lost interest
                         logger::info("Ignoring exception since the page was closed: %s", e.what());
