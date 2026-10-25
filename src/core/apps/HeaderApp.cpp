@@ -77,7 +77,6 @@ void HeaderApp::createSettingsContainer() {
     prefContainer->setVisible(false);
 
     brightLabel = std::make_shared<Label>(prefContainer, "Brightness");
-    brightLabel->alignLeftInParent(HOR_PADDING);
     brightnessSlider = std::make_shared<Slider>(prefContainer, 10, 100);
     brightnessSlider->setValue(api().getBrightness() * 100);
     brightnessSlider->setCallback([this] (int brightness) { onBrightnessChange(brightness); });
@@ -86,14 +85,14 @@ void HeaderApp::createSettingsContainer() {
     fpsCheckbox = std::make_shared<Checkbox>(prefContainer, "Show FPS");
     fpsCheckbox->setChecked(showFps);
     fpsCheckbox->setCallback([this] (bool checked) { showFps = checked; savedSettings->setGeneralSetting<bool>("show_fps", showFps); fpsLabel->setVisible(showFps); });
-    fpsCheckbox->alignRightOf(brightnessSlider);
+    fpsCheckbox->alignRightOf(brightnessSlider, HOR_PADDING);
 
     mediaLabel = std::make_shared<Label>(prefContainer, "Ext. Media");
     mediaLabel->alignBelow(brightLabel, VERT_PADDING);
 
     prevButton = std::make_shared<Button>(prefContainer, Widget::Symbol::PREV);
     prevButton->setCallback([] (const Button &) { platform::controlMediaPlayer(platform::MediaControl::MEDIA_PREV); });
-    prevButton->alignBelow(brightnessSlider);
+    prevButton->alignRightOf(mediaLabel);
 
     pauseButton = std::make_shared<Button>(prefContainer, Widget::Symbol::PAUSE);
     pauseButton->setCallback([] (const Button &) { platform::controlMediaPlayer(platform::MediaControl::MEDIA_PAUSE); });
