@@ -31,24 +31,22 @@ namespace avitab {
 AppLauncher::AppLauncher(FuncsPtr appFuncs):
     App(appFuncs)
 {
-    auto theme = getUITheme();
     auto cont = getUIContainer();
     cont->setLayoutFlex();
     cont->setLocalStyle("uiContainer");
-    auto iconDir = api().getAvitabThemeDir()/theme->currentName();
 
-    addEntry<ChartsApp>("Charts", iconDir / Theme::Icons::Charts, AppId::CHARTS);
-    addEntry<AirportApp>("Airports", iconDir / Theme::Icons::Airports, AppId::AIRPORTS);
-    addEntry<RouteApp>("Routes", iconDir / Theme::Icons::Routes, AppId::ROUTES);
-    addEntry<MapApp>("Maps", iconDir / Theme::Icons::Maps, AppId::MAPS);
-    addEntry<PlaneManualApp>("Aircraft", iconDir / Theme::Icons::PlaneManual, AppId::PLANE_MANUAL);
-    addEntry<NotesApp>("Notes", iconDir / Theme::Icons::Notes, AppId::NOTES);
+    addEntry<ChartsApp>("Charts", Theme::Icons::Charts, AppId::CHARTS);
+    addEntry<AirportApp>("Airports", Theme::Icons::Airports, AppId::AIRPORTS);
+    addEntry<RouteApp>("Routes", Theme::Icons::Routes, AppId::ROUTES);
+    addEntry<MapApp>("Maps", Theme::Icons::Maps, AppId::MAPS);
+    addEntry<PlaneManualApp>("Aircraft", Theme::Icons::PlaneManual, AppId::PLANE_MANUAL);
+    addEntry<NotesApp>("Notes", Theme::Icons::Notes, AppId::NOTES);
 
     if (api().getChartService()->getNavigraph()->isSupported() || api().getChartService()->getChartFox()->isSupported()) {
-        addEntry<ProvidersApp>("Providers", iconDir / Theme::Icons::Providers, AppId::NAVIGRAPH);
+        addEntry<ProvidersApp>("Providers", Theme::Icons::Providers, AppId::NAVIGRAPH);
     }
 
-    addEntry<About>("About", iconDir / Theme::Icons::About, AppId::ABOUT);
+    addEntry<About>("About", Theme::Icons::About, AppId::ABOUT);
 }
 
 void AppLauncher::onScreenResize(int width, int height) {
@@ -84,7 +82,7 @@ void AppLauncher::showApp(AppId id) {
 }
 
 template<typename T>
-void AppLauncher::addEntry(const std::string& name, const std::filesystem::path& icon, AppId id) {
+void AppLauncher::addEntry(const std::string& name, const std::string& icon, AppId id) {
     auto app = startSubApp<T>();
     app->setOnExit([this] () {
         this->show();
@@ -100,6 +98,15 @@ void AppLauncher::addEntry(const std::string& name, const std::filesystem::path&
     size_t index = entries.size() - 1;
     entry.button->setCallback([this, index] (const Button &) {
         showApp(entries[index].id);
+    });
+    // Capture the address of the static icon string, not a copy: its value is
+    // replaced on every theme load, and a copy would keep the old theme's icon.
+    const std::string *iconPath = &icon;
+    std::weak_ptr<Button> weakButton = entry.button;
+    getUITheme()->onChange([weakButton, iconPath] (const Theme &) {
+        if (auto button = weakButton.lock()) {
+            button->setImagePath(*iconPath);
+        }
     });
 }
 

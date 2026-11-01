@@ -35,12 +35,14 @@ public:
     Button(WidgetPtr parent, lv_obj_t *obj);
 
     void setCallback(ButtonCallback cb);
+    void setImagePath(const std::filesystem::path &icon);
     void setToggleable(bool toggleable);
     void setToggleState(bool toggled);
     void setFit(bool hor, bool vert);
 private:
     img::Image iconData;
     lv_image_dsc_t iconImage;
+    lv_obj_t *ico;
     lv_style_t styleWhenPressed{}, styleWhenReleased{};
     ButtonCallback callbackFunc;
 };

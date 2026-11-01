@@ -94,14 +94,16 @@ public:
     // name = file name without .json, e.g. "dark"
     void load(const std::string &name);
 
-    // Direct path (for absolute paths / tests)
-    void loadFromPath(const std::string &jsonPath);
+    // Direct path (for absolute paths / tests); name is what currentName() reports afterwards
+    void loadFromPath(const std::string &jsonPath, const std::string &name);
 
     // All available theme names (*.json in the themes directory)
     std::vector<std::string> available();
 
     // Name of the currently loaded theme
-    const std::string &currentName() const;
+    const std::string &getName() const;
+
+    std::filesystem::path getDirectory();
 
     void setLocalStyle(lv_obj_t* obj, const std::string style);
 
@@ -152,6 +154,7 @@ private:
     lv_theme_t    lvTheme {};
     lv_display_t *display = nullptr;
     std::filesystem::path themesDir;
+    std::filesystem::path themeDir;     // directory of the currently loaded theme
     std::string   activeName;
     std::string   backdrop;
     std::filesystem::path backdropPath;

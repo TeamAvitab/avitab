@@ -102,9 +102,31 @@ void HeaderApp::createSettingsContainer() {
     nextButton->setCallback([] (const Button &) { platform::controlMediaPlayer(platform::MediaControl::MEDIA_NEXT); });
     nextButton->alignRightOf(pauseButton);
 
+    auto theme = getUITheme();
+    std::vector<std::string> themes = theme->available();
+    auto it = std::find(themes.begin(), themes.end(), theme->getName());
+    if (it != themes.end()) {
+        std::rotate(themes.begin(), it, it + 1);
+    }
+    themeLabel = std::make_shared<Label>(prefContainer, "Theme");
+    themeLabel->alignBelow(mediaLabel, VERT_PADDING);
+    themeList = std::make_shared<DropDownList>(prefContainer, themes);
+    themeList->alignRightOf(themeLabel, HOR_PADDING);
+    themeButton = std::make_shared<Button>(prefContainer, "Apply");
+    themeButton->alignRightOf(themeList, HOR_PADDING);
+    themeButton->setCallback([this, theme, themes] (const Button &) {
+        const std::string &name = themes[themeList->getSelectedIndex()];
+        try {
+            theme->load(name);
+            savedSettings->setGeneralSetting<std::string>("theme", theme->getName());
+        } catch (const std::exception &e) {
+            LOG_WARN("Could not load theme '%s': %s", name.c_str(), e.what());
+        }
+    });
+
     closeButton = std::make_shared<Button>(prefContainer, "Close AviTab");
     closeButton->setCallback([this] (const Button &) { toggleSettings(); api().close(); });
-    closeButton->alignBelow(mediaLabel, VERT_PADDING);
+    closeButton->alignBelow(themeLabel, VERT_PADDING);
 }
 
 void HeaderApp::toggleSettings() {

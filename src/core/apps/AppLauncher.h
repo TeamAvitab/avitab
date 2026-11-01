@@ -50,7 +50,9 @@ private:
     std::shared_ptr<App> activeApp;
 
     template<typename T>
-    void addEntry(const std::string &name, const std::filesystem::path &icon, AppId id);
+    // icon must be one of the Theme::Icons statics: its value changes when the
+    // theme is reloaded, and the theme-change callback re-reads it by address.
+    void addEntry(const std::string &name, const std::string &icon, AppId id);
 };
 
 } /* namespace avitab */

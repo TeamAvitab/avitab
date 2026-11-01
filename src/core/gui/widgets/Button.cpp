@@ -45,7 +45,7 @@ Button::Button(WidgetPtr parent, const std::filesystem::path& icon, const std::s
         lv_obj_set_width(button, width);
     }
 
-    lv_obj_t *ico = lv_image_create(button);
+    ico = lv_image_create(button);
     lv_obj_clear_flag(ico, LV_OBJ_FLAG_CLICKABLE);
     lv_image_set_src(ico, icon.c_str());
     lv_obj_align(ico, LV_ALIGN_TOP_MID, 0, 0);
@@ -71,7 +71,7 @@ Button::Button(WidgetPtr parent, img::Image &&icon, const std::string& caption, 
         lv_obj_set_width(button, width);
     }
 
-    lv_obj_t *ico = lv_image_create(button);
+    ico = lv_image_create(button);
     lv_obj_clear_flag(ico, LV_OBJ_FLAG_CLICKABLE);
     lv_image_set_src(ico, &iconImage);
     lv_obj_align(ico, LV_ALIGN_TOP_MID, 0, 0);
@@ -130,6 +130,10 @@ void Button::setCallback(ButtonCallback cb) {
             us->callbackFunc(*us);
         }
     }, LV_EVENT_CLICKED, nullptr);
+}
+
+void Button::setImagePath(const std::filesystem::path& icon) {
+    lv_image_set_src(ico, icon.c_str());
 }
 
 void Button::setToggleable(bool toggleable) {

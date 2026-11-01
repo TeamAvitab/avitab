@@ -23,6 +23,7 @@
 #include "gui/widgets/Button.h"
 #include "gui/widgets/Checkbox.h"
 #include "gui/widgets/Slider.h"
+#include "gui/widgets/DropDownList.h"
 #include "gui/Timer.h"
 #include <array>
 
@@ -40,8 +41,9 @@ private:
     std::shared_ptr<Container> prefContainer;
     std::shared_ptr<Slider> brightnessSlider;
     std::shared_ptr<Checkbox> fpsCheckbox;
-    std::shared_ptr<Button> pauseButton, nextButton, prevButton;
-    std::shared_ptr<Label> brightLabel, mediaLabel;
+    std::shared_ptr<Button> pauseButton, nextButton, prevButton, themeButton;
+    std::shared_ptr<Label> brightLabel, mediaLabel, themeLabel;
+    std::shared_ptr<DropDownList> themeList;
     std::shared_ptr<Button> closeButton;
 
     std::shared_ptr<avitab::Settings> savedSettings;

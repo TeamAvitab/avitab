@@ -58,13 +58,12 @@ Theme::Theme(std::string dir, std::string name, lv_display_t *disp):
 // ── load (by name) ───────────────────────────────────────────
 void Theme::load(const std::string &name) {
     logger::verbose("GUI: loading Theme %s", name.c_str());
-    activeName = name;
     std::filesystem::path path = themesDir / name / (name + ".json");
-    loadFromPath(path);
+    loadFromPath(path, name);
 }
 
 // ── loadFromPath ─────────────────────────────────────────────
-void Theme::loadFromPath(const std::string &jsonPath) {
+void Theme::loadFromPath(const std::string &jsonPath, const std::string &name) {
     parseJson(jsonPath);
 
     // Repopulate the shared style objects from the freshly parsed values, then
@@ -72,6 +71,9 @@ void Theme::loadFromPath(const std::string &jsonPath) {
     rebuildStyles();
     lv_obj_report_style_change(nullptr);
 
+    // Only reached if parsing succeeded, and set before notifying so listeners
+    // see the new name.
+    activeName = name;
     notifyListeners();
 }
 
@@ -91,7 +93,7 @@ std::vector<std::string> Theme::available() {
     return names;
 }
 
-const std::string &Theme::currentName() const {
+const std::string &Theme::getName() const {
     return activeName;
 }
 
@@ -115,20 +117,30 @@ void Theme::parseJson(const std::string &path) {
 
     json j = json::parse(f, nullptr, /*exceptions=*/true, /*ignore_comments=*/true);
 
-    backdrop = j.value("backdrop", std::string());
+    // Everything is parsed into locals first and only committed at the end, so
+    // a missing/invalid key throws without leaving a half-updated theme behind.
+    std::string newBackdrop = j.value("backdrop", std::string());
 
-    auto &i  = icons;
+    struct IconEntry { const char *key; std::string *target; };
+    const IconEntry iconEntries[] = {
+        { "charts",      &Icons::Charts },
+        { "airports",    &Icons::Airports },
+        { "routes",      &Icons::Routes },
+        { "maps",        &Icons::Maps },
+        { "planemanual", &Icons::PlaneManual },
+        { "notes",       &Icons::Notes },
+        { "providers",   &Icons::Providers },
+        { "about",       &Icons::About },
+    };
+    // Resources (icons, backdrop) live next to the theme's json file
+    fs::path themePath = fs::path(path).parent_path();
     auto &ji = j.at("icons");
-    i.Charts      = ji.at("charts");
-    i.Airports    = ji.at("airports");
-    i.Routes      = ji.at("routes");
-    i.Maps        = ji.at("maps");
-    i.PlaneManual = ji.at("planemanual");
-    i.Notes       = ji.at("notes");
-    i.Providers   = ji.at("providers");
-    i.About       = ji.at("about");
+    std::vector<std::string> newIcons;
+    for (const auto &entry : iconEntries) {
+        newIcons.push_back((themePath / ji.at(entry.key).get<std::string>()).string());
+    }
 
-    auto &c  = colors;
+    Colors c = colors;
     auto &jc = j.at("colors");
     c.background     = parseColor(jc.at("background"));
     c.surface        = parseColor(jc.at("surface"));
@@ -143,6 +155,13 @@ void Theme::parseJson(const std::string &path) {
     c.border         = parseColor(jc.at("border"));
     c.error          = parseColor(jc.at("error"));
     c.appButtonBackground = parseColor(jc.at("appButtonBackground"));
+
+    themeDir = themePath;
+    backdrop = std::move(newBackdrop);
+    for (size_t n = 0; n < newIcons.size(); n++) {
+        *iconEntries[n].target = std::move(newIcons[n]);
+    }
+    colors = c;
 }
 
 // ── LVGL callback ────────────────────────────────────────────
@@ -327,7 +346,7 @@ void Theme::rebuildStyles() {
     lv_style_reset(&styles.backdrop);
     backdropPath.clear();
     if (! backdrop.empty()) {
-        backdropPath = themesDir / activeName / backdrop;
+        backdropPath = themeDir / backdrop;
         lv_style_set_bg_image_src(&styles.backdrop, backdropPath.c_str());
     }
 }
