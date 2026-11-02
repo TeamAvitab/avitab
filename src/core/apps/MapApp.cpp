@@ -411,7 +411,7 @@ void MapApp::setTileSource(std::shared_ptr<img::TileSource> source) {
     mapStitcher->setCacheDirectory(api().getAvitabDataDir() /"MapTiles");
 
     map = std::make_shared<maps::OverlayedMap>(mapStitcher, overlayConf);
-    map->loadOverlayIcons(api().getAvitabInstallDir()/"icons");
+    map->loadOverlayIcons();
     map->setRedrawCallback([this] () { onRedrawNeeded(); });
     map->setGetRouteCallback([this] () { return api().getRoute(); });
     map->setNavWorld(api().getNavDatabase());

@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cassert>
+#include "gui/Theme.h"
 #include "OverlayedMap.h"
 #include "OverlayedAirport.h"
 #include "OverlayedDME.h"
@@ -84,12 +85,12 @@ void OverlayedMap::setGetRouteCallback(GetRouteCallback cb) {
     getRoute = cb;
 }
 
-void OverlayedMap::loadOverlayIcons(const std::filesystem::path& path) {
-    std::string planeIconName = "if_icon-plane_211875.png";
+void OverlayedMap::loadOverlayIcons() {
+    planeIconPath = avitab::Theme::Icons::OwnAircraft;
     try {
-        planeIcon.loadImageFile(path / planeIconName);
+        planeIcon.loadImageFile(planeIconPath);
     } catch (const std::exception &e) {
-        logger::warn("Couldn't load icon %s: %s", planeIconName.c_str(), e.what());
+        logger::warn("Couldn't load icon %s: %s", planeIconPath.c_str(), e.what());
     }
 }
 
@@ -224,6 +225,9 @@ void OverlayedMap::drawOverlays() {
 void OverlayedMap::drawAircraftOverlay() {
     if (!overlayConfig->drawMyAircraft || planeLocations.empty()) {
         return;
+    }
+    if (planeIconPath != avitab::Theme::Icons::OwnAircraft) {
+        loadOverlayIcons();
     }
 
     int py, px;

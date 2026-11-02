@@ -131,6 +131,7 @@ void Theme::parseJson(const std::string &path) {
         { "notes",       &Icons::Notes },
         { "providers",   &Icons::Providers },
         { "about",       &Icons::About },
+        { "ownaircraft", &Icons::OwnAircraft },
     };
     // Resources (icons, backdrop) live next to the theme's json file
     fs::path themePath = fs::path(path).parent_path();

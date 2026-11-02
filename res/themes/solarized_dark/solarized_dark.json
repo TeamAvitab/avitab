@@ -9,7 +9,8 @@
     "planemanual": "bookshelf.png",
     "notes": "note-multiple-outline.png",
     "providers": "airplane-cog.png",
-    "about": "information-variant-box-outline.png"
+    "about": "information-variant-box-outline.png",
+    "ownaircraft": "navigation2.png"
   },
 
   "backdrop": "backdrop.png",

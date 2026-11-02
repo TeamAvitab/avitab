@@ -48,6 +48,7 @@ public:
         inline static std::string Notes;
         inline static std::string Providers;
         inline static std::string About;
+        inline static std::string OwnAircraft;
     };
 
     struct Colors {

@@ -521,7 +521,7 @@ void AirportApp::onChartLoaded(std::shared_ptr<Page> page) {
         tab.mapSource = tab.chart->createTileSource(nightMode);
         tab.mapStitcher = std::make_shared<img::Stitcher>(tab.mapImage, tab.mapSource);
         tab.map = std::make_shared<maps::OverlayedMap>(tab.mapStitcher, tab.overlays);
-        tab.map->loadOverlayIcons(api().getAvitabInstallDir()/"icons");
+        tab.map->loadOverlayIcons();
         tab.map->setRedrawCallback([this, page] () { redrawPage(page); });
         tab.map->setNavWorld(api().getNavDatabase());
         tab.map->setGetRouteCallback([this] () { return api().getRoute(); });
