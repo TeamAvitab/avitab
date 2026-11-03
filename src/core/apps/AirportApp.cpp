@@ -218,6 +218,7 @@ void AirportApp::fillPage(std::shared_ptr<Page> page, std::shared_ptr<navdb::Air
     tab.window->setCaption(toAptHeader(airport));
 
     tab.label->setText(str.str());
+    tab.label->setVisible(true);
 }
 
 std::tuple<double, double> AirportApp::getNavData(std::shared_ptr<navdb::Airport> airport) {
