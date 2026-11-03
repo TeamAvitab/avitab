@@ -67,7 +67,6 @@ private:
 
         int panPosX = 0, panPosY = 0;
         bool trackPlane = true;
-        bool viewCharts = false;
     };
     std::vector<TabPage> pages;
     bool nightMode = false;

@@ -349,8 +349,7 @@ AirportApp::TabPage &AirportApp::findPage(std::shared_ptr<Page> page) {
 
 void AirportApp::toggleCharts(std::shared_ptr<Page> page, std::shared_ptr<navdb::Airport> airport) {
     TabPage &tab = findPage(page);
-    tab.viewCharts = !tab.viewCharts;
-    if (tab.viewCharts) {
+    if (tab.charts.empty()) {
         fillChartsPage(page, airport);
     } else {
         tab.charts.clear();
