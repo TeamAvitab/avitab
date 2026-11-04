@@ -224,6 +224,8 @@ void Theme::applyTheme(lv_obj_t *obj) {
         }
 
         lv_obj_add_style(obj, &styles.button, LV_PART_MAIN);
+        lv_obj_add_style(obj, &styles.buttonPressed, LV_STATE_PRESSED);
+        lv_obj_add_style(obj, &styles.buttonPressed, LV_STATE_CHECKED);
         lv_obj_add_style(obj, &styles.textareaFocused, LV_STATE_FOCUSED);
     }
     else if (cls == &lv_checkbox_class) {
