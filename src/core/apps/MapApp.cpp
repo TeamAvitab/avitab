@@ -165,7 +165,7 @@ void MapApp::selectGeoTIFF() {
                 fileChooser.reset();
                 chooserContainer->setVisible(false);
             } catch (const std::exception &e) {
-                logger::warn("Couldn't open GeoTIFF %s: %s", selectedUTF8.c_str(), e.what());
+                logger::warn("Couldn't open GeoTIFF %s: %s", selectedUTF8.string().c_str(), e.what());
             }
         });
     });
@@ -196,7 +196,7 @@ void MapApp::selectMercator() {
                 }
                 mercatorDir = selectedUTF8.parent_path();
             } catch (const std::exception &e) {
-                logger::warn("Couldn't open Mercator %s: %s", selectedUTF8.c_str(), e.what());
+                logger::warn("Couldn't open Mercator %s: %s", selectedUTF8.string().c_str(), e.what());
             }
         });
     });
@@ -222,7 +222,7 @@ void MapApp::selectEPSG() {
                 fileChooser.reset();
                 chooserContainer->setVisible(false);
             } catch (const std::exception &e) {
-                logger::warn("Couldn't open EPSG %s: %s", selectedUTF8.c_str(), e.what());
+                logger::warn("Couldn't open EPSG %s: %s", selectedUTF8.string().c_str(), e.what());
             }
         });
     });
@@ -246,10 +246,10 @@ void MapApp::selectOnlineMaps(bool interactive) {
 
     if (!mapConfigFstream) {
         logger::error("No mapconfig.json file found in '%s'",
-                mapConfigPath.u8string().c_str());
+                mapConfigPath.string().c_str());
         reportErrorAndSelectOnlineFallback(std::vector<std::string>{
                 "cannot load mapconfig.json from path:",
-                mapConfigPath.u8string()});
+                mapConfigPath.string()});
         return;
     }
 
@@ -267,13 +267,13 @@ void MapApp::selectOnlineMaps(bool interactive) {
             }
         }
     } catch (const nlohmann::json::exception &e) {
-        logger::error("Failed to parse '%s': %s", mapConfigPath.c_str(), e.what());
+        logger::error("Failed to parse '%s': %s", mapConfigPath.string().c_str(), e.what());
         reportErrorAndSelectOnlineFallback(std::vector<std::string>{
                 "Failed to parse mapconfig.json",
                 "Please check the AviTab logs for more details"});
         return;
     } catch (const std::runtime_error &e) {
-        logger::error("Failed to parse '%s': %s", mapConfigPath.c_str(), e.what());
+        logger::error("Failed to parse '%s': %s", mapConfigPath.string().c_str(), e.what());
         reportErrorAndSelectOnlineFallback(std::vector<std::string>{
                 "Failed to parse mapconfig.json:",
                 e.what(),
@@ -285,7 +285,7 @@ void MapApp::selectOnlineMaps(bool interactive) {
     // Give a hint to the user that they need to populate the config and
     // point the user to documentation
     if (slippyMapNames.size() == 0) {
-        logger::warn("No enabled online maps found in %s", mapConfigPath.c_str());
+        logger::warn("No enabled online maps found in %s", mapConfigPath.string().c_str());
         reportErrorAndSelectOnlineFallback(std::vector<std::string>{
                 "No enabled online maps found in mapconfig.json",
                 "Please read the docs to learn how you can add your own",
@@ -609,7 +609,7 @@ void MapApp::selectUserFixesFile() {
                 showOverlaySettings();
                 savedSettings->setGeneralSetting<std::string>("userfixes_file", selectedUTF8.u8string());
             } catch (const std::exception &e) {
-                logger::warn("Couldn't open user fix file '%s': %s", selectedUTF8.c_str(), e.what());
+                logger::warn("Couldn't open user fix file '%s': %s", selectedUTF8.string().c_str(), e.what());
             }
         });
     });

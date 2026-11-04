@@ -35,7 +35,7 @@ TTFStamper::TTFStamper(const std::filesystem::path &fontName) {
     }
 
     auto fontFile = fontDir / fontName;
-    error = FT_New_Face(ft, fontFile.u8string().c_str(), 0, &fontFace);
+    error = FT_New_Face(ft, fontFile.string().c_str(), 0, &fontFace);
     if (error) {
         logger::verbose("Couldn't load desired font, using fallback font");
         loadInternalFont();

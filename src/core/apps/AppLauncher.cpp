@@ -90,7 +90,7 @@ void AppLauncher::addEntry(const std::string& name, const std::filesystem::path&
     try {
         iconImg.loadImageFile(icon);
     } catch (const std::exception &e) {
-        logger::warn("Couldn't load icon %s: %s", icon.c_str(), e.what());
+        logger::warn("Couldn't load icon %s: %s", icon.string().c_str(), e.what());
     }
 
     Entry entry;

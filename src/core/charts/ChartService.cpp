@@ -373,7 +373,7 @@ std::string ChartService::getCalibrationMetadataForHash(std::string hash) const 
             std::string jsonStr((std::istreambuf_iterator<char>(hashedJsonFile)),
                                  std::istreambuf_iterator<char>());
             logger::info("Found hash-matched calibration file");
-            logger::info(" at '%s'", calibrationFilename.u8string().c_str());
+            logger::info(" at '%s'", calibrationFilename.string().c_str());
             logger::info(" with sha256 %s", hash.c_str());
             return jsonStr;
         }

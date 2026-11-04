@@ -86,7 +86,7 @@ void LocalFileSource::findAndLoadCalibration() {
     std::ifstream jsonFile(calFileName);
 
     if (jsonFile.good()) {
-        logger::info("Loaded co-located json calibration file for %s", utf8FileName.c_str());
+        logger::info("Loaded co-located json calibration file for %s", utf8FileName.string().c_str());
         std::string jsonStr((std::istreambuf_iterator<char>(jsonFile)),
                              std::istreambuf_iterator<char>());
         calibration.fromJsonString(jsonStr, rasterizer.getAspectRatio(0));
@@ -95,7 +95,7 @@ void LocalFileSource::findAndLoadCalibration() {
         auto kmlFileName = makeCalibrationMetafileName("kml");
         std::ifstream kmlFile(kmlFileName);
         if (kmlFile.good()) {
-            logger::info("Loaded co-located kml calibration file for %s", utf8FileName.c_str());
+            logger::info("Loaded co-located kml calibration file for %s", utf8FileName.string().c_str());
             std::string kmlStr((std::istreambuf_iterator<char>(kmlFile)),
                                 std::istreambuf_iterator<char>());
             calibration.fromKmlString(kmlStr);
@@ -108,10 +108,10 @@ void LocalFileSource::findAndLoadCalibration() {
             }
             std::string calibrationMetadata = chartService->getCalibrationMetadataForFile(utf8FileName);
             if (calibrationMetadata != "") {
-                logger::info("Loaded hash-mapped json calibration file for %s", utf8FileName.c_str());
+                logger::info("Loaded hash-mapped json calibration file for %s", utf8FileName.string().c_str());
                 calibration.fromJsonString(calibrationMetadata, rasterizer.getAspectRatio(0));
             } else {
-                logger::warn("No json or kml calibration file for %s", utf8FileName.c_str());
+                logger::warn("No json or kml calibration file for %s", utf8FileName.string().c_str());
                 return;
             }
         }
