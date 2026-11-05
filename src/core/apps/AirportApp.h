@@ -76,8 +76,8 @@ private:
     std::shared_ptr<Window> searchWindow;
     std::shared_ptr<Container> prefContainer;
     std::shared_ptr<Label> searchLabel, sortLabel;
-    std::shared_ptr<Checkbox> sortCheckbox, sortAscCheckbox;
-    std::shared_ptr<TabGroup> tabs;
+    std::shared_ptr<Checkbox> sortCheckbox, sortAscCheckbox, overlaysCheckbox;
+     std::shared_ptr<TabGroup> tabs;
     std::shared_ptr<TextArea> searchField;
     std::shared_ptr<DropDownList> resultList = nullptr;
     std::shared_ptr<Keyboard> keys;

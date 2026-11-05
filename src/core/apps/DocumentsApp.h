@@ -107,7 +107,7 @@ private:
     Settings::DocumentReadingConfig  settings;
     std::shared_ptr<Container> settingsContainer;
     std::shared_ptr<Label> settingsLabel;
-    std::shared_ptr<Checkbox> mouseWheelScrollsCheckbox;
+    std::shared_ptr<Checkbox> mouseWheelScrollsCheckbox, overlaysCheckbox;
     void showAppSettings();
 
     enum class VerticalPosition { Top, Centre, Bottom };

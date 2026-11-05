@@ -575,6 +575,14 @@ void AirportApp::createSettingsContainer() {
     sortAscCheckbox->setChecked(airportConfig->sortAscending);
     sortAscCheckbox->setCallback([this] (bool checked) { airportConfig->sortAscending = checked; });
     sortAscCheckbox->alignRightOf(sortCheckbox);
+
+    overlaysCheckbox = std::make_shared<Checkbox>(prefContainer, "Show Map overlays");
+    overlaysCheckbox->alignBelow(sortCheckbox, 10);
+    overlaysCheckbox->setChecked(api().getSettings()->getGeneralSetting<bool>("show_overlays_in_airport_app"));
+    overlaysCheckbox->setCallback([this] (bool checked) {
+        api().getSettings()->setGeneralSetting<bool>("show_overlays_in_airport_app", checked);
+    });
+    overlaysCheckbox->alignBelow(sortCheckbox);
 }
 
 void AirportApp::onMapPan(std::shared_ptr<Page> page, int x, int y, bool start, bool end) {

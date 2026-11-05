@@ -23,9 +23,9 @@
 namespace maps {
 
 struct OverlayConfig {
-    bool drawMyAircraft = true;
-    bool drawOtherAircraft = true;
-    bool drawRoute = true;
+    bool drawMyAircraft = false;
+    bool drawOtherAircraft = false;
+    bool drawRoute = false;
     uint32_t colorOtherAircraftBelow;
     uint32_t colorOtherAircraftSame;
     uint32_t colorOtherAircraftAbove;

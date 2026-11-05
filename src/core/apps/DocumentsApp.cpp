@@ -403,6 +403,14 @@ void DocumentsApp::showAppSettings() {
     mouseWheelScrollsCheckbox->setChecked(settings.mouseWheelScrollsMultiPage);
     mouseWheelScrollsCheckbox->alignBelow(settingsLabel);
     mouseWheelScrollsCheckbox->setCallback([this] (bool checked) { settings.mouseWheelScrollsMultiPage = checked; });
+
+    overlaysCheckbox = std::make_shared<Checkbox>(settingsContainer, "Show Map overlays");
+    overlaysCheckbox->alignBelow(mouseWheelScrollsCheckbox, 10);
+    overlaysCheckbox->setChecked(api().getSettings()->getGeneralSetting<bool>("show_overlays_in_charts_app"));
+    overlaysCheckbox->setCallback([this] (bool checked) {
+        api().getSettings()->setGeneralSetting<bool>("show_overlays_in_charts_app", checked);
+    });
+    overlaysCheckbox->alignBelow(mouseWheelScrollsCheckbox);
 };
 
 void DocumentsApp::positionPage(PageInfo tab, VerticalPosition vp, HorizontalPosition hp, ZoomAdjust za) {
