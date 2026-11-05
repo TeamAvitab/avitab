@@ -392,7 +392,7 @@ void DocumentsApp::showAppSettings() {
     settingsContainer = std::make_shared<Container>();
     settingsContainer->setSizeByContent();
     settingsContainer->setLocalStyle("settings");
-    settingsContainer->centerInParent();
+    settingsContainer->alignTopRightInParent(10, 100);
     // FIXME settingsContainer->setFit(Container::Fit::TIGHT, Container::Fit::TIGHT);
     settingsContainer->setVisible(false);
 
