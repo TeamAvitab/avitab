@@ -559,10 +559,10 @@ void AirportApp::toggleSettings() {
 void AirportApp::createSettingsContainer() {
     auto ui = getUIContainer();
 
-    prefContainer = std::make_shared<Container>();
+    prefContainer = searchWindow->addContent(std::make_shared<Container>(searchWindow));
     prefContainer->setLocalStyle("settings");
     prefContainer->setSizeByContent();
-    prefContainer->alignTopRightInParent(10, 100);
+    prefContainer->alignTopRightInParent();
     prefContainer->setVisible(false);
 
     sortLabel = std::make_shared<Label>(prefContainer, "Sort options");
