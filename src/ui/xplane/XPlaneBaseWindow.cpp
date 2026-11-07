@@ -117,7 +117,7 @@ int XPlaneBaseWindow::onMouseWheel(int x, int y, int wheel, int clicks)
 {
     int guiX, guiY;
     if (boxelToPixel(x, y, guiX, guiY)) {
-        common.brightness = guiX;
+        common.mouseX = guiX;
         common.mouseY = guiY;
         common.wheelClicks = clicks;
         return 1;
