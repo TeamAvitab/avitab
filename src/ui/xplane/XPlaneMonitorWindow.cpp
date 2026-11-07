@@ -25,6 +25,7 @@
 
 XPlaneMonitorWindow::XPlaneMonitorWindow(XPlaneUiSharedData &data)
 :   XPlaneBaseWindow(data),
+    winPopOutPending(false),
     winCheckTimer(0)
 {
     auto leftTop = defaultCreatePosition();
@@ -80,6 +81,9 @@ void XPlaneMonitorWindow::create() {
     XPLMSetWindowResizingLimits(winHandle,
         avitab::UiDriverBase::INITIAL_WIDTH, avitab::UiDriverBase::INITIAL_HEIGHT,
         avitab::UiDriverBase::INITIAL_WIDTH, avitab::UiDriverBase::INITIAL_HEIGHT); // essentially disable resizing
+    if (!winPopOutPending) {
+        XPLMSetWindowPositioningMode(winHandle, xplm_WindowPositionFree, -1);
+    }
     XPLMSetWindowIsVisible(winHandle, 1);
 }
 
@@ -88,6 +92,7 @@ void XPlaneMonitorWindow::destroy() {
 
     winCreateLeft = winLeft;
     winCreateTop = winTop;
+    winPoppedOut = false;
 
     XPLMDestroyWindow(winHandle);
     winHandle = nullptr;
@@ -103,12 +108,33 @@ void XPlaneMonitorWindow::reposition() {
     create();
 }
 
+void XPlaneMonitorWindow::extract_config(nlohmann::json &cfg) {
+    winCreateLeft = cfg.value("left", winCreateLeft);
+    winCreateTop = cfg.value("top", winCreateTop);
+    winPopOutPending = cfg.value("popped", false);
+}
+
+void XPlaneMonitorWindow::update_config(nlohmann::json &cfg) {
+    bool visible  = isActive();
+    cfg["left"] = visible ? (winPoppedOut ? osWinLeft : winLeft) : winCreateLeft;
+    cfg["top"] = visible ? (winPoppedOut ? osWinTop : winTop) : winCreateTop;
+    cfg["popped"] = winPoppedOut;
+}
+
 void XPlaneMonitorWindow::onDraw()
 {
     assert(winHandle);
 
     // if we get a draw request then the window must be visible, so cancel the watchdog
     noDrawWatchdog = 0;
+
+    // not fully understood, but if a popped-out window is being restored after restart
+    // then it needs to be deferred until the first draw callback.
+    if (winPopOutPending) {
+        XPLMSetWindowPositioningMode(winHandle, xplm_WindowPopOut, -1);
+        XPLMSetWindowGeometryOS(winHandle, osWinLeft, osWinTop, osWinLeft + winWidth, osWinTop - winHeight);
+        winPopOutPending = false;
+    }
 
     // check the window position and size. don't need to do this every frame, to keep the overheads down
     if (++winCheckTimer > 30) {
@@ -118,6 +144,15 @@ void XPlaneMonitorWindow::onDraw()
     }
 
     render();
+}
+
+void XPlaneMonitorWindow::onWindowMoved(int l, int t, int r, int b) {
+    winPoppedOut = XPLMWindowIsPoppedOut(winHandle);
+    if (winPoppedOut) {
+        osWinLeft = l; osWinTop = t; osWinRight = r; osWinBottom = b;
+    } else {
+        winLeft = l; winTop = t; winRight = r; winBottom = b;
+    }
 }
 
 std::pair<int, int> XPlaneMonitorWindow::screenCentre(int& l, int& t, int& r, int& b)

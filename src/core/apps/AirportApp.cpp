@@ -15,14 +15,15 @@
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+#include "AirportApp.h"
+#include "Logger.h"
 #include <sstream>
 #include <iomanip>
-#include <limits>
 #include <cmath>
 #include <algorithm>
 #include <tuple>
-#include "AirportApp.h"
-#include "Logger.h"
+#include <cassert>
 
 namespace avitab {
 
@@ -34,7 +35,12 @@ AirportApp::AirportApp(FuncsPtr appFuncs):
     App(appFuncs),
     updateTimer(std::bind(&AirportApp::onTimer, this), 200)
 {
-    airportConfig = api().getSettings()->getAirportConfig();
+    overlayConfig = std::make_shared<maps::OverlayConfig>();
+    auto settings = api().getSettings();
+    appConfig.init(settings, "/airports", [this] () { onAppConfigChanged(); });
+    generalConfig.init(settings, "/general", [this] () { onGeneralConfigChanged(); });
+    overlayConfig->init(settings, "/overlay", [this] () { onOverlayConfigChanged(); });
+
     resetLayout();
     createSettingsContainer();
 }
@@ -105,7 +111,7 @@ void AirportApp::onSearchEntered(const std::string& code) {
     } else {
         searchLabel->setText("");
     }
-    if (airportConfig->doSort) {
+    if (appConfig.sortEnabled) {
         sortSearchResults(airports);
     }
 
@@ -193,7 +199,7 @@ void AirportApp::removeTab(std::shared_ptr<Page> page) {
 
 void AirportApp::sortSearchResults(std::vector<std::shared_ptr<navdb::Airport>>& airports) {
     auto loc = api().getAircraftPosition(0);
-    bool sortOrder = airportConfig->sortAscending;
+    bool sortOrder = appConfig.sortAscending;
     std::sort(airports.begin(), airports.end(),
         [loc, sortOrder] (std::shared_ptr<navdb::Airport> a, std::shared_ptr<navdb::Airport> b) {
             auto aLoc = a->getLocation();
@@ -481,11 +487,6 @@ void AirportApp::onChartsLoaded(std::shared_ptr<Page> page, const apis::ChartSer
 void AirportApp::onChartLoaded(std::shared_ptr<Page> page) {
     TabPage &tab = findPage(page);
 
-    if (api().getSettings()->getGeneralSetting<bool>("show_overlays_in_airport_app")) {
-        tab.overlays = api().getSettings()->getOverlayConfig();
-    } else {
-        tab.overlays = std::make_shared<maps::OverlayConfig>();
-    }
     tab.window->addSymbol(Widget::Symbol::MINUS, [this, page] {
         TabPage &tab = findPage(page);
         if (tab.map) {
@@ -533,7 +534,7 @@ void AirportApp::onChartLoaded(std::shared_ptr<Page> page) {
 
         tab.mapSource = tab.chart->createTileSource(nightMode);
         tab.mapStitcher = std::make_shared<img::Stitcher>(tab.mapImage, tab.mapSource);
-        tab.map = std::make_shared<maps::OverlayedMap>(tab.mapStitcher, tab.overlays);
+        tab.map = std::make_shared<maps::OverlayedMap>(tab.mapStitcher, overlayConfig);
         tab.map->loadOverlayIcons(api().getAvitabInstallDir()/"icons");
         tab.map->setRedrawCallback([this, page] () { redrawPage(page); });
         tab.map->setNavWorld(api().getNavDatabase());
@@ -576,13 +577,13 @@ void AirportApp::createSettingsContainer() {
 
     sortLabel = std::make_shared<Label>(prefContainer, "Sort options");
     sortCheckbox = std::make_shared<Checkbox>(prefContainer, "Distance");
-    sortCheckbox->setChecked(airportConfig->doSort);
-    sortCheckbox->setCallback([this] (bool checked) { airportConfig->doSort = checked; });
+    sortCheckbox->setChecked(appConfig.sortEnabled);
+    sortCheckbox->setCallback([this] (bool checked) { appConfig.sortEnabled = checked; appConfig.update(); });
     sortCheckbox->alignBelow(sortLabel);
 
     sortAscCheckbox = std::make_shared<Checkbox>(prefContainer, "Ascending");
-    sortAscCheckbox->setChecked(airportConfig->sortAscending);
-    sortAscCheckbox->setCallback([this] (bool checked) { airportConfig->sortAscending = checked; });
+    sortAscCheckbox->setChecked(appConfig.sortAscending);
+    sortAscCheckbox->setCallback([this] (bool checked) { appConfig.sortAscending = checked; appConfig.update(); });
     sortAscCheckbox->alignRightOf(sortCheckbox);
 }
 
@@ -666,6 +667,38 @@ bool AirportApp::onTimer() {
 
 size_t AirportApp::countCharts(const apis::ChartService::ChartList& list, apis::ChartCategory category) {
     return std::count_if(list.begin(), list.end(), [category] (auto chart) { return chart->getCategory() == category; });
+}
+
+void AirportApp::onAppConfigChanged() {
+    // this function should not be called since the app config is (currently) only changed by the app
+    assert(0);
+}
+
+void AirportApp::onGeneralConfigChanged() {
+    generalConfig.unpack();
+    if (generalConfig.showAirportOverlays) {
+        overlayConfig->unpack();
+    } else {
+        overlayConfig->disable();
+    }
+}
+
+void AirportApp::onOverlayConfigChanged() {
+    if (generalConfig.showAirportOverlays) {
+        overlayConfig->unpack();
+    } else {
+        overlayConfig->disable();
+    }
+}
+
+void AirportAppConfig::unpack() {
+    sortEnabled = json.value("sort", true);
+    sortAscending = json.value("sort_ascending", true);
+}
+
+void AirportAppConfig::pack() {
+    json["sort"] = sortEnabled;
+    json["sort_ascending"] = sortAscending;
 }
 
 } /* namespace avitab */

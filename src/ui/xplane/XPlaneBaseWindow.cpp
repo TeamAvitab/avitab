@@ -66,12 +66,8 @@ bool XPlaneBaseWindow::updateWindowGeometry() {
     int l, t, r, b;
     XPLMGetWindowGeometry(winHandle, &l, &t, &r, &b);
     if ((winLeft != l) || (winTop != t) || (winRight != r) || (winBottom != b)) {
-        auto popped = XPLMWindowIsPoppedOut(winHandle);
-        if (!popped) {
-            // only update the latest position if the window isn't popped out
-            winLeft = l; winTop = t; winRight = r; winBottom = b;
-        }
-#if 0 // TODO - we don't need this until window resize is needed
+        onWindowMoved(l, t, r, b);
+#if 0 // TODO - we don't need this until window resize is supported
         int w = r - l;
         int h = t - b;
         if ((w != winWidth) || (h != winHeight)) {

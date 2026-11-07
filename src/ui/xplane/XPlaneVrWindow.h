@@ -33,6 +33,8 @@ protected:
     void onDraw();
     XPLMCursorStatus getCursor(int x, int y) { return xplm_CursorDefault; }
 
+    void onWindowMoved(int left, int top, int right, int bottom) override;
+
 private:
     int winCheckTimer;
 

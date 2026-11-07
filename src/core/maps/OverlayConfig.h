@@ -17,15 +17,19 @@
  */
 #pragma once
 
-#include <cstdint>
+#include "Settings.h"
+#include <nlohmann/json.hpp>
+#include <map>
 #include <string>
+#include <cstdint>
 
 namespace maps {
 
-struct OverlayConfig {
+struct OverlayConfig : public avitab::ConfigBase {
+    OverlayConfig();
+    void disable();
     bool drawMyAircraft = true;
     bool drawOtherAircraft = true;
-    bool drawRoute = true;
     uint32_t colorOtherAircraftBelow;
     uint32_t colorOtherAircraftSame;
     uint32_t colorOtherAircraftAbove;
@@ -39,10 +43,13 @@ struct OverlayConfig {
     bool drawPOIs = false;
     bool drawVRPs = false;
     bool drawMarkers = false;
-};
-
-struct MapConfig {
-    unsigned int onlineMapIndex;
+    bool drawRoute = true;
+    void pack() override;
+    void unpack() override;
+private:
+    uint32_t colorStringToInt(std::string colString);
+    std::string colorIntToString(uint32_t color);
+    static std::map<std::string, uint32_t> colorTable;
 };
 
 } /* namespace maps */

@@ -17,13 +17,11 @@
  */
 #pragma once
 
-#include <nlohmann/json_fwd.hpp>
-#include <list>
-#include <memory>
+#include <nlohmann/json.hpp>
 #include <filesystem>
-#include "UiDriver.h"
-#include "AirportConfig.h"
-#include "OverlayConfig.h"
+#include <functional>
+#include <list>
+#include <vector>
 
 namespace avitab {
 
@@ -32,30 +30,25 @@ public:
     Settings(const std::filesystem::path &settingsFile);
     ~Settings();
 
-    template<typename T>
-    T getGeneralSetting(const std::string &id);
-    template<typename T>
-    void setGeneralSetting(const std::string &id, const T value);
+    // get a copy of a json object in the settings database (empty if non-existent)
+    const nlohmann::json get(const std::string &key);
+    // update (or add) a json object to the settings database and trigger listener callbacks
+    void put(const std::string &key, nlohmann::json& value, int source = -1); // -1 is an unregisterd source
 
-    std::shared_ptr<maps::OverlayConfig> getOverlayConfig();
-    std::shared_ptr<avitab::AirportConfig> getAirportConfig();
-    std::shared_ptr<maps::MapConfig> getMapConfig();
-
-    struct DocumentReadingConfig {
-        bool mouseWheelScrollsMultiPage = false;
-    };
-    void loadDocReadingConfig(const std::string appName, DocumentReadingConfig &config);
-    void saveDocReadingConfig(const std::string appName, DocumentReadingConfig &config);
-
-    void saveWindowRect(const WindowRect &rect);
-    WindowRect loadWindowRect();
+    using ListenerFunc = std::function<void(int id)>;
+    int registerChangeListener(const std::string key, ListenerFunc fn);
+    void unregisterChangeListener(int id);
 
     void saveAll();
+
+private:
+    std::vector<std::pair<std::string, ListenerFunc>> listeners;
 
 private:
     void init();
     void upgrade1to2();
     void upgrade2to3();
+    void cleanUp();
     void initMissing();
     void load();
     void save();
@@ -63,28 +56,43 @@ private:
 private:
     const std::filesystem::path filePath;
     std::shared_ptr<nlohmann::json> database;
-    std::shared_ptr<maps::OverlayConfig> overlayConfig;
-    std::shared_ptr<avitab::AirportConfig> airportConfig;
-    std::shared_ptr<maps::MapConfig> mapConfig;
-
-    void loadOverlayConfig();
-    void saveOverlayConfig();
-
-    void loadAirportConfig();
-    void saveAirportConfig();
-    void loadMapConfig();
-    void saveMapConfig();
-
-    template<typename T>
-    T getSetting(const std::string &ptr, T def);
-
-    template<typename T>
-    void setSetting(const std::string &id, const T value);
-
-    std::list<std::pair<const char *, uint32_t> > colorTable;
-    uint32_t colorStringToInt(std::string colString, const char* colDefault);
-    std::string colorIntToString(uint32_t color);
-
 };
+
+
+class ConfigBase {
+public:
+    using UpdateFunc = std::function<void()>;
+    void init(std::shared_ptr<Settings> db, const std::string &key, UpdateFunc fn);
+    void update();
+protected:
+    virtual void unpack() = 0;
+    virtual void pack() = 0;
+private:
+    void onUpdate(int id);
+protected:
+    std::shared_ptr<Settings> settings; // access to the settings object
+    nlohmann::json json;                // representation of the configuration group as a json object, ie key-value pairs
+    std::string key;                    // the key for this configuration group
+    int listenerId;                     // the ID issued when registering as a listener for updates
+    UpdateFunc updCallback;             // callback when config is updated elsewhere
+};
+
+
+struct GeneralConfig : public ConfigBase {
+    int version;
+    bool showFPS;               // TODO - move to header app group with next version update
+    int clockMode;              // TODO - move to header app group with next version update
+    bool showAirportOverlays;   // TODO - move to airport app group with next version update
+    bool showChartOverlays;     // TODO - move to chart app group with next version update
+    bool showCalibrateMsgOnLoad;// TODO - move to map app group with next version update
+    std::string userFixesFile;  // TODO - move to navdb group with next version update
+    bool nightMode;             // TODO - night mode needs a UI setting (header app?)
+
+    void unpack() override;
+    void pack() override;
+};
+
+
+
 
 } /* namespace avitab */

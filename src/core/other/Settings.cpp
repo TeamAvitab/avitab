@@ -16,12 +16,13 @@
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <nlohmann/json.hpp>
-#include <iomanip>
-#include <sstream>
 #include "Settings.h"
 #include "Logger.h"
 #include "platform/Platform.h"
+#include <nlohmann/json.hpp>
+#include <iomanip>
+#include <sstream>
+#include <cassert>
 
 using json = nlohmann::json;
 
@@ -32,21 +33,15 @@ static const int PREFS_VERSION = 3;
 Settings::Settings(const std::filesystem::path & settingsFile)
 :   filePath(settingsFile)
 {
-    colorTable.push_back({"BLACK",  0xFF000000});
-    colorTable.push_back({"GREY",   0xFF303030});
-    colorTable.push_back({"WHITE",  0xFFFFFFFF});
-    colorTable.push_back({"RED",    0xFF800000});
-    colorTable.push_back({"BLUE",   0xFF0000A0});
-    colorTable.push_back({"GREEN",  0xFF008000});
-    colorTable.push_back({"YELLOW", 0xFF808000});
-
     database = std::make_shared<json>();
+    listeners.push_back(std::make_pair("", nullptr));
     init();
     load();
+    cleanUp();
     initMissing();
     
-	logger::verbose("Preferences json :");
-	logger::verbose("%s", database->dump(4).c_str());
+	//logger::verbose("Preferences json %s:", filePath.string().c_str());
+	//logger::verbose("%s", database->dump(4).c_str());
 	
     // Handle older json databases which have since been updated.
     // The version number is only changed if a setting has been moved, renamed, or removed.
@@ -78,69 +73,39 @@ Settings::~Settings()
     }
 }
 
-template<>
-bool Settings::getGeneralSetting(const std::string &id) {
-    json::json_pointer jp("/general/" + id);
-    bool b = database->value(jp, false);
-    return b;
+const nlohmann::json Settings::get(const std::string &key) {
+    auto jp = nlohmann::json::json_pointer(key);
+    nlohmann::json node = nlohmann::json::object();
+    if ((*database).contains(jp)) {
+        node = (*database)[jp];
+    }
+    return node;
 }
 
-template<>
-int Settings::getGeneralSetting(const std::string &id) {
-    return getSetting("/general/" + id, 0);
+void Settings::put(const std::string &key, nlohmann::json &value, int updater) {
+    auto jp = nlohmann::json::json_pointer(key);
+    (*database)[jp] = value;
+    for (size_t i = 1; i < listeners.size(); ++i) {
+        if (i == updater) continue;
+        auto &l = listeners[i];
+        if (l.second && l.first.size() && l.first.find(key) == 0) {
+            l.second(updater);
+        }
+    }
 }
 
-template<>
-std::vector<std::string> Settings::getGeneralSetting(const std::string &id) {
-    std::vector<std::string> empty_list = {};
-    return getSetting("/general/" + id, empty_list);
+int Settings::registerChangeListener(const std::string key, ListenerFunc fn) {
+    auto id = listeners.size();
+    assert(id);
+    listeners.push_back(std::make_pair(key, fn));
+    fn(0); // use the callback to do one first-time update
+    return id;
 }
 
-template<>
-void Settings::setGeneralSetting(const std::string &id, const bool value) {
-    setSetting("/general/" + id, value);
-}
-
-template<>
-void Settings::setGeneralSetting(const std::string &id, const int value) {
-    setSetting("/general/" + id, value);
-}
-
-template<>
-void Settings::setGeneralSetting(const std::string &id, const std::string value) {
-    setSetting("/general/" + id, value);
-}
-
-template<>
-void Settings::setGeneralSetting(const std::string &id, std::vector<std::string> value) {
-    setSetting("/general/" + id, value);
-}
-
-template<>
-std::string Settings::getGeneralSetting(const std::string &id) {
-    return getSetting("/general/" + id, std::string(""));
-}
-
-std::shared_ptr<maps::OverlayConfig> Settings::getOverlayConfig() {
-    return overlayConfig;
-}
-
-std::shared_ptr<avitab::AirportConfig> Settings::getAirportConfig() {
-    return airportConfig;
-}
-
-std::shared_ptr<maps::MapConfig> Settings::getMapConfig() {
-    return mapConfig;
-}
-
-template<typename T>
-T Settings::getSetting(const std::string &ptr, T def) {
-    return database->value(json::json_pointer(ptr), def);
-}
-
-template<typename T>
-void Settings::setSetting(const std::string &id, const T value) {
-    (*database)[json::json_pointer(id)] = value;
+void Settings::unregisterChangeListener(int id) {
+    if ((id > 0) && (id < listeners.size())) {
+        listeners[id] = std::make_pair("", nullptr);
+    }
 }
 
 void Settings::init() {
@@ -164,102 +129,11 @@ void Settings::load() {
     for (const auto &i : filedata.items()) {
         (*database)[i.key()] = i.value();
     }
-
-    loadOverlayConfig();
-    loadAirportConfig();
-    loadMapConfig();
-}
-
-void Settings::loadOverlayConfig() {
-    overlayConfig = std::make_shared<maps::OverlayConfig>();
-    overlayConfig->drawMyAircraft = getSetting("/overlay/my_aircraft", true);
-    overlayConfig->drawOtherAircraft = getSetting("/overlay/other_aircraft", true);
-    overlayConfig->drawRoute = getSetting("/overlay/route", true);
-    overlayConfig->drawAirports = getSetting("/overlay/airports", false);
-    overlayConfig->drawAirstrips = getSetting("/overlay/airstrips", false);
-    overlayConfig->drawHeliportsSeaports = getSetting("/overlay/heliports_seaports", false);
-    overlayConfig->drawVORs = getSetting("/overlay/VORs", false);
-    overlayConfig->drawNDBs = getSetting("/overlay/NDBs", false);
-    overlayConfig->drawILSs = getSetting("/overlay/ILSs", false);
-    overlayConfig->drawWaypoints = getSetting("/overlay/waypoints", false);
-    overlayConfig->drawPOIs = getSetting("/overlay/POIs", false);
-    overlayConfig->drawVRPs = getSetting("/overlay/VRPs", false);
-    overlayConfig->drawMarkers = getSetting("/overlay/markers", false);
-    overlayConfig->colorOtherAircraftBelow = colorStringToInt(getSetting("/overlay/colors/other_aircraft/below", std::string("GREEN")), "GREEN");
-    overlayConfig->colorOtherAircraftSame = colorStringToInt(getSetting("/overlay/colors/other_aircraft/same", std::string("BLACK")), "BLACK");
-    overlayConfig->colorOtherAircraftAbove = colorStringToInt(getSetting("/overlay/colors/other_aircraft/above", std::string("BLUE")), "BLUE");
-}
-
-void Settings::saveOverlayConfig() {
-    setSetting("/overlay/my_aircraft", overlayConfig->drawMyAircraft);
-    setSetting("/overlay/other_aircraft", overlayConfig->drawOtherAircraft);
-    setSetting("/overlay/route", overlayConfig->drawRoute);
-    setSetting("/overlay/airports", overlayConfig->drawAirports);
-    setSetting("/overlay/airstrips", overlayConfig->drawAirstrips);
-    setSetting("/overlay/heliports_seaports", overlayConfig->drawHeliportsSeaports);
-    setSetting("/overlay/VORs", overlayConfig->drawVORs);
-    setSetting("/overlay/NDBs", overlayConfig->drawNDBs);
-    setSetting("/overlay/ILSs", overlayConfig->drawILSs);
-    setSetting("/overlay/waypoints", overlayConfig->drawWaypoints);
-    setSetting("/overlay/POIs", overlayConfig->drawPOIs);
-    setSetting("/overlay/VRPs", overlayConfig->drawVRPs);
-    setSetting("/overlay/markers", overlayConfig->drawMarkers);
-    setSetting("/overlay/colors/other_aircraft/below", colorIntToString(overlayConfig->colorOtherAircraftBelow));
-    setSetting("/overlay/colors/other_aircraft/same", colorIntToString(overlayConfig->colorOtherAircraftSame));
-    setSetting("/overlay/colors/other_aircraft/above", colorIntToString(overlayConfig->colorOtherAircraftAbove));
-}
-
-void Settings::loadMapConfig() {
-    mapConfig = std::make_shared<maps::MapConfig>();
-    mapConfig->onlineMapIndex = getSetting("/map/online_map", 0);
-}
-
-void Settings::saveMapConfig() {
-    setSetting("/map/online_map", mapConfig->onlineMapIndex);
-}
-
-void Settings::loadDocReadingConfig(const std::string appName, DocumentReadingConfig &config) {
-    config.mouseWheelScrollsMultiPage = getSetting("/" + appName + "/docreading/mousewheelscroll", false);
-}
-
-void Settings::saveDocReadingConfig(const std::string appName, DocumentReadingConfig &config) {
-    setSetting("/" + appName + "/docreading/mousewheelscroll", config.mouseWheelScrollsMultiPage);
-}
-
-void Settings::loadAirportConfig() {
-    airportConfig = std::make_shared<avitab::AirportConfig>();
-    airportConfig->doSort = getSetting("/airports/sort", true);
-    airportConfig->sortAscending = getSetting("/airports/sort_ascending", true);
-}
-
-void Settings::saveAirportConfig() {
-    setSetting("/airports/sort", airportConfig->doSort);
-    setSetting("/airports/sort_ascending", airportConfig->sortAscending);
-}
-
-void Settings::saveWindowRect(const WindowRect &rect) {
-    setSetting("/window/top", rect.top);
-    setSetting("/window/left", rect.left);
-    setSetting("/window/right", rect.right);
-    setSetting("/window/bottom", rect.bottom);
-    setSetting("/window/popped", rect.poppedOut);
-    setSetting("/window/valid", rect.valid);
-}
-
-WindowRect Settings::loadWindowRect() {
-    WindowRect rect;
-    rect.valid = getSetting("/window/valid", false);
-    rect.top = getSetting("/window/top", 0);
-    rect.left = getSetting("/window/left", 0);
-    rect.right = getSetting("/window/right", 0);
-    rect.bottom = getSetting("/window/bottom", 0);
-    rect.poppedOut = getSetting("/window/popped", false);
-    return rect;
 }
 
 void Settings::upgrade1to2() {
     // version 1 preferences used the key 'pdfreading' which was changed to 'docreading' in version 2
-    // to reflect the more general capabilities of the document reading apps
+    // to reflect the more general capabilities of the document reading apps.
     std::vector<std::string> apps {"chartsapp", "manualsapp"};
     for (auto& appname: apps) {
         if ((*database).contains(appname)) {
@@ -272,28 +146,33 @@ void Settings::upgrade1to2() {
 }
 
 void Settings::upgrade2to3() {
+    // version 3 added these preferences,
+    // although the version update wasn't actually required for simple additions.
     (*database)["airports"]["sort"] = true;
     (*database)["airports"]["sort_ascending"] = true;
+}
+
+void Settings::cleanUp() {
+    // Get rid of any other obsolete entries, sometimes these are transitory developer entries
+    (*database)["general"].erase("remote_georefs_urls");
+    (*database).erase("window");
 }
 
 void Settings::initMissing() {
     // Initialise "missing" settings, added to code since last prefs version update
     // But they don't need a new prefs version, just set to a default if they're not there
 
-    if (!database->contains("/general/remote_georefs_urls"_json_pointer)) {
+    if (!database->contains("/georefs/remote_urls"_json_pointer)) {
         // Use latest checked in version, but from Github Pages to allow higher rate limit
         const std::vector<std::string> default_url_list = { 
             "https://teamavitab.github.io/avitab_georefs/georefs/TeamAvitabGeorefs.zip" 
         };
-        setGeneralSetting("remote_georefs_urls", default_url_list);
+        (*database)["georefs"]["remote_urls"] = default_url_list;
     }
 }
 
 void Settings::saveAll() {
     try {
-        saveOverlayConfig();
-        saveAirportConfig();
-        saveMapConfig();
         std::ofstream fout(filePath);
         fout << std::setw(4) << *database;
     } catch (const std::exception &e) {
@@ -301,50 +180,54 @@ void Settings::saveAll() {
     }
 }
 
-uint32_t Settings::colorStringToInt(std::string colString, const char* colDefault)
-{
-    std::string cstr(colString);
-    for (auto i = cstr.begin(); i != cstr.end(); ++i) *i = toupper(*i);
-
-    for (auto i = colorTable.begin(); i != colorTable.end(); ++i) {
-        if (cstr == i->first) {
-            return i->second;
-        }
-    }
-
-    if ((cstr[0] == '#') && (cstr.size() >= 7)) {
-        cstr.erase(0,1);
-        uint32_t c = 0;
-        size_t p = 0;
-        try {
-            long long l = std::stoll(cstr, &p, 16);
-            c = static_cast<uint32_t>(static_cast<unsigned long long>(l) & 0xFFFFFFFF);
-        } catch (...) {
-            p = 0;
-        }
-        if (p == 6) c |= 0xFF000000;// make color opaque if alpha-channel not defined
-        if (p) return c;
-    }
-
-    cstr = colDefault;
-    for (auto i = colorTable.begin(); i != colorTable.end(); ++i) {
-        if (cstr == i->first) {
-            return i->second;
-        }
-    }
-    return 0xFFFFFFFF;
+void ConfigBase::init(std::shared_ptr<Settings> db, const std::string &k, UpdateFunc fn) {
+    settings = db;
+    key = k;
+    updCallback = fn;
+    listenerId = settings->registerChangeListener(key, [this] (int id) { onUpdate(id); });
 }
 
-std::string Settings::colorIntToString(uint32_t color)
-{
-    for (auto i = colorTable.begin(); i != colorTable.end(); ++i) {
-        if (color == i->second) {
-            return std::string(i->first);
-        }
-    }
-    std::stringstream s;
-    s << "#" << std::setfill('0') << std::setw(8) << std::hex << color;
-    return s.str();
+void ConfigBase::update() {
+    pack();
+    settings->put(key, json, listenerId);
 }
+
+void ConfigBase::onUpdate(int id) {
+    if (id == 0) {
+        // first time only, use this to populate the config struct
+        json = settings->get(key);
+        unpack();
+    } else if (id != listenerId) {
+        // some part of the config was updated by another module
+        // get the updated json, but don't unpack it here, since
+        // the callback might want to test which fields were changed.
+        json = settings->get(key);
+        updCallback();
+    } else {
+        // the config was updated by this listener, so do nothing
+    }
+}
+
+void GeneralConfig::unpack() {
+    version = json["prefs_version"];
+    showFPS = json.value("show_fps", true);
+    clockMode = json.value("clock_mode", 0);
+    showAirportOverlays = json.value("show_overlays_in_airport_app", true);
+    showChartOverlays = json.value("show_overlays_in_charts_app", true);
+    showCalibrateMsgOnLoad = json.value("show_calibration_msg_on_load", true);
+    userFixesFile = json.value("userfixes_file", "");
+    nightMode = json.value("night_mode", false);
+}
+
+void GeneralConfig::pack() {
+    json["show_fps"] = showFPS;
+    json["clock_mode"] = clockMode;
+    json["show_overlays_in_airport_app"] = showAirportOverlays;
+    json["show_overlays_in_charts_app"]  = showChartOverlays;
+    json["show_calibration_msg_on_load"] = showCalibrateMsgOnLoad;
+    json["userfixes_file"]               = userFixesFile;
+    json["night_mode"]                   = nightMode;
+}
+
 
 } /* namespace avitab */

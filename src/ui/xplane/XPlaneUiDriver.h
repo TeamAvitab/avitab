@@ -17,25 +17,16 @@
  */
 #pragma once
 
-#if 0
-/*
-Here's the TODO list for the remainder of the X-Plane UI driver updates>
-- save/restore window position in settings
-- general review of code for anything missed
-*/
-#endif
-
-
-#include <atomic>
-#include <filesystem>
-#include <mutex>
-#include <memory>
 #include "UiDriver.h"
 #include "sim/xplane/DataRefImport.h"
 #include "sim/xplane/DataRefExport.h"
 #include "XPlaneMonitorWindow.h"
 #include "XPlaneVrWindow.h"
 #include "XPlaneCockpitPanel.h"
+#include <atomic>
+#include <filesystem>
+#include <mutex>
+#include <memory>
 
 class XPlaneSimDriver;
 
@@ -79,7 +70,7 @@ public:
 
 public:
     // The top-level state machine is start -> enable -> disable { -> enable -> disable } -> stop
-    void start(std::shared_ptr<avitab::Settings> prefs, std::shared_ptr<avitab::AviTabCore> core, std::shared_ptr<XPlaneSimDriver> sim);
+    void start(std::shared_ptr<avitab::Settings> settings, std::shared_ptr<avitab::AviTabCore> core, std::shared_ptr<XPlaneSimDriver> sim);
     void enable(const std::filesystem::path & aircraftDir);
     void disable();
     void stop();
@@ -111,6 +102,8 @@ private:
     static int onKeySniff(char c, XPLMKeyFlags flags, char vKey, void *ref);
 
 private:
+    std::shared_ptr<avitab::Settings> settings;
+
     xdata::DataRefImport<bool> isVrEnabled;
 
     XPlaneUiSharedData sharedData;

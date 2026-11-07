@@ -17,8 +17,6 @@
  */
 #pragma once
 
-#include <memory>
-#include <vector>
 #include "App.h"
 #include "gui/widgets/TextArea.h"
 #include "gui/widgets/Keyboard.h"
@@ -37,14 +35,33 @@
 #include "image/stitcher/TileSource.h"
 #include "maps/OverlayedMap.h"
 #include "image/stitcher/Stitcher.h"
+#include <nlohmann/json.hpp>
+#include <memory>
+#include <vector>
 
 namespace avitab {
+
+struct AirportAppConfig : public ConfigBase {
+    bool sortEnabled;
+    bool sortAscending;
+    void unpack() override;
+    void pack() override;
+};
 
 class AirportApp: public App {
 public:
     AirportApp(FuncsPtr appFuncs);
     void onMouseWheel(int dir, int x, int y) override;
     void changeChartTab(bool next) override;
+
+private: // this group relates to airport app configuration
+    void onGeneralConfigChanged();
+    void onAppConfigChanged();
+    void onOverlayConfigChanged();
+    GeneralConfig generalConfig;
+    AirportAppConfig appConfig;
+    std::shared_ptr<maps::OverlayConfig> overlayConfig;
+
 private:
     struct TabPage {
         std::shared_ptr<Page> page;
@@ -63,7 +80,6 @@ private:
         std::shared_ptr<img::Stitcher> mapStitcher;
         std::shared_ptr<maps::OverlayedMap> map;
         std::shared_ptr<PixMap> pixMap;
-        std::shared_ptr<maps::OverlayConfig> overlays;
 
         int panPosX = 0, panPosY = 0;
         bool trackPlane = true;
@@ -83,7 +99,6 @@ private:
     std::shared_ptr<Button> nextButton;
     std::shared_ptr<Keyboard> keys;
     std::shared_ptr<Button> nearestButton;
-    std::shared_ptr<avitab::AirportConfig> airportConfig;
 
     void removeTab(std::shared_ptr<Page> page);
     void resetLayout();

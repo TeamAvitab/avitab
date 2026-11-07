@@ -15,8 +15,10 @@
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 #include "DocumentsApp.h"
 #include "Logger.h"
+#include <cassert>
 
 namespace avitab {
 
@@ -29,15 +31,16 @@ DocumentsApp::DocumentsApp(FuncsPtr appFuncs, const std::string &title, const st
     std::filesystem::create_directories(dir);
     fsBrowser = std::make_unique<FilesystemBrowser>(dir);
     setFilterRegex(fileRegex);
+
+    overlayConfig = std::make_shared<maps::OverlayConfig>();
+    auto settings = api().getSettings();
+    appConfig.init(settings, "/" + group, [this] () { onAppConfigChanged(); });
+    generalConfig.init(settings, "/general", [this] () { onGeneralConfigChanged(); });
+    overlayConfig->init(settings, "/overlay", [this] () { onOverlayConfigChanged(); });
 }
 
 void DocumentsApp::Run() {
-    api().getSettings()->loadDocReadingConfig(configGroup, settings);
-    if (api().getSettings()->getGeneralSetting<bool>("show_overlays_in_charts_app")) {
-        overlays = api().getSettings()->getOverlayConfig();
-    } else {
-        overlays = std::make_shared<maps::OverlayConfig>();
-    }
+
     resetLayout();
     ChangeBrowseDirectory(fsBrowser->path());
 }
@@ -100,8 +103,7 @@ void DocumentsApp::onSettingsToggle(bool forceClose) {
     }
     bool show = forceClose ? false : !settingsContainer->isVisible();
     if (!show) {
-        api().getSettings()->saveDocReadingConfig(configGroup, settings);
-        api().getSettings()->saveAll();
+        appConfig.update();
     }
     settingsContainer->setVisible(show);
 }
@@ -210,7 +212,7 @@ void DocumentsApp::loadFile(PageInfo tab, const std::filesystem::path &docPath) 
     tab->stitcher = std::make_shared<img::Stitcher>(tab->rasterImage, tab->source);
     tab->stitcher->setCacheDirectory(api().getAvitabDataDir()/"MapTiles");
 
-    tab->map = std::make_shared<maps::OverlayedMap>(tab->stitcher, overlays);
+    tab->map = std::make_shared<maps::OverlayedMap>(tab->stitcher, overlayConfig);
     tab->map->loadOverlayIcons(api().getAvitabInstallDir()/"icons");
     tab->map->setGetRouteCallback([this] () { return api().getRoute(); });
 
@@ -351,7 +353,7 @@ void DocumentsApp::onMouseWheel(int dir, int x, int y) {
                 onNextPage();
             }
         } else {
-            bool doScroll = settings.mouseWheelScrollsMultiPage && (tab->stitcher->getPageCount() > 1);
+            bool doScroll = appConfig.mouseWheelScrollsMultiPage && (tab->stitcher->getPageCount() > 1);
             if (dir > 0) {
                 if (doScroll) {
                     onScrollUp();
@@ -397,9 +399,9 @@ void DocumentsApp::showAppSettings() {
     settingsLabel->alignInTopLeft();
 
     mouseWheelScrollsCheckbox = std::make_shared<Checkbox>(settingsContainer, "Mouse wheel scrolls in multi-page docs");
-    mouseWheelScrollsCheckbox->setChecked(settings.mouseWheelScrollsMultiPage);
+    mouseWheelScrollsCheckbox->setChecked(appConfig.mouseWheelScrollsMultiPage);
     mouseWheelScrollsCheckbox->alignBelow(settingsLabel);
-    mouseWheelScrollsCheckbox->setCallback([this] (bool checked) { settings.mouseWheelScrollsMultiPage = checked; });
+    mouseWheelScrollsCheckbox->setCallback([this] (bool checked) { appConfig.mouseWheelScrollsMultiPage = checked; appConfig.update(); });
 };
 
 void DocumentsApp::positionPage(PageInfo tab, VerticalPosition vp, HorizontalPosition hp, ZoomAdjust za) {
@@ -453,6 +455,40 @@ void DocumentsApp::positionPage(PageInfo tab, VerticalPosition vp, HorizontalPos
     if (tilexy.x != 0 && tilexy.y != 0) {
         tab->stitcher->setCenter((float) cx / tilexy.x, (float) cy / tilexy.y);
     }
+}
+
+void DocumentsApp::onAppConfigChanged() {
+    // this function should not be called since the app config is (currently) only changed by the app
+    assert(0);
+}
+
+void DocumentsApp::onGeneralConfigChanged() {
+    generalConfig.unpack();
+    if (generalConfig.showChartOverlays) {
+        overlayConfig->unpack();
+    } else {
+        overlayConfig->disable();
+    }
+}
+
+void DocumentsApp::onOverlayConfigChanged() {
+    if (generalConfig.showChartOverlays) {
+        overlayConfig->unpack();
+    } else {
+        overlayConfig->disable();
+    }
+}
+
+void DocumentsAppConfig::unpack() {
+    try {
+        mouseWheelScrollsMultiPage = json.value("/docreading/mousewheelscroll"_json_pointer, false);
+    } catch (...) {
+        mouseWheelScrollsMultiPage = false;
+    }
+}
+
+void DocumentsAppConfig::pack() {
+    json["docreading"]["mousewheelscroll"] = mouseWheelScrollsMultiPage;
 }
 
 } /* namespace avitab */

@@ -17,6 +17,7 @@
  */
 
 #include "XPlaneUiDriver.h"
+#include "Settings.h"
 #include "Logger.h"
 #include <XPLM/XPLMGraphics.h>
 #include "platform/OpenGLdefs.h"
@@ -31,7 +32,9 @@ XPlaneUiDriver::XPlaneUiDriver()
 XPlaneUiDriver::~XPlaneUiDriver() {
 }
 
-void XPlaneUiDriver::start(std::shared_ptr<avitab::Settings> prefs, std::shared_ptr<avitab::AviTabCore> core, std::shared_ptr<XPlaneSimDriver> sim) {
+void XPlaneUiDriver::start(std::shared_ptr<avitab::Settings> s, std::shared_ptr<avitab::AviTabCore> core, std::shared_ptr<XPlaneSimDriver> sim) {
+    settings = s;
+
     sharedData.brightnessRef = std::make_unique<xdata::DataRefExport<float>>("avitab/brightness", this,
         [] (void *self) { return (reinterpret_cast<XPlaneUiDriver *>(self))->sharedData.brightness; },
         [] (void *self, float v) { (reinterpret_cast<XPlaneUiDriver *>(self))->sharedData.brightness = v; });
@@ -48,14 +51,13 @@ void XPlaneUiDriver::start(std::shared_ptr<avitab::Settings> prefs, std::shared_
 void XPlaneUiDriver::enable(const std::filesystem::path & aircraftDir) {
     logger::info("XPlaneUiDriver::enable()");
 
-#if 0 // REFACTOR-TODO - avitab equivalent required   
-    auto& xwdp = prefs->Get("/xplane/window");
+    auto cfg = settings->get("/xplane/window");
+    bool showWindow = false;
     try {
-        showNow = xwdp.at("/open_at_start"_json_pointer);
+        monitorWindow->extract_config(cfg);
+        showWindow = cfg.value("active", false);
     }
     catch (...) {}
-    LOGD(fmt::format("Read open_at_start preference as {}", showNow));
-#endif
 
     currentWindow = isVrEnabled ? static_cast<XPlaneBaseWindow *>(vrWindow.get()) : static_cast<XPlaneBaseWindow *>(monitorWindow.get());
     cockpitPanel->onPlaneLoad(aircraftDir);
@@ -73,6 +75,10 @@ void XPlaneUiDriver::enable(const std::filesystem::path & aircraftDir) {
     // don't use the X-Plane UI widgets for text entry. So we use a key sniffer
     // which only consumes key events when the GUI can use them.
     XPLMRegisterKeySniffer(onKeySniff, 0, this);
+
+    if (showWindow) {
+        toggleTablet();
+    }
 }
 
 void XPlaneUiDriver::disable() {
@@ -80,15 +86,14 @@ void XPlaneUiDriver::disable() {
 
     XPLMUnregisterKeySniffer(onKeySniff, 0, this);
 
-#if 0 // REFACTOR-TODO - avitab equivalent required   
     // save the window state for next time
-    auto xwdp = prefs->Get("/xplane/window");
-    xwdp["open_at_start"] = panel->isActive();
-    prefs->Put("/xplane/window", xwdp);
-    LOGD(fmt::format("Wrote open_at_start preference to {}", panel->isActive()));
-#endif
+    nlohmann::json cfg;
+    cfg["active"] = currentWindow->isActive();
+    monitorWindow->update_config(cfg);
+    settings->put("/xplane/window", cfg);
 
     // hide and destroy the floating window
+    appCloseRequested = false;
     currentWindow->destroy();
     currentWindow = nullptr;
     // disable the cockpit panel

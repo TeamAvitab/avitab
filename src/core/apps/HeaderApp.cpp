@@ -15,23 +15,23 @@
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include <algorithm>
-#include <iomanip>
-#include <sstream>
-#include <ctime>
+
 #include "HeaderApp.h"
 #include "platform/Platform.h"
 #include "Logger.h"
+#include <iomanip>
+#include <sstream>
+#include <ctime>
+#include <cassert>
 
 namespace avitab {
 
 HeaderApp::HeaderApp(FuncsPtr appFuncs):
     App(appFuncs),
-    savedSettings(appFuncs->getSettings()),
     tickTimer(std::bind(&HeaderApp::onTick, this), TIMER_PERIOD_MS)
 {
-    curClockMode = savedSettings->getGeneralSetting<int>("clock_mode") % NUM_CLOCK_MODES;
-    showFps = savedSettings->getGeneralSetting<bool>("show_fps");
+    auto settings = api().getSettings();
+    generalConfig.init(settings, "/general", [this] () { onGeneralConfigChanged(); });
 
     auto container = getUIContainer();
     container->setPosition(0, 0);
@@ -48,7 +48,7 @@ HeaderApp::HeaderApp(FuncsPtr appFuncs):
 
     fpsLabel = std::make_shared<Label>(container, "-- FPS");
     fpsLabel->alignRightOf(settingsButton);
-    fpsLabel->setVisible(showFps);
+    fpsLabel->setVisible(generalConfig.showFPS);
 
     homeButton = std::make_shared<Button>(container, Widget::Symbol::HOME);
     homeButton->setCallback([this] (const Button &) { api().onHomeButtonPressed(); });
@@ -60,6 +60,13 @@ HeaderApp::HeaderApp(FuncsPtr appFuncs):
     createSettingsContainer();
 
     onTick();
+}
+
+void HeaderApp::onGeneralConfigChanged() {
+    generalConfig.unpack();
+    assert(fpsLabel);
+    fpsLabel->setVisible(generalConfig.showFPS);
+    // if the clock mode was changed then this will take effect on the next update
 }
 
 void HeaderApp::onScreenResize(int width, int height) {
@@ -82,8 +89,8 @@ void HeaderApp::createSettingsContainer() {
     brightnessSlider->alignRightOf(brightLabel, HOR_PADDING);
 
     fpsCheckbox = std::make_shared<Checkbox>(prefContainer, "Show FPS");
-    fpsCheckbox->setChecked(showFps);
-    fpsCheckbox->setCallback([this] (bool checked) { showFps = checked; savedSettings->setGeneralSetting<bool>("show_fps", showFps); fpsLabel->setVisible(showFps); });
+    fpsCheckbox->setChecked(generalConfig.showFPS);
+    fpsCheckbox->setCallback([this] (bool checked) { generalConfig.showFPS = checked; generalConfig.update(); fpsLabel->setVisible(generalConfig.showFPS); });
     fpsCheckbox->alignRightOf(brightnessSlider);
 
     mediaLabel = std::make_shared<Label>(prefContainer, "Ext. Media");
@@ -121,11 +128,11 @@ void HeaderApp::onClockClick(int x, int y, bool press, bool release) {
     } else if (release) {
         // if the clock is in elapsed timer mode and the click was held for
         // more than 2 seconds then the elapsed timer is restarted.
-        if ((curClockMode == ELAPSED_TIMER) && (clickTimer > (2 * TIMER_TICKS_PER_SEC))) {
+        if ((generalConfig.clockMode == ELAPSED_TIMER) && (clickTimer > (2 * TIMER_TICKS_PER_SEC))) {
             elapsedTimerStartS = api().getZuluTimeSeconds();
         } else {
-            curClockMode = (curClockMode + 1) % NUM_CLOCK_MODES;
-            savedSettings->setGeneralSetting<int>("clock_mode", curClockMode);
+            generalConfig.clockMode = (generalConfig.clockMode + 1) % NUM_CLOCK_MODES;
+            generalConfig.update();
         }
         clickActive = false;
         clockUpdateAlarm = 0;
@@ -154,7 +161,7 @@ void HeaderApp::updateClock() {
     unsigned int tMajor = 0, tMinor = 0;
     char prefix = 0, suffix = 0;
 
-    if (curClockMode == REAL_WORLD_TIME_LOCAL) {
+    if (generalConfig.clockMode == REAL_WORLD_TIME_LOCAL) {
         // display hours and minutes, update required at/just after next minute increment
         time_t now = time(nullptr);
         tm *local = localtime(&now);
@@ -162,7 +169,7 @@ void HeaderApp::updateClock() {
         tMinor = local->tm_min;
         prefix = '{'; suffix = '}';
         clockUpdateAlarm = ((60 - local->tm_sec) + 1) * TIMER_TICKS_PER_SEC;
-    } else if (curClockMode == ELAPSED_TIMER) {
+    } else if (generalConfig.clockMode == ELAPSED_TIMER) {
         if (elapsedTimerStartS >= CLOCK_WRAP_SECONDS) { // run once to initialise
             elapsedTimerStartS = api().getZuluTimeSeconds();
         }
@@ -177,10 +184,10 @@ void HeaderApp::updateClock() {
         clockUpdateAlarm = TIMER_TICKS_PER_SEC;
     } else { // either one of the 2 simulation time modes
         // display hours and minutes, update required at/just after next minute increment
-        unsigned int simTime = (curClockMode == SIM_TIME_LOCAL) ? api().getLocalTimeSeconds() : api().getZuluTimeSeconds();
+        unsigned int simTime = (generalConfig.clockMode == SIM_TIME_LOCAL) ? api().getLocalTimeSeconds() : api().getZuluTimeSeconds();
         tMajor = (simTime / (60 * 60)) % 24;
         tMinor = (simTime / 60) % 60;
-        if (curClockMode == SIM_TIME_ZULU) suffix = 'z';
+        if (generalConfig.clockMode == SIM_TIME_ZULU) suffix = 'z';
         clockUpdateAlarm = ((simTime % 60) + 1) * TIMER_TICKS_PER_SEC;
     }
 
