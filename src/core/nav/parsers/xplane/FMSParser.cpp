@@ -102,6 +102,8 @@ void FMSParser::parseIntroBlocks() {
             node.type = FlightPlanNodeData::Type::APPTRANS;
         } else if (prefix == "ADES") {
             node.type = FlightPlanNodeData::Type::ADES;
+        } else if (prefix == "DES") {
+            node.type = FlightPlanNodeData::Type::DES;
         } else if (prefix == "DESRWY") {
             node.type = FlightPlanNodeData::Type::DESRWY;
         } else if (prefix == "STAR") {

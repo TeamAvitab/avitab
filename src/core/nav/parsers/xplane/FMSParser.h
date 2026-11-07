@@ -38,6 +38,7 @@ struct FlightPlanNodeData {
         SID,
         SIDTRANS,
         ADES,
+        DES,
         DESRWY,
         STAR,
         STARTRANS,
