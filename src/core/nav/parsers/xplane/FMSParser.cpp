@@ -18,6 +18,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <map>
 #include "FMSParser.h"
 #include "Logger.h"
 #include "platform/cstrtod.h"
@@ -78,42 +79,32 @@ void FMSParser::parseEnRouteBlock() {
 }
 
 void FMSParser::parseIntroBlocks() {
+    static const std::map<std::string, FlightPlanNodeData::Type> introTypes = {
+        {"CYCLE", FlightPlanNodeData::Type::CYCLE},
+        {"ADEP", FlightPlanNodeData::Type::ADEP},
+        {"DEP", FlightPlanNodeData::Type::ADEP},
+        {"DEPRWY", FlightPlanNodeData::Type::DEPRWY},
+        {"SID", FlightPlanNodeData::Type::SID},
+        {"SIDTRANS", FlightPlanNodeData::Type::SIDTRANS},
+        {"APP", FlightPlanNodeData::Type::APP},
+        {"APPTRANS", FlightPlanNodeData::Type::APPTRANS},
+        {"ADES", FlightPlanNodeData::Type::ADES},
+        {"DES", FlightPlanNodeData::Type::ADES},
+        {"DESRWY", FlightPlanNodeData::Type::DESRWY},
+        {"STAR", FlightPlanNodeData::Type::STAR},
+        {"STARTRANS", FlightPlanNodeData::Type::STARTRANS}
+    };
+
     FlightPlanNodeData node {};
     std::string prefix = parser.parseWord();
     if (prefix == "NUMENR") {
         parsingEnRouteBlock = true;
     } else {
-        node.type = FlightPlanNodeData::Type::ERR;
-        if (prefix == "CYCLE") {
-            node.type = FlightPlanNodeData::Type::CYCLE;
-        } else if (prefix == "ADEP") {
-            node.type = FlightPlanNodeData::Type::ADEP;
-        } else if (prefix == "DEP") {
-            node.type = FlightPlanNodeData::Type::DEP;
-        } else if (prefix == "DEPRWY") {
-            node.type = FlightPlanNodeData::Type::DEPRWY;
-        } else if (prefix == "SID") {
-            node.type = FlightPlanNodeData::Type::SID;
-        } else if (prefix == "SIDTRANS") {
-            node.type = FlightPlanNodeData::Type::SIDTRANS;
-        } else if (prefix == "APP") {
-            node.type = FlightPlanNodeData::Type::APP;
-        } else if (prefix == "APPTRANS") {
-            node.type = FlightPlanNodeData::Type::APPTRANS;
-        } else if (prefix == "ADES") {
-            node.type = FlightPlanNodeData::Type::ADES;
-        } else if (prefix == "DES") {
-            node.type = FlightPlanNodeData::Type::DES;
-        } else if (prefix == "DESRWY") {
-            node.type = FlightPlanNodeData::Type::DESRWY;
-        } else if (prefix == "STAR") {
-            node.type = FlightPlanNodeData::Type::STAR;
-        } else if (prefix == "STARTRANS") {
-            node.type = FlightPlanNodeData::Type::STARTRANS;
-        } else {
+        const auto type = introTypes.find(prefix);
+        if (type == introTypes.end()) {
             logger::warn("Unknown FMS entry type %s @ line %d", prefix.c_str(), lineNum);
-        }
-        if (node.type != FlightPlanNodeData::Type::ERR) {
+        } else {
+            node.type = type->second;
             node.id = parser.parseWord();
             acceptor(node);
         }

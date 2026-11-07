@@ -77,9 +77,7 @@ void FMSLoader::onFMSLoaded(const FlightPlanNodeData &node) {
         case FlightPlanNodeData::Type::APPTRANS:  approachTransName = node.id; break;
         case FlightPlanNodeData::Type::APP:       approachName = node.id; break;
         case FlightPlanNodeData::Type::ADEP:      departureAirportName = node.id; break;
-        case FlightPlanNodeData::Type::DEP:       departureAirportName = node.id; break;
         case FlightPlanNodeData::Type::ADES:      arrivalAirportName = node.id; break;
-        case FlightPlanNodeData::Type::DES:       arrivalAirportName = node.id; break;
         case FlightPlanNodeData::Type::DEPRWY:    departureRwyName = stripRWPrefix(node.id); break;
 
         case FlightPlanNodeData::Type::NDB:
