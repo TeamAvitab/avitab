@@ -57,7 +57,7 @@ Theme::Theme(std::string dir, std::string name, lv_display_t *disp):
 
 // ── load (by name) ───────────────────────────────────────────
 void Theme::load(const std::string &name) {
-    logger::verbose("GUI: loading Theme %s", name.c_str());
+    logger::info("GUI: loading Theme %s", name.c_str());
     std::filesystem::path path = themesDir / name / (name + ".json");
     loadFromPath(path, name);
 }

@@ -120,7 +120,7 @@ void HeaderApp::createSettingsContainer() {
             theme->load(name);
             savedSettings->setGeneralSetting<std::string>("theme", theme->getName());
         } catch (const std::exception &e) {
-            LOG_WARN("Could not load theme '%s': %s", name.c_str(), e.what());
+            logger::warn("GUI: Could not load theme '%s': %s", name.c_str(), e.what());
         }
     });
 
