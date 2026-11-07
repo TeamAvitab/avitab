@@ -16,10 +16,6 @@
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// REFACTOR - class AviTab is a muddle of core, simDriver and uiDriver.
-// It needs reworking.
-
-#include <climits>
 #include <future>
 #include <filesystem>
 #include <memory>
@@ -28,225 +24,246 @@
 #include "UiDriver.h"
 #include "SimDriver.h"
 #include "platform/Platform.h"
+#include "platform/CrashHandler.h"
 #include "Logger.h"
 #include "JsonConfig.h"
 #include "gui/LVGLToolkit.h"
 #include "image/TTFStamper.h"
 #include "apps/HeaderApp.h"
 #include "apps/AppLauncher.h"
-#include "AviTabBuildSettings.h"
 #include "nav/NavDbManager.h"
 #include "nav/routing/RouteFinder.h"
-
-
-static const char *defaultMapConfigJson();
+#include "AviTabBuildSettings.h"
 
 namespace avitab {
 
 class AviTab : public AviTabCore, public AppFunctions {
 public:
-    AviTab(std::shared_ptr<SimDriverBase> sim, std::shared_ptr<UiDriverBase> gui);
-    void startApp() override;
-    void toggleTablet() override;
-    void resetWindowPosition();
-    void zoomIn();
-    void zoomOut();
-    void recentre();
-    void panLeft();
-    void panRight();
-    void panUp();
-    void panDown();
-    void stopApp() override;
-    void onPlaneLoad() override;
+    AviTab();
+    ~AviTab();
 
-    // App API
-    void setBrightness(float brightness) override;
-    float getBrightness() override;
-    void executeLater(std::function<void()> func) override;
+public:
+    // ----------------------------
+    // Implementation of AviTabCore
+    // ----------------------------
+
+    // APIs called by the product wrappers.
+    // The top-level state machine is start -> enable -> disable { -> enable -> disable } -> stop
+    // Start/stop are moore-or-less equivalent to construction/destruction
+    // Enable/disable correspond to the X-Plane plugin events and can be iterated. Other products just call
+    // enable once after start, and disable once before stop.
+    void start(std::shared_ptr<Settings> prefs, std::shared_ptr<SimDriverBase> sim, std::shared_ptr<UiDriverBase> gui) override;
+    void enable() override;
+    void disable() override;
+    void stop() override;
+
+    // API to adapt apps when plane changes
+    void onPlaneLoad(bool hideHeaderApp) override;
+
+    // APIs for injection of commands from the product, mainly from the X-Plane plugin
+    void commandShowApp(const std::string &appName) override;
+    void commandZoomIn() override;
+    void commandZoomOut() override;
+    void commandRecentre() override;
+    void commandPanLeft() override;
+    void commandPanRight() override;
+    void commandPanUp() override;
+    void commandPanDown() override;
+    void commandTabNext() override;
+    void commandTabPrevious() override;
+    void commandWheelUp(int x, int y) override;
+    void commandWheelDown(int x, int y) override;
+
+public:
+    // ------------------------------
+    // Implementation of AppFunctions
+    // ------------------------------
+
     std::filesystem::path getAvitabInstallDir() override;
     std::filesystem::path getAvitabDataDir() override;
     std::filesystem::path getAvitabThemeDir() override;
     std::filesystem::path getAirplanePath() override;
     std::filesystem::path getFlightPlansPath() override;
     std::shared_ptr<Theme> getGUITheme() override;
-    std::shared_ptr<Container> createGUIContainer() override;
-    void showGUIContainer(std::shared_ptr<Container> container) override;
-    void onHomeButton() override;
-    std::shared_ptr<navdb::NavDatabase> getNavDatabase() override;
-    using MagVarMap = std::map<std::pair<double, double>, double>;
-    std::vector<float> getMagneticVariations(std::vector<world::Location> &locs) override;
-    std::string getMETARForAirport(const std::string &icao) override;
-    int getWeatherAtLocation(const world::Location &loc, const float &altitude, std::string &weather) override;
-    std::string getNearestAirportId() override;
-    void loadUserFixes(const std::filesystem::path &filename) override;
-    void close() override;
-    void setIsInMenu(bool inMenu) override;
-    std::shared_ptr<apis::ChartService> getChartService() override;
-    AircraftID getActiveAircraftCount() override;
-    world::Position getAircraftPosition(AircraftID id) override;
-    unsigned int getFramesPerSecond() override;
+
     std::shared_ptr<Settings> getSettings() override;
+    std::shared_ptr<apis::ChartService> getChartService() override;
+    std::shared_ptr<navdb::NavDatabase> getNavDatabase() override;
+
+    void onHomeButtonPressed() override;
+    void onAppClosed() override;
+    void notifyHomeScreenActive(bool inMenu) override;
+    void notifyMapConfiguration(float lat, float lon, int zoom, float vrange) override;
+
+    void loadUserFixes(const std::filesystem::path &filename) override;
+    std::string getNearestAirportId() override;
+    std::vector<float> getMagneticVariations(std::vector<world::Location> &locs) override;
     std::shared_ptr<navdb::Route> getRoute() override;
     void setRoute(std::shared_ptr<navdb::Route> route) override;
-    void updateMapExports(float lat, float lon, int zoom, float vrange) override;
+
+    std::string getMETARForAirport(const std::string &icao) override;
+    int getWeatherAtLocation(const world::Location &loc, const float &altitude, std::string &weather) override;
+
+    AircraftID getActiveAircraftCount() override;
+    world::Position getAircraftPosition(AircraftID id) override;
+
+    unsigned int getFramesPerSecond() override;
     unsigned int getZuluTimeSeconds() override;
     unsigned int getLocalTimeSeconds() override;
 
-    ~AviTab();
+    void setBrightness(float brightness) override;
+    float getBrightness() override;
+
+    void executeLater(std::function<void()> func) override;
+
+    std::shared_ptr<Container> createGUIContainer() override;
+    void showGUIContainer(std::shared_ptr<Container> container) override;
 
 private:
-    bool hideHeader = false;
+    void finishInstall();
+
+    void buildHomeScreen();
+    void teardownGUI();
+
+    void showAppLauncher();
+    void showApp(AppId id);
+
+    void onScreenResize();
+
+    void coreThreadLoop();
+
+private:
+    std::shared_ptr<Settings> settings;
     std::shared_ptr<SimDriverBase> simDriver;
     std::shared_ptr<UiDriverBase> uiDriver;
-    std::shared_ptr<LVGLToolkit> guiLib;
-
     std::unique_ptr<navdb::NavDbManager> navManager;
+    std::shared_ptr<navdb::Route> activeRoute;
+    std::shared_ptr<apis::ChartService> chartService;
+    std::shared_ptr<LVGLToolkit> lvglUI;
 
+    std::unique_ptr<std::thread> coreThread;
+    std::atomic_bool coreThreadActive;
+    std::atomic_bool coreEnabled;
+    std::recursive_mutex pendingTasksMutex;
+    std::vector<std::function<void()> > pendingTasks;
+
+    bool hideHeaderApp = false;
     std::shared_ptr<Label> loadLabel;
-
     std::shared_ptr<Container> headContainer;
     std::shared_ptr<Container> centerContainer;
 
     std::shared_ptr<App> headerApp;
     std::shared_ptr<AppLauncher> appLauncher;
-    std::shared_ptr<navdb::Route> activeRoute;
-
-    std::shared_ptr<apis::ChartService> chartService;
-    bool resetWindowRect = false;
-
-    void finishInstall();
-
-    void createPanel();
-    void createLayout();
-    void showAppLauncher();
-    void showApp(AppId id);
-    void cleanupLayout();
-
-    void onScreenResize();
-    void handleClickCommand(bool down, bool drag);
-    void handleWheelUpCommand();
-    void handleWheelDownCommand();
-    void changeChartTab(bool next);
 };
 
+static const char *defaultMapConfigJson();
+
 // Factory
-std::unique_ptr<AviTabCore> AviTabCore::CreateAviTabCore(std::shared_ptr<SimDriverBase> sim, std::shared_ptr<UiDriverBase> gui) {
-    return std::make_unique<AviTab>(sim, gui);
+std::shared_ptr<AviTabCore> AviTabCore::CreateAviTabCore() {
+    return std::make_shared<AviTab>();
 }
 
-AviTab::AviTab(std::shared_ptr<SimDriverBase> e, std::shared_ptr<UiDriverBase> gd):
-    simDriver(e),
-    uiDriver(gd)
-{
-    // runs in simDriver thread, called by XPluginEnable
-    // NOTE order here is important. NAV db must be created before GUI is started.
-    navManager = std::make_unique<navdb::NavDbManager>(simDriver->getXpNavDataRootPath(), simDriver->getMsfsNavDataRootPath());
-    std::string themename = simDriver->getSettings()->getGeneralSetting<std::string>("theme");
-    guiLib = std::make_shared<LVGLToolkit>(uiDriver, getAvitabThemeDir(), themename);
-    img::TTFStamper::setFontDirectory(simDriver->getFontDirectory());
-    std::vector<std::string> remote_georefs_urls = simDriver->getSettings()->getGeneralSetting<std::vector<std::string>>("remote_georefs_urls");
-    chartService = std::make_shared<apis::ChartService>(simDriver->getDataRootPath(), remote_georefs_urls);
-    simDriver->resumeSimDriverJobs();
+AviTab::AviTab() {
 }
 
-void AviTab::startApp() {
-    // runs in simDriver thread, called by XPluginEnable
+AviTab::~AviTab() {
+    // runs in simDriver thread, destroy by PluginStop
+    logger::verbose("~AviTab");
+}
+
+void AviTab::start(std::shared_ptr<Settings> prefs, std::shared_ptr<SimDriverBase> sim, std::shared_ptr<UiDriverBase> gui) {
+    // runs in product main thread (for X-Plane plugin called by XPluginStart).
+    // will only be called once per simulation run.
+    // initialise all the background services, but don't enable them yet.
+    // enable() should (re)start UI loop, disable() should pause UI loop.
+    // stop() will be called once before product exits to clean up.
     logger::verbose("Starting AviTab %s", AVITAB_VERSION_STR);
+
+    settings = prefs;
+    simDriver = sim;
+    uiDriver = gui;
 
     finishInstall();
 
-    simDriver->createMenu("AviTab");
-    simDriver->createCommand("AviTab/toggle_tablet", "Toggle Tablet", [this] (CommandState s) { if (s == CommandState::START) toggleTablet(); });
-    simDriver->createCommand("AviTab/zoom_in", "Zoom In", [this] (CommandState s) { if (s == CommandState::START) zoomIn(); });
-    simDriver->createCommand("AviTab/zoom_out", "Zoom Out", [this] (CommandState s) { if (s == CommandState::START) zoomOut(); });
-    simDriver->createCommand("AviTab/recentre", "Recentre", [this] (CommandState s) { if (s == CommandState::START) recentre(); });
-    simDriver->createCommand("AviTab/pan_left", "Pan left", [this] (CommandState s) { if (s == CommandState::START) panLeft(); });
-    simDriver->createCommand("AviTab/pan_right", "Pan right", [this] (CommandState s) { if (s == CommandState::START) panRight(); });
-    simDriver->createCommand("AviTab/pan_up", "Pan up", [this] (CommandState s) { if (s == CommandState::START) panUp(); });
-    simDriver->createCommand("AviTab/pan_down", "Pan down", [this] (CommandState s) { if (s == CommandState::START) panDown(); });
-    simDriver->createCommand("AviTab/Home", "Home Button",[this] (CommandState s) { if (s == CommandState::START) onHomeButton(); });
+    navManager = std::make_unique<navdb::NavDbManager>(simDriver->getXpNavDataRootPath(), simDriver->getMsfsNavDataRootPath());
+    img::TTFStamper::setFontDirectory(simDriver->getFontDirectory());
+    std::vector<std::string> remote_georefs_urls = settings->getGeneralSetting<std::vector<std::string>>("remote_georefs_urls");
+    chartService = std::make_shared<apis::ChartService>(simDriver->getDataRootPath(), remote_georefs_urls);
 
-    // App commands
-    simDriver->createCommand("AviTab/app_charts", "Charts App", [this] (CommandState s) { if (s == CommandState::START) showApp(AppId::CHARTS); });
-    simDriver->createCommand("AviTab/app_airports", "Airports App", [this] (CommandState s) { if (s == CommandState::START) showApp(AppId::AIRPORTS); });
-    simDriver->createCommand("AviTab/app_routes", "Routes App", [this] (CommandState s) { if (s == CommandState::START) showApp(AppId::ROUTES); });
-    simDriver->createCommand("AviTab/app_maps", "Maps App", [this] (CommandState s) { if (s == CommandState::START) showApp(AppId::MAPS); });
-    simDriver->createCommand("AviTab/app_plane_manual", "Plane Manual App", [this] (CommandState s) { if (s == CommandState::START) showApp(AppId::PLANE_MANUAL); });
-    simDriver->createCommand("AviTab/app_notes", "Notes App", [this] (CommandState s) { if (s == CommandState::START) showApp(AppId::NOTES); });
-    simDriver->createCommand("AviTab/app_navigraph", "Navigraph App", [this] (CommandState s) { if (s == CommandState::START) showApp(AppId::NAVIGRAPH); });
-    simDriver->createCommand("AviTab/app_about", "About App", [this] (CommandState s) { if (s == CommandState::START) showApp(AppId::ABOUT); });
-    simDriver->createCommand("AviTab/chart_tab_next", "Chart tab next", [this] (CommandState s) { if (s == CommandState::START) changeChartTab(true); });
-    simDriver->createCommand("AviTab/chart_tab_prev", "Chart tab previous", [this] (CommandState s) { if (s == CommandState::START) changeChartTab(false); });
-
-    // Direct control from panel integrations
-    simDriver->createCommand("AviTab/click_left", "Left click", [this] (CommandState s) { handleClickCommand(s == CommandState::START, s == CommandState::CONTINUE); });
-    simDriver->createCommand("AviTab/wheel_up", "Wheel up", [this] (CommandState s) { if (s == CommandState::START) handleWheelUpCommand(); });
-    simDriver->createCommand("AviTab/wheel_down", "Wheel down", [this] (CommandState s) { if (s == CommandState::START) handleWheelDownCommand(); });
-
-    // X-Plane menu items
-    simDriver->addMenuEntry("Toggle Tablet", [this] { toggleTablet(); });
-    simDriver->addMenuEntry("Reset Position", [this] { resetWindowPosition(); });
-
-    guiLib->setMouseWheelCallback([this] (int dir, int x, int y) {
-        if (appLauncher) {
-            appLauncher->onMouseWheel(dir, x, y);
-        }
-    });
-    createPanel();
-    guiLib->executeLater(std::bind(&AviTab::createLayout, this));
-
-    std::string userfixes_file = simDriver->getSettings()->getGeneralSetting<std::string>("userfixes_file");
+    std::string userfixes_file = settings->getGeneralSetting<std::string>("userfixes_file");
     navManager->loadUserFixes(userfixes_file);
 
+    std::string themename = settings->getGeneralSetting<std::string>("theme");
+    lvglUI = std::make_shared<LVGLToolkit>(uiDriver, getAvitabThemeDir(), themename);
+
+    uiDriver->setResizeCallback([this] (int w, int h) {
+        executeLater([this, w, h] {
+            lvglUI->resizeScreen(w, h);
+        });
+    });
+
+    coreEnabled = false;
+    coreThreadActive = true;
+    coreThread = std::make_unique<std::thread>(&AviTab::coreThreadLoop, this);
 }
 
-void AviTab::toggleTablet() {
-    // runs in simDriver thread, called by menu or command
-    try {
-        if (!guiLib->hasNativeWindow()) {
-            logger::info("Showing tablet");
-            // It's possible that the user closed the window with the close button.
-            // Since we don't get any callback for this, it's possible that we didn't store the last window coordinates yet.
-            // For that reason, the last known position is tried first.
-            auto rect = guiLib->getNativeWindowRect();
-            if (rect.valid && !resetWindowRect) {
-                simDriver->getSettings()->saveWindowRect(rect);
-            } else {
-                rect = simDriver->getSettings()->getWindowRect();
-            }
-            guiLib->createNativeWindow(std::string("Aviator's Tablet  ") + AVITAB_VERSION_STR, rect);
-        } else {
-            close();
-        }
-    } catch (const std::exception &e) {
-        logger::error("Exception in onShowTablet: %s", e.what());
+void AviTab::enable() {
+    // runs in product main thread (for X-Plane plugin called by XPluginEnable).
+    logger::verbose("Enabling AviTab core");
+
+    coreEnabled = true;
+    executeLater(std::bind(&AviTab::buildHomeScreen, this));
+    executeLater(std::bind(&AviTab::showAppLauncher, this));
+}
+
+void AviTab::disable() {
+    // runs in product main thread (for X-Plane plugin called by XPluginDisable).
+    logger::verbose("Disabling AviTab core");
+
+    executeLater(std::bind(&AviTab::teardownGUI, this));
+    // wait until the GUI has been torn down
+    while (1) {
+        auto f0 = lvglUI->getFrameCount();
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        auto f1 = lvglUI->getFrameCount();
+        if (f0 == f1) break;
     }
+    coreEnabled = false;
 }
 
-void AviTab::resetWindowPosition() {
-    // runs in simDriver thread
-    simDriver->getSettings()->saveWindowRect({});
-    if (guiLib->hasNativeWindow()) {
-        guiLib->pauseNativeWindow();
+void AviTab::stop() {
+    // runs in product main thread (for X-Plane plugin called by XPluginStop).
+    // will only be called once per simulation run.
+    // stop() will be called once before product exits to clean up.
+
+    // this will also join the GUI thread
+    if (coreThread) {
+        coreThreadActive = false;
+        coreThread->join();
+        coreThread.reset();
     }
-    resetWindowRect = true;
-    toggleTablet();
-    resetWindowRect = false;
+
+    // Stop the chart APIs so they no longer call the GUI
+    chartService->stop();
+
+    // Stop the NAV amanger service (cancel the loading if it is still running).
+    navManager->stop();
+
+    uiDriver.reset();
+    simDriver.reset();
+    settings.reset();
 }
 
-void AviTab::onPlaneLoad() {
-    // runs in simDriver thread
-    // close on plane reload to reset the VR window position
-    close();
-    simDriver->onAircraftReload();
-    createPanel();
-
-    guiLib->executeLater([this] () {
+void AviTab::onPlaneLoad(bool noHeader) {
+    executeLater([this] () {
         if (appLauncher) {
             appLauncher->onPlaneLoad();
         }
-        auto screen = guiLib->screen();
-        if (hideHeader) {
+    });
+    executeLater([this, noHeader] () {
+        auto screen = lvglUI->screen();
+        hideHeaderApp = noHeader;
+        if (hideHeaderApp) {
             headerApp.reset();
             headContainer.reset();
             if (centerContainer) {
@@ -275,237 +292,123 @@ void AviTab::onPlaneLoad() {
     });
 }
 
-void AviTab::zoomIn() {
+void AviTab::commandShowApp(const std::string &appName) {
+    if (appName.empty()) {
+        showAppLauncher();
+    } else if (appName == "charts") {
+        showApp(AppId::CHARTS);
+    } else if (appName == "airports") {
+        showApp(AppId::AIRPORTS);
+    } else if (appName == "routes") {
+        showApp(AppId::ROUTES);
+    } else if (appName == "maps") {
+        showApp(AppId::MAPS);
+    } else if (appName == "manuals") {
+        showApp(AppId::MANUALS);
+    } else if (appName == "notes") {
+        showApp(AppId::NOTES);
+    } else if (appName == "providers") {
+        showApp(AppId::PROVIDERS);
+    } else if (appName == "about") {
+        showApp(AppId::ABOUT);
+    }
+}
+
+void AviTab::commandZoomIn() {
     // called from simDriver thread
-    guiLib->executeLater([this] () {
+    executeLater([this] () {
         if (appLauncher) {
-            appLauncher->onMouseWheel(1, 0, 0);
+            appLauncher->zoom(true);
         }
     });
 }
 
-void AviTab::zoomOut() {
+void AviTab::commandZoomOut() {
     // called from simDriver thread
-    guiLib->executeLater([this] () {
+    executeLater([this] () {
         if (appLauncher) {
-            appLauncher->onMouseWheel(-1, 0, 0);
+            appLauncher->zoom(false);
         }
     });
 }
 
-void AviTab::recentre() {
+void AviTab::commandRecentre() {
     // called from simDriver thread
-    guiLib->executeLater([this] () {
+    executeLater([this] () {
         if (appLauncher) {
             appLauncher->recentre();
         }
     });
 }
 
-void AviTab::panLeft() {
+void AviTab::commandPanLeft() {
     // called from simDriver thread
-    guiLib->executeLater([this] () {
+    executeLater([this] () {
         if (appLauncher) {
             appLauncher->pan(-10, 0); // 10% leftwards
         }
     });
 }
 
-void AviTab::panRight() {
+void AviTab::commandPanRight() {
     // called from simDriver thread
-    guiLib->executeLater([this] () {
+    executeLater([this] () {
         if (appLauncher) {
             appLauncher->pan(10, 0); // 10% rightwards
         }
     });
 }
 
-void AviTab::panUp() {
+void AviTab::commandPanUp() {
     // called from simDriver thread
-    guiLib->executeLater([this] () {
+    executeLater([this] () {
         if (appLauncher) {
             appLauncher->pan(0, -10); // 10% upwards
         }
     });
 }
 
-void AviTab::panDown() {
+void AviTab::commandPanDown() {
     // called from simDriver thread
-    guiLib->executeLater([this] () {
+    executeLater([this] () {
         if (appLauncher) {
             appLauncher->pan(0, 10); // 10% downwards
         }
     });
 }
 
-void AviTab::finishInstall() {
-    // create any user-modifiable files, only if they do not already exist
-    try {
-        auto mapConfigDir(getAvitabDataDir() /"online-maps");
-        std::filesystem::create_directories(mapConfigDir);
-        auto mapConfigPath(mapConfigDir /"mapconfig.json");
-        (void)std::make_unique<JsonConfig>(mapConfigPath, defaultMapConfigJson());
-    } catch (const std::exception &e) {
-        // report to the log, but not totally fatal
-        logger::error("Unable to create default mapconfig.json");
-    }
-}
-
-void AviTab::createPanel() {
-    auto cfgFile = getAirplanePath() /"AviTab.json";
-    try {
-        JsonConfig cfg(cfgFile);
-        int left = cfg.getInt("/panel/left");
-        int bottom = cfg.getInt("/panel/bottom");
-        int width = cfg.getInt("/panel/width");
-        int height = cfg.getInt("/panel/height");
-        bool enable = false;
-        bool disableCaptureWindow = false;
-        bool aircraftManaged = false;
-        hideHeader = false;
-        try {
-            enable = cfg.getBool("/panel/enabled");
-        } catch (...) {
+void AviTab::commandTabNext() {
+    executeLater([this] () {
+        if (appLauncher) {
+            appLauncher->changeChartTab(true);
         }
-        try {
-            hideHeader = cfg.getBool("/panel/hide_header");
-        } catch (...) {
+    });
+}
+
+void AviTab::commandTabPrevious() {
+    executeLater([this] () {
+        if (appLauncher) {
+            appLauncher->changeChartTab(false);
         }
-        try {
-            disableCaptureWindow = cfg.getBool("/panel/disable_capture_window");
-        } catch (...) {
+    });
+}
+
+void AviTab::commandWheelUp(int x, int y) {
+    // called from the sim driver
+    executeLater([this, x, y] () {
+        if (appLauncher) {
+            appLauncher->onMouseWheel(1, x, y);
         }
-        try {
-            aircraftManaged = cfg.getBool("/panel/aircraft_managed");
-        } catch (...) {
+    });
+}
+
+void AviTab::commandWheelDown(int x, int y) {
+    // called from the sim driver
+    executeLater([this, x, y] () {
+        if (appLauncher) {
+            appLauncher->onMouseWheel(-1, x, y);
         }
-
-        UiDriverBase::PanelControlMode mode = aircraftManaged ? UiDriverBase::PanelControlMode::AIRCRAFT_MANAGED
-                                        : (disableCaptureWindow ? UiDriverBase::PanelControlMode::COMMAND_ONLY
-                                                                : UiDriverBase::PanelControlMode::CAPTURE_WINDOW);
-
-        guiLib->createPanel(left, bottom, width, height, mode);
-        if (enable) {
-            simDriver->enableAndPowerPanel();
-        }
-    } catch (const std::exception &e) {
-        logger::info("No panel config - window only mode");
-        hideHeader = false;
-        guiLib->hidePanel();
-    }
-}
-
-void AviTab::createLayout() {
-    // runs in GUI thread
-    auto screen = guiLib->screen();
-    screen->setOnResize([this] { this->onScreenResize(); });
-
-    if (!hideHeader) {
-        if (!headerApp) {
-            headerApp = std::make_shared<HeaderApp>(this);
-            headContainer = headerApp->getUIContainer();
-            headContainer->setLocalStyle("headerArea");
-            headContainer->setVisible(true);
-            headContainer->setScrollable(false);
-        }
-    }
-
-    if (!appLauncher) {
-        showAppLauncher();
-    }
-}
-
-void AviTab::onScreenResize() {
-    auto screen = guiLib->screen();
-    int width = screen->getWidth();
-    int height = screen->getHeight();
-
-    if (headerApp) {
-        headerApp->onScreenResize(width, height);
-    }
-
-    if (appLauncher) {
-        if (hideHeader) {
-            appLauncher->onScreenResize(width, height);
-        } else {
-            appLauncher->onScreenResize(width, height - 30);
-        }
-    }
-}
-
-void AviTab::showAppLauncher() {
-    if (!appLauncher) {
-        appLauncher = std::make_shared<AppLauncher>(this);;
-    }
-    appLauncher->show();
-}
-
-void AviTab::showApp(AppId id) {
-    if (appLauncher) {
-        guiLib->executeLater([this, id] () {
-            appLauncher->showApp(id);
-        });
-    }
-}
-
-void AviTab::setIsInMenu(bool inMenu) {
-    simDriver->setIsInMenu(inMenu);
-}
-
-std::shared_ptr<Theme> AviTab::getGUITheme() {
-    return guiLib->theme();
-}
-
-std::shared_ptr<Container> AviTab::createGUIContainer() {
-    auto screen = guiLib->screen();
-    auto container = std::make_shared<Container>(screen);
-    container->setVisible(false);
-
-    if (hideHeader) {
-        container->setPosition(0, 0);
-        container->setDimensionsPct(100, 100);
-    } else {
-        container->setPosition(0, 30);
-        container->setWidthPct(100);
-        container->setHeight(screen->getHeight() - 30);
-    }
-
-    return container;
-}
-
-void AviTab::showGUIContainer(std::shared_ptr<Container> container) {
-    if (centerContainer) {
-        centerContainer->setVisible(false);
-    }
-
-    auto screen = guiLib->screen();
-    centerContainer = container;
-    centerContainer->setLocalStyle("contentArea");
-    if (hideHeader) {
-        centerContainer->setPosition(0, 0);
-        centerContainer->setDimensions(screen->getWidth(), screen->getHeight());
-    } else {
-        centerContainer->setPosition(0, 30);
-        centerContainer->setDimensions(screen->getWidth(), screen->getHeight() - 30);
-    }
-    centerContainer->showInBack();
-    centerContainer->setVisible(true);
-}
-
-void AviTab::setBrightness(float brightness) {
-    guiLib->setBrightness(brightness);
-}
-
-float AviTab::getBrightness() {
-    return guiLib->getBrightness();
-}
-
-std::shared_ptr<navdb::NavDatabase> AviTab::getNavDatabase() {
-    return navManager->getNavDatabase();
-}
-
-void AviTab::executeLater(std::function<void()> func) {
-    guiLib->executeLater(func);
+    });
 }
 
 std::filesystem::path AviTab::getAvitabInstallDir() {
@@ -520,48 +423,68 @@ std::filesystem::path AviTab::getAvitabThemeDir() {
     return simDriver->getThemeDirectory();
 }
 
-std::filesystem::path AviTab::getFlightPlansPath() {
-    return simDriver->getFlightPlansPath();
-}
-
 std::filesystem::path AviTab::getAirplanePath() {
     return simDriver->getAirplanePath();
 }
 
-std::vector<float> AviTab::getMagneticVariations(std::vector<world::Location> &locs) {
-    return simDriver->getMagneticVariations(locs);
+std::filesystem::path AviTab::getFlightPlansPath() {
+    return simDriver->getFlightPlansPath();
 }
 
-std::string AviTab::getMETARForAirport(const std::string &icao) {
-    return simDriver->getMETARForAirport(icao);
-}
-
-std::string AviTab::getNearestAirportId() {
-    return simDriver->getNearestAirportId();
-}
-
-int AviTab::getWeatherAtLocation(const world::Location &loc, const float &altitude, std::string &weather) {
-    return simDriver->getWeatherAtLocation(loc, altitude, weather);
-}
-
-void AviTab::loadUserFixes(const std::filesystem::path &filename) {
-    navManager->loadUserFixes(filename);
+std::shared_ptr<Settings> AviTab::getSettings() {
+    return settings;
 }
 
 std::shared_ptr<apis::ChartService> AviTab::getChartService() {
     return chartService;
 }
 
-std::shared_ptr<navdb::Route> AviTab::getRoute() {
-    return activeRoute;
+std::shared_ptr<navdb::NavDatabase> AviTab::getNavDatabase() {
+    return navManager->getNavDatabase();
+}
+
+void AviTab::onHomeButtonPressed() {
+    showAppLauncher();
+}
+
+void AviTab::onAppClosed() {
+    uiDriver->requestCloseWindow();
+}
+
+void AviTab::notifyHomeScreenActive(bool inMenu) {
+    simDriver->notifyIsInMenu(inMenu);
+}
+
+void AviTab::notifyMapConfiguration(float lat, float lon, int zoom, float vrange) {
+    simDriver->notifyMapConfiguration(lat, lon, zoom, vrange);
+}
+
+void AviTab::loadUserFixes(const std::filesystem::path &filename) {
+    navManager->loadUserFixes(filename);
+}
+
+std::string AviTab::getNearestAirportId() {
+    return simDriver->getNearestAirportId();
+}
+
+std::vector<float> AviTab::getMagneticVariations(std::vector<world::Location> &locs) {
+    return simDriver->getMagneticVariations(locs);
 }
 
 void AviTab::setRoute(std::shared_ptr<navdb::Route> route) {
     activeRoute = route;
 }
 
-void AviTab::updateMapExports(float lat, float lon, int zoom, float vrange) {
-    simDriver->updateMapExports(lat, lon, zoom, vrange);
+std::shared_ptr<navdb::Route> AviTab::getRoute() {
+    return activeRoute;
+}
+
+std::string AviTab::getMETARForAirport(const std::string &icao) {
+    return simDriver->getMETARForAirport(icao);
+}
+
+int AviTab::getWeatherAtLocation(const world::Location &loc, const float &altitude, std::string &weather) {
+    return simDriver->getWeatherAtLocation(loc, altitude, weather);
 }
 
 AircraftID AviTab::getActiveAircraftCount() {
@@ -584,97 +507,192 @@ unsigned int AviTab::getLocalTimeSeconds() {
     return simDriver->getLocalTimeSeconds();
 }
 
-std::shared_ptr<Settings> AviTab::getSettings() {
-    return simDriver->getSettings();
+void AviTab::setBrightness(float brightness) {
+    lvglUI->setBrightness(brightness);
 }
 
-void AviTab::onHomeButton() {
-    showAppLauncher();
+float AviTab::getBrightness() {
+    return lvglUI->getBrightness();
 }
 
-void AviTab::close() {
-    logger::info("Closing tablet");
-    simDriver->runInSimDriver([this] () {
-        if (guiLib->hasNativeWindow()) {
-            guiLib->pauseNativeWindow();
+void AviTab::executeLater(std::function<void()> func) {
+    std::lock_guard<std::recursive_mutex> lock(pendingTasksMutex);
+    if (coreThreadActive && coreEnabled) {
+        pendingTasks.push_back(func);
+    }
+}
+
+std::shared_ptr<Theme> AviTab::getGUITheme() {
+    return lvglUI->theme();
+}
+
+std::shared_ptr<Container> AviTab::createGUIContainer() {
+    auto screen = lvglUI->screen();
+    auto container = std::make_shared<Container>(screen);
+    container->setVisible(false);
+
+    if (hideHeaderApp) {
+        container->setPosition(0, 0);
+        container->setDimensionsPct(100, 100);
+    } else {
+        container->setPosition(0, 30);
+        container->setWidthPct(100);
+        container->setHeight(screen->getHeight() - 30);
+    }
+
+    return container;
+}
+
+void AviTab::showGUIContainer(std::shared_ptr<Container> container) {
+    if (centerContainer) {
+        centerContainer->setVisible(false);
+    }
+
+    auto screen = lvglUI->screen();
+    centerContainer = container;
+    centerContainer->setLocalStyle("contentArea");
+    if (hideHeaderApp) {
+        centerContainer->setPosition(0, 0);
+        centerContainer->setDimensions(screen->getWidth(), screen->getHeight());
+    } else {
+        centerContainer->setPosition(0, 30);
+        centerContainer->setDimensions(screen->getWidth(), screen->getHeight() - 30);
+    }
+    centerContainer->showInBack();
+    centerContainer->setVisible(true);
+}
+
+void AviTab::finishInstall() {
+    // create any user-modifiable files, only if they do not already exist
+    try {
+        auto mapConfigDir(getAvitabDataDir() /"online-maps");
+        std::filesystem::create_directories(mapConfigDir);
+        auto mapConfigPath(mapConfigDir /"mapconfig.json");
+        (void)std::make_unique<JsonConfig>(mapConfigPath, defaultMapConfigJson());
+    } catch (const std::exception &e) {
+        // report to the log, but not totally fatal
+        logger::error("Unable to create default mapconfig.json");
+    }
+}
+
+void AviTab::buildHomeScreen() {
+    // runs in core thread
+    auto screen = lvglUI->screen();
+    screen->setOnResize([this] { this->onScreenResize(); });
+
+    if (!hideHeaderApp) {
+        if (!headerApp) {
+            headerApp = std::make_shared<HeaderApp>(this);
+            headContainer = headerApp->getUIContainer();
+            headContainer->setLocalStyle("headerArea");
+            headContainer->setVisible(true);
+            headContainer->setScrollable(false);
         }
-    });
+    }
+
+    if (!appLauncher) {
+        showAppLauncher();
+    }
 }
 
-void AviTab::stopApp() {
-    // This function is called by the simDriver
-    // and the simDriver will never call the simDriver callback
-    // again. If the GUI is currently waiting on an simDriver
-    // job to run, we would create a deadlock now. So for a proper
-    // shutdown, we must do the following:
-
-    // remember the last window position
-    auto rect = guiLib->getNativeWindowRect();
-    simDriver->getSettings()->saveWindowRect(rect);
-
-    // Cancel the loading if it is still running
-    navManager->stop();
-
-    // Stop the chart APIs so they no longer call the GUI
-    chartService->stop();
-
-    // Tell the GUI to not execute more background jobs
-    // after the current ones have finished
-    guiLib->signalStop();
-
-    // Let the simDriver run its callbacks one last time,
-    // letting the GUI jobs finish to release the wait on the
-    // simDriver
-    simDriver->pauseSimDriverJobs();
-
-    // now that the GUI thread is guranteed to finish, we can
-    // do the rest of the cleanup
-    simDriver->destroyMenu();
-    simDriver->destroyCommands();
-
-    // this will also join the GUI thread
-    guiLib->destroyNativeWindow();
-
-    cleanupLayout();
-}
-
-void AviTab::cleanupLayout() {
-    logger::verbose("Stopping AviTab");
+void AviTab::teardownGUI() {
     headContainer.reset();
     centerContainer.reset();
     headerApp.reset();
     appLauncher.reset();
 }
 
-void AviTab::handleClickCommand(bool down, bool drag) {
-    // called from X-Plane thread, processed in the simDriver
-    uiDriver->passLeftClick(down, drag);
+void AviTab::showAppLauncher() {
+    if (!appLauncher) {
+        appLauncher = std::make_shared<AppLauncher>(this);;
+    }
+    appLauncher->show();
 }
 
-void AviTab::handleWheelUpCommand() {
-    // called from X-Plane thread, processed in the simDriver
-    uiDriver->passWheel(1);
+void AviTab::showApp(AppId id) {
+    if (appLauncher) {
+        executeLater([this, id] () {
+            appLauncher->showApp(id);
+        });
+    }
 }
 
-void AviTab::handleWheelDownCommand() {
-    // called from X-Plane thread, processed in the simDriver
-    uiDriver->passWheel(-1);
-}
+void AviTab::onScreenResize() {
+    auto screen = lvglUI->screen();
+    int width = screen->getWidth();
+    int height = screen->getHeight();
 
-void AviTab::changeChartTab(bool next) {
-    guiLib->executeLater([this, next] () {
-        if (appLauncher) {
-            appLauncher->changeChartTab(next);
+    if (headerApp) {
+        headerApp->onScreenResize(width, height);
+    }
+
+    if (appLauncher) {
+        if (hideHeaderApp) {
+            appLauncher->onScreenResize(width, height);
+        } else {
+            appLauncher->onScreenResize(width, height - 30);
         }
-    });
+    }
 }
 
-AviTab::~AviTab() {
-    // runs in simDriver thread, destroy by PluginStop
-    logger::verbose("~AviTab");
-}
+void AviTab::coreThreadLoop() {
+    using namespace std::chrono_literals;
+    crash::ThreadCookie crashCookie;
 
-} /* namespace avitab */
+    logger::verbose("Core thread has id %d", std::this_thread::get_id());
+
+    while (coreThreadActive) {
+        if (coreEnabled) {
+            // chrono clocks run at 64Hz precision in mingw, use something custom
+            auto startAt = platform::measureTime();
+
+            try {
+                // first run the actual GUI tasks, i.e. let LVGL do its animations etc.
+                // this also includes LVGL retrieving mouse button events and position
+                lvglUI->doLVGLtasks();
+
+                // then run our own tasks
+                // grab the mutex briefly to extract the tasks into a local list
+                // this avoids potential race and deadlock conditions.
+                std::vector<std::function<void()>> tasks;
+                {
+                    std::lock_guard<std::recursive_mutex> lock(pendingTasksMutex);
+                    tasks = pendingTasks;
+                    pendingTasks.clear();
+                }
+
+                for (auto &task: tasks) {
+                    task();
+                }
+
+                // NOTE - This is a bit of a hack, but it works for now. The problem is that
+                // LVGLv6 does not have a proper mouse wheel event, so we have to fake it by
+                // reading the wheel clicks and mouse position from the driver and then passing
+                // this through to the active app.
+                auto clicks = uiDriver->getWheelClicks();
+                if (clicks && appLauncher) {
+                    bool ignored;
+                    int x, y;
+                    uiDriver->readPointerState(x, y, ignored);
+                    appLauncher->onMouseWheel(clicks, x, y);
+                }
+
+                // finally handle any keyboard events (including LVGL on-screen keyboard)
+                lvglUI->handleKeyboard();
+            } catch (const std::exception &e) {
+                logger::error("Exception in GUI: %s", e.what());
+            }
+
+            std::this_thread::sleep_for(1ms);
+            auto elapsedMillis = platform::getElapsedMillis(startAt);
+            lvglUI->doLVGLtick(elapsedMillis);
+        } else {
+            std::this_thread::sleep_for(100ms);
+        }
+    }
+
+    logger::verbose("Core thread destroyed");
+}
 
 static const char *defaultMapConfigJson() {
     return R"x(
@@ -713,3 +731,5 @@ static const char *defaultMapConfigJson() {
 ]
 )x";
 }
+
+} /* namespace avitab */

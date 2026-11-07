@@ -31,18 +31,28 @@
 #include "DataCache.h"
 #include "DataRefExport.h"
 
+class XPlaneUiDriver;
+
 class XPlaneSimDriver: public avitab::SimDriverBase {
 public:
+    enum class CommandState {
+        START,
+        CONTINUE,
+        END
+    };
+
+    using MenuCallback = std::function<void()>;
+    using CommandCallback = std::function<void(CommandState)>;
+
     XPlaneSimDriver();
 
-    // Must be called from the simDriver thread - do not call from GUI thread!
-    std::shared_ptr<avitab::UiDriverBase> createUiDriver() override;
-    void createMenu(const std::string &name) override;
-    void addMenuEntry(const std::string &label, MenuCallback cb) override;
-    void destroyMenu() override;
-    void createCommand(const std::string &name, const std::string &desc, CommandCallback cb) override;
-    void destroyCommands() override;
-    void onAircraftReload() override;
+    // The top-level state machine is start -> enable -> disable { -> enable -> disable } -> stop
+    void start(std::shared_ptr<avitab::Settings> prefs, std::shared_ptr<avitab::AviTabCore> core, std::shared_ptr<XPlaneUiDriver> ui);
+    void enable();
+    void disable();
+    void stop();
+
+    void onPlaneLoad();
 
     // Can be called from any thread
     std::filesystem::path getProgramPath() override;
@@ -59,15 +69,33 @@ public:
     std::string getMETARForAirport(const std::string &icao) override;
     int getWeatherAtLocation(const world::Location &loc, const float &altitude, std::string& weather) override;
     std::string getNearestAirportId() override;
-    void enableAndPowerPanel() override;
-    void setIsInMenu(bool menu) override;
+    void notifyIsInMenu(bool menu) override;
+    void notifyMapConfiguration(float lat, float lon, int zoom, float vrange) override;
     avitab::AircraftID getActiveAircraftCount() override;
     world::Position getAircraftPosition(avitab::AircraftID id) override;
-    void updateMapExports(float lat, float lon, int zoom, float vrange) override;
     unsigned int getZuluTimeSeconds() override;
     unsigned int getLocalTimeSeconds() override;
 
+    bool getLogToStdout();
+
     ~XPlaneSimDriver();
+
+protected:
+    void createMenu(const std::string &name);
+    void addMenuEntry(const std::string &label, MenuCallback cb);
+    void destroyMenu();
+    void createCommand(const std::string &name, const std::string &desc, CommandCallback cb);
+    void destroyCommands();
+
+    void resetWindowPosition();
+
+    void getMouseLoc(int &x, int &y);
+
+private:
+    std::shared_ptr<avitab::AviTabCore> core;
+    std::shared_ptr<XPlaneUiDriver> uiDriver;
+    bool isStarted;
+    bool isEnabled;
 
 private:
     // Exported datarefs relating to the overlayed map status
@@ -113,16 +141,15 @@ private:
 
 private:
     std::vector<MenuCallback> menuCallbacks;
-    std::atomic<XPLMFlightLoopID> flightLoopId { nullptr };
+    std::atomic<XPLMFlightLoopID> flightLoopHandle { nullptr };
     std::map<XPLMCommandRef, RegisteredCommand> commandHandlers;
     int subMenuIdx = -1;
     XPLMMenuID subMenu = nullptr;
-    std::shared_ptr<int> panelPowered, panelEnabled;
-    std::shared_ptr<float> brightness;
-    std::unique_ptr<xdata::DataRefExport<int>> panelPoweredRef, panelEnabledRef, isInMenuRef;
-    std::unique_ptr<xdata::DataRefExport<float>> brightnessRef;
+    //std::shared_ptr<int> panelPowered, panelEnabled;
+    //std::shared_ptr<float> brightness;
 
     bool isInMenu = false;
+    std::unique_ptr<xdata::DataRefExport<int>> isInMenuRef;
 
     std::filesystem::path getXPlanePath();
     std::filesystem::path getPluginPath();
@@ -131,7 +158,6 @@ private:
     float onFlightLoop(float elapsedSinceLastCall, float elapseSinceLastLoop, int count);
     static int handleCommand(XPLMCommandRef cmd, XPLMCommandPhase phase, void *ref);
     xdata::EnvData getData(const std::string &dataRef);
-    void reloadAircraftPath();
 
     enum cloudCoverage {
         SKY_CLEAR     = 5,

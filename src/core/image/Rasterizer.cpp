@@ -51,7 +51,7 @@ void Rasterizer::initFitz() {
 
 void Rasterizer::loadFile(const std::filesystem::path& file) {
     fz_try(ctx) {
-        doc = fz_open_document(ctx, file.u8string().c_str());
+        doc = fz_open_document(ctx, file.string().c_str());
     } fz_catch(ctx) {
         throw std::runtime_error("Cannot open document: " + std::string(fz_caught_message(ctx)));
     }

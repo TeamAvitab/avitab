@@ -15,33 +15,46 @@
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include <stdexcept>
-#include <chrono>
+
 #include "GlfwUiDriver.h"
 #include "Logger.h"
+#include "AviTabBuildSettings.h"
+#include "platform/OpenGLdefs.h"
+#include <stdexcept>
+#include <chrono>
 
-#ifdef __APPLE__
-# include <OpenGL/gl.h>
-#else
-# include <GL/gl.h>
-# ifndef _MSC_VER
-#  include <GL/glext.h>
-# else
-#  define GL_BGRA 0x80E1 // this is the only extension actually needed
-# endif
-#endif
+GlfwUiDriver::GlfwUiDriver() {
+}
 
-void GlfwUiDriver::init(int width, int height) {
-    logger::verbose("Initializing GLFW driver...");
-
+void GlfwUiDriver::start(std::shared_ptr<avitab::Settings> prefs, std::shared_ptr<avitab::AviTabCore> core) {
+    logger::info("Initializing GLFW driver...");
     if (!glfwInit()) {
         throw std::runtime_error("Couldn't initialize GLFW");
     }
 
-    UiDriverBase::init(width, height);
+    resize(INITIAL_WIDTH, INITIAL_HEIGHT);
+
+    createWindow(std::string("Aviator's Tablet ") + AVITAB_VERSION_STR);
 }
 
-void GlfwUiDriver::createWindow(const std::string& title, const avitab::WindowRect &rect) {
+void GlfwUiDriver::enable() {
+}
+
+void GlfwUiDriver::disable() {
+}
+
+void GlfwUiDriver::stop() {
+    // called from main thread
+    std::lock_guard<std::mutex> lock(driverMutex);
+    logger::verbose("Shutting down GLFW");
+
+    if (window) {
+        glfwDestroyWindow(window);
+        window = nullptr;
+    }
+}
+
+void GlfwUiDriver::createWindow(const std::string& title) {
     int winWidth = width();
     int winHeight = height();
 
@@ -122,36 +135,26 @@ void GlfwUiDriver::createTexture() {
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-bool GlfwUiDriver::hasWindow() {
-    return window != nullptr;
+void GlfwUiDriver::requestCloseWindow() {
+    // in the desktop UI driver the apps request to close the
+    // window is signalled to the product wrapper for testing the
+    // disable -> reenable state change in the core
+    disableRequested = true;
 }
 
-void GlfwUiDriver::killWindow() {
-    if (window) {
-        glfwSetWindowShouldClose(window, true);
-    }
-}
-
-bool GlfwUiDriver::handleEvents() {
+bool GlfwUiDriver::handleEvents(bool &disableReq) {
     // called from main thread
+    disableReq = disableRequested;
+    disableRequested = false;
+    
     if (glfwWindowShouldClose(window)) {
-        onQuit();
+        logger::verbose("GLFW window thinks it should close");
+        glfwSetWindowShouldClose(window, false);
         return false;
     }
     render();
     glfwPollEvents();
     return true;
-}
-
-void GlfwUiDriver::onQuit() {
-    // called from main thread
-    std::lock_guard<std::mutex> lock(driverMutex);
-    logger::verbose("Shutting down GLFW");
-
-    if (window) {
-        glfwDestroyWindow(window);
-        window = nullptr;
-    }
 }
 
 void GlfwUiDriver::blit(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const uint32_t* newData) {

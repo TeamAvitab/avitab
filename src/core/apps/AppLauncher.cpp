@@ -39,11 +39,11 @@ AppLauncher::AppLauncher(FuncsPtr appFuncs):
     addEntry<AirportApp>("Airports", Theme::Icons::Airports, AppId::AIRPORTS);
     addEntry<RouteApp>("Routes", Theme::Icons::Routes, AppId::ROUTES);
     addEntry<MapApp>("Maps", Theme::Icons::Maps, AppId::MAPS);
-    addEntry<PlaneManualApp>("Aircraft", Theme::Icons::PlaneManual, AppId::PLANE_MANUAL);
+    addEntry<PlaneManualApp>("Aircraft", Theme::Icons::PlaneManual, AppId::MANUALS);
     addEntry<NotesApp>("Notes", Theme::Icons::Notes, AppId::NOTES);
 
     if (api().getChartService()->getNavigraph()->isSupported() || api().getChartService()->getChartFox()->isSupported()) {
-        addEntry<ProvidersApp>("Providers", Theme::Icons::Providers, AppId::NAVIGRAPH);
+        addEntry<ProvidersApp>("Providers", Theme::Icons::Providers, AppId::PROVIDERS);
     }
 
     addEntry<About>("About", Theme::Icons::About, AppId::ABOUT);
@@ -63,7 +63,7 @@ void AppLauncher::show() {
         activeApp->suspend();
     }
     App::show();
-    api().setIsInMenu(true);
+    api().notifyHomeScreenActive(true);
 }
 
 void AppLauncher::showApp(AppId id) {
@@ -75,7 +75,7 @@ void AppLauncher::showApp(AppId id) {
             activeApp = entry.app;
             activeApp->resume();
             activeApp->show();
-            api().setIsInMenu(false);
+            api().notifyHomeScreenActive(false);
             break;
         }
     }
@@ -121,6 +121,7 @@ void AppLauncher::onMouseWheel(int dir, int x, int y) {
         activeApp->onMouseWheel(dir, x, y);
     }
 }
+
 void AppLauncher::changeChartTab(bool next) {
     if (activeApp) {
         activeApp->changeChartTab(next);

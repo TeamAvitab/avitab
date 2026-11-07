@@ -65,7 +65,7 @@ void Image::loadImageFile(const std::filesystem::path& utf8Path) {
     int nChannels = 4;
     int nComponents = 0;
     int imgWidth, imgHeight;
-    uint8_t *decodedData = stbi_load(utf8Path.u8string().c_str(), &imgWidth, &imgHeight, &nComponents, nChannels);
+    uint8_t *decodedData = stbi_load(utf8Path.string().c_str(), &imgWidth, &imgHeight, &nComponents, nChannels);
 
     if (!decodedData) {
         throw std::runtime_error("Couldn't load image " + utf8Path.u8string() + ": " + stbi_failure_reason());

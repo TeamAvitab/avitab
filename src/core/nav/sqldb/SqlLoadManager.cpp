@@ -28,7 +28,7 @@ namespace sqlnav {
 
 SqlLoadManager::SqlLoadManager(std::filesystem::path dbdir)
 {
-    logger::info("Looking for SQL database file in  %s", dbdir.c_str());
+    logger::info("Looking for SQL database file in  %s", dbdir.string().c_str());
     auto dbfile = dbdir / "avitab_navdb.sqlite";
 
     database = std::make_shared<SqlDatabase>(dbfile, true);

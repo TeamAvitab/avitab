@@ -42,6 +42,7 @@ public:
     virtual void show();
     virtual void onPlaneLoad();
     virtual void onMouseWheel(int dir, int x, int y);
+    virtual void zoom(bool in);
     virtual void changeChartTab(bool next);
     virtual void recentre();
     virtual void pan(int x, int y);

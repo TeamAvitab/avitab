@@ -68,6 +68,10 @@ void App::onPlaneLoad() {
 void App::onMouseWheel(int dir, int x, int y) {
 }
 
+void App::zoom(bool in) {
+    onMouseWheel(in ? 1 : -1, 0, 0);
+}
+
 void App::changeChartTab(bool next) {
 }
 

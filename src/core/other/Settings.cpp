@@ -246,7 +246,7 @@ void Settings::saveWindowRect(const WindowRect &rect) {
     setSetting("/window/valid", rect.valid);
 }
 
-WindowRect Settings::getWindowRect() {
+WindowRect Settings::loadWindowRect() {
     WindowRect rect;
     rect.valid = getSetting("/window/valid", false);
     rect.top = getSetting("/window/top", 0);

@@ -17,12 +17,7 @@
  */
 #pragma once
 
-#include <atomic>
-#include <thread>
 #include <memory>
-#include <functional>
-#include <mutex>
-#include <vector>
 #include "UiDriver.h"
 #include "gui/Theme.h"
 #include "gui/widgets/Screen.h"
@@ -31,47 +26,32 @@ namespace avitab {
 
 class LVGLToolkit {
 public:
-    using GUITask = std::function<void()>;
-    using MouseWheelCallback = std::function<void(int, int, int)>;
-
     LVGLToolkit(std::shared_ptr<UiDriverBase> drv, const std::string themedir, const std::string themename);
+    ~LVGLToolkit();
 
-    void setMouseWheelCallback(MouseWheelCallback cb);
-    void createNativeWindow(const std::string &title, const WindowRect &rect);
-    void createPanel(int left, int bottom, int width, int height, UiDriverBase::PanelControlMode mode);
-    void hidePanel();
-    void pauseNativeWindow();
-    bool hasNativeWindow();
-    WindowRect getNativeWindowRect();
-    void signalStop();
-    void destroyNativeWindow();
+    void doLVGLtasks();
+    void doLVGLtick(int t);
+
+    void handleKeyboard();
+
+    void resizeScreen(int w, int h);
+
     void setBrightness(float b);
     float getBrightness();
-    void handleMouseWheel(int clicks);
 
     std::shared_ptr<Screen> &screen();
     std::shared_ptr<Theme> &theme();
+    unsigned long getFrameCount() const { return frameCounter; }
 
-    void executeLater(GUITask func);
-
-    ~LVGLToolkit();
 private:
-    static const int INITIAL_WIDTH = 800;
-    static const int INITIAL_HEIGHT = 480;
-
-    MouseWheelCallback onMouseWheel;
-    std::recursive_mutex guiMutex;
-    std::vector<GUITask> pendingTasks;
-    std::shared_ptr<UiDriverBase> driver;
-    std::unique_ptr<std::thread> guiThread;
-    std::atomic_bool guiActive;
+    std::shared_ptr<UiDriverBase> const driver;
     std::shared_ptr<Screen> mainScreen;
     std::shared_ptr<Theme> mainTheme;
 
+    unsigned long frameCounter = 0;
+
     void initDisplay();
     void initInputDevice();
-    void guiLoop();
-    void handleKeyboard();
 
     lv_obj_t *searchActiveKeyboard(lv_obj_t *obj);
 };

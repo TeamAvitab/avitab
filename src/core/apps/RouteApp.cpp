@@ -307,7 +307,7 @@ void RouteApp::selectFlightPlanFile() {
                 showRoute();
             } catch (const std::exception &e) {
                 showDeparturePage();
-                logger::warn("Couldn't load FMS file '%s': %s", selectedUTF8.c_str(), e.what());
+                logger::warn("Couldn't load FMS file '%s': %s", selectedUTF8.string().c_str(), e.what());
                 showError("Couldn't load FMS file, see Avitab.log");
                 return;
             }

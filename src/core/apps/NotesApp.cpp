@@ -38,7 +38,7 @@ NotesApp::NotesApp(FuncsPtr appFuncs):
 
     window->addSymbol(Widget::Symbol::COPY, [this] () {
         if (textArea) {
-            textArea->setText(platform::getClipboardContent());
+            textArea->addText(platform::getClipboardContent());
         }
 
         if (scratchPad) {

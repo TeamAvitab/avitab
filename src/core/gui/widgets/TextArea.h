@@ -30,6 +30,7 @@ public:
     void setText(const std::string &text);
     void setPlaceholderText(const std::string &text);
 //    void setShowCursor(bool show);
+    void addText(const std::string &text);
     std::string getText();
 };
 

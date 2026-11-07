@@ -27,13 +27,7 @@
 class ToolSimDriver : public avitab::SimDriverBase {
 public:
     ToolSimDriver();
-
-    void createMenu(const std::string &name) override;
-    void addMenuEntry(const std::string &label, std::function<void()> cb) override;
-    void destroyMenu() override;
-    void createCommand(const std::string &name, const std::string &desc, CommandCallback cb) override;
-    void destroyCommands() override;
-    void enableAndPowerPanel() override { }
+    virtual ~ToolSimDriver() = default;
 
     std::filesystem::path getProgramPath() override;
     std::filesystem::path getDataRootPath() override;
@@ -45,11 +39,8 @@ public:
     std::filesystem::path getXpNavDataRootPath() override;
     std::filesystem::path getMsfsNavDataRootPath() override;
 
-
-    void onAircraftReload() override { }
-
-    void setIsInMenu(bool menu) override { }
-    void updateMapExports(float lat, float lon, int zoom, float vrange) override { }
+    void notifyIsInMenu(bool menu) override { }
+    void notifyMapConfiguration(float lat, float lon, int zoom, float vrange) override { }
 
 protected:
     std::filesystem::path xplaneRootPath;

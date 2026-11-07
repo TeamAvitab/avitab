@@ -59,6 +59,7 @@ std::vector<DirEntry> readDirectory(const std::filesystem::path &utf8Path);
 
 std::string getLocalTime(const std::string &format);
 std::string getClipboardContent();
+void setClipboardContent(const std::string &text);
 
 std::string formatStringArgs(const std::string format, va_list args);
 std::string formatString(const std::string format, ...);

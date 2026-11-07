@@ -17,87 +17,109 @@
  */
 #pragma once
 
-#include <XPLM/XPLMGraphics.h>
-#include <XPLM/XPLMDisplay.h>
-#include <XPLM/XPLMDataAccess.h>
+#if 0
+/*
+Here's the TODO list for the remainder of the X-Plane UI driver updates>
+- save/restore window position in settings
+- general review of code for anything missed
+*/
+#endif
+
+
 #include <atomic>
+#include <filesystem>
 #include <mutex>
 #include <memory>
-#include <vector>
 #include "UiDriver.h"
 #include "sim/xplane/DataRefImport.h"
 #include "sim/xplane/DataRefExport.h"
+#include "XPlaneMonitorWindow.h"
+#include "XPlaneVrWindow.h"
+#include "XPlaneCockpitPanel.h"
+
+class XPlaneSimDriver;
+
+struct XPlaneUiSharedData {
+    // This structure is a convenient way of sharing various state data and
+    // other attributes between the classes that represent the different types of windows,
+    // panels (and eventually avionics). Separating the behaviours of windows, panels and
+    // avionics makes the code easier to follow, but since they all share quite a lot of
+    // data with each other, or with the top-level UI driver, collecting it here seems the
+    // easiest way to handle that (without adding tons of accessor functions).
+
+    // This is the ID that identifies the GL texture which gets painted with the latest
+    // Avitab screen image whenever that gets changed and notified through 'blit'. Both
+    // windows and panel (and avionics) will use this for their GL rendering.
+    int glTextureId = -1;
+    bool textureNeedsRedraw = false;
+    std::mutex textureRedrawMutex;
+    void notifyRedraw();
+    void redrawTexture();
+
+    // Stuff related to the framebuffer (which gets drawn to the texture buffer)
+    const uint32_t *frameBufferData;
+    int frameBufferWidth, frameBufferHeight;
+    void correctRatio(int &left, int &top, int &right, int &bottom, bool center);
+
+    // This is the current brightness setting, which is also controlled by an X-Plane dataref.
+    std::unique_ptr<xdata::DataRefExport<float>> brightnessRef;
+    float brightness = 1.0;
+
+    // These members reflect the current position of the mouse, the state of the button
+    // and any pending wheel rotations (+ve = up, -ve = down)
+    std::atomic_int mouseX = 0, mouseY = 0;
+    std::atomic_bool mousePressed = false;
+    std::atomic_int wheelClicks = 0;
+};
 
 class XPlaneUiDriver: public avitab::UiDriverBase {
 public:
     XPlaneUiDriver();
+    ~XPlaneUiDriver();
 
-    void init(int width, int height) override;
-    void createWindow(const std::string &title, const avitab::WindowRect &rect) override;
-    avitab::WindowRect getWindowRect() override;
-    bool hasWindow() override;
-    void killWindow() override;
+public:
+    // The top-level state machine is start -> enable -> disable { -> enable -> disable } -> stop
+    void start(std::shared_ptr<avitab::Settings> prefs, std::shared_ptr<avitab::AviTabCore> core, std::shared_ptr<XPlaneSimDriver> sim);
+    void enable(const std::filesystem::path & aircraftDir);
+    void disable();
+    void stop();
 
-    void setPanelEnabledPtr(std::shared_ptr<int> panelEnabledPtr);
-    void setPanelPoweredPtr(std::shared_ptr<int> panelPoweredPtr);
-    void setBrightnessPtr(std::shared_ptr<float> brightnessPtr);
-    void createPanel(int left, int bottom, int width, int height, PanelControlMode mode) override;
-    void hidePanel() override;
+    void toggleTablet();
+    void resetWindowPosition();
+    void onPlaneLoad(const std::filesystem::path & aircraftDir);
+    void onVRswitch();
 
-    void readPointerState(int &x, int &y, bool &pressed) override;
+    bool isHeaderAppHidden();
+    
+    void watchdog();
+
+public: // Implementation of UiDriverBase
+    void requestCloseWindow() override;
+
     void blit(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const uint32_t *data) override;
 
+    void leftClickFeed(bool pressed);
+    void mouseWheelFeed(int dir);
+
+    void readPointerState(int &x, int &y, bool &pressed) override;
     int getWheelClicks() override;
+
     void setBrightness(float b) override;
     float getBrightness() override;
 
-    void passLeftClick(bool down, bool drag) override;
-    void passWheel(int direction) override;
-
-    ~XPlaneUiDriver();
 private:
-    avitab::WindowRect lastRect{};
-    std::shared_ptr<float> brightness;
+    static int onKeySniff(char c, XPLMKeyFlags flags, char vKey, void *ref);
+
+private:
     xdata::DataRefImport<bool> isVrEnabled;
-    xdata::DataRefImport<float> xplane3dClickX, xplane3dClickY;
-    XPLMDataRef buttonRef{};
-    std::shared_ptr<int> panelPowered, panelEnabled;
-    int textureId = -1;
-    bool deferPop = false;
-    XPLMWindowID window{}, captureWindow{};
-    std::atomic_int mouseX {0}, mouseY {0};
-    std::atomic_bool mousePressed {false};
-    std::atomic_int wheelClicks {0};
-    std::mutex drawMutex;
-    bool needsRedraw = false;
-    std::unique_ptr<xdata::DataRefExport<int>> panelLeftRef, panelBottomRef, panelWidthRef, panelHeightRef;
-    int panelLeft = 0, panelBottom = 0, panelWidth = 0, panelHeight = 0;
-    std::unique_ptr<xdata::DataRefExport<float>> panelMouseXref, panelMouseYref;
-    float panelClickX = std::numeric_limits<float>::quiet_NaN();
-    float panelClickY = std::numeric_limits<float>::quiet_NaN();
-    std::vector<int> vrTriggerIndices;
-    bool mouseDownFromTrigger = false;
-    bool isPanelActive        = false;
-    PanelControlMode panelControlMode = PanelControlMode::AIRCRAFT_MANAGED;
 
-    void onDraw();
-    void onDrawPanel();
-    void redrawTexture();
-    void renderWindowTexture(int left, int top, int right, int bottom);
-    void correctRatio(int &left, int &top, int &right, int &bottom, bool center);
-    bool onClick(int x, int y, XPLMMouseStatus status);
-    bool onRightClick(int x, int y, XPLMMouseStatus status);
-    XPLMCursorStatus getCursor(int x, int y);
-    bool onMouseWheel(int x, int y, int wheel, int clicks);
-    bool boxelToPixel(int bx, int by, int &px, int &py);
+    XPlaneUiSharedData sharedData;
 
-    void setupVRCapture();
-    bool panelClickXYtoAvitabXY(float & px, float & py, int & mx, int & my);
-    bool onPanelClick(XPLMMouseStatus status);
-    bool onPanelWheel(int wheel, int clicks);
+    std::unique_ptr<XPlaneMonitorWindow> monitorWindow;
+    std::unique_ptr<XPlaneVrWindow> vrWindow;
+    XPlaneBaseWindow * currentWindow;
+    std::unique_ptr<XPlaneCockpitPanel> cockpitPanel;
 
-    void setupKeyboard();
+    bool appCloseRequested;
 
-    static int onDraw3D(XPLMDrawingPhase phase, int isBefore, void *ref);
-    static int onKeyPress(char c, XPLMKeyFlags flags, char vKey, void *ref);
 };
