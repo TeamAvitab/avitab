@@ -17,9 +17,6 @@
  */
 #pragma once
 
-#include <filesystem>
-#include <memory>
-#include <vector>
 #include "platform/Platform.h"
 #include "App.h"
 #include "gui/widgets/TabGroup.h"
@@ -39,6 +36,12 @@
 
 namespace avitab {
 
+struct DocumentsAppConfig : public ConfigBase {
+    bool mouseWheelScrollsMultiPage;
+    void unpack() override;
+    void pack() override;
+};
+
 class DocumentsApp: public App {
 public:
     DocumentsApp(FuncsPtr appFuncs, const std::string &title, const std::string &group, const std::filesystem::path &start, const std::string &fileRegex);
@@ -47,6 +50,15 @@ public:
 protected:
     void Run();
     void ChangeBrowseDirectory(const std::filesystem::path &dir);
+
+private: // this group relates to the documents app configuration
+    void onGeneralConfigChanged();
+    void onAppConfigChanged();
+    void onOverlayConfigChanged();
+    GeneralConfig generalConfig;
+    DocumentsAppConfig appConfig;
+    std::shared_ptr<maps::OverlayConfig> overlayConfig;
+
 private:
     const std::string appTitle;
     const std::string configGroup;
@@ -61,7 +73,6 @@ private:
     std::shared_ptr<List> list;
     std::unique_ptr<FilesystemBrowser> fsBrowser;
     std::vector<platform::DirEntry> currentEntries;
-    std::shared_ptr<maps::OverlayConfig> overlays;
 
     void createBrowseTab();
     void showDirectory();
@@ -104,7 +115,6 @@ private:
     void onPan(int x, int y, bool start, bool end);
     bool onTimer();
 
-    Settings::DocumentReadingConfig  settings;
     std::shared_ptr<Container> settingsContainer;
     std::shared_ptr<Label> settingsLabel;
     std::shared_ptr<Checkbox> mouseWheelScrollsCheckbox;

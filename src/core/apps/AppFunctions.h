@@ -61,7 +61,7 @@ public:
     virtual std::shared_ptr<apis::ChartService> getChartService() = 0;
     virtual std::shared_ptr<navdb::NavDatabase> getNavDatabase() = 0;
 
-    // APIs managing high-level app navigation - REFACTOR: rename these
+    // APIs managing high-level app navigation
     virtual void onHomeButtonPressed() = 0;
     virtual void onAppClosed() = 0;
     virtual void notifyHomeScreenActive(bool inMenu) = 0;
@@ -94,7 +94,7 @@ public:
     // Schedule jobs for deferred execution
     virtual void executeLater(std::function<void()> func) = 0;
 
-    // APIs for LVGL widget stuff (REFACTOR put these into a separate interface and implement it in LVGL toolkit)
+    // APIs for LVGL widget stuff
     virtual std::shared_ptr<Container> createGUIContainer() = 0;
     virtual void showGUIContainer(std::shared_ptr<Container> container) = 0;
 };

@@ -18,20 +18,33 @@
 #pragma once
 
 #include "App.h"
+#include "Settings.h"
 #include "gui/widgets/Container.h"
 #include "gui/widgets/Label.h"
 #include "gui/widgets/Button.h"
 #include "gui/widgets/Checkbox.h"
 #include "gui/widgets/Slider.h"
 #include "gui/Timer.h"
-#include <array>
 
 namespace avitab {
 
 class HeaderApp: public App {
 public:
     HeaderApp(FuncsPtr appFuncs);
+
+private: // this group relates to the header app configuration
+    void onGeneralConfigChanged();
+    GeneralConfig generalConfig;
+
 private:
+    enum clockMode {
+        REAL_WORLD_TIME_LOCAL,
+        SIM_TIME_ZULU,
+        SIM_TIME_LOCAL,
+        ELAPSED_TIMER,
+        NUM_CLOCK_MODES
+    };
+
     static constexpr int HOR_PADDING = 10, VERT_PADDING = 10;
     std::shared_ptr<Label> clockLabel, fpsLabel, navLabel;
     std::shared_ptr<Button> homeButton;
@@ -44,8 +57,6 @@ private:
     std::shared_ptr<Label> brightLabel, mediaLabel;
     std::shared_ptr<Button> closeButton;
 
-    std::shared_ptr<avitab::Settings> savedSettings;
-
     static constexpr int TIMER_PERIOD_MS = 100;
     static constexpr int TIMER_TICKS_PER_SEC = 1000 / TIMER_PERIOD_MS;
     Timer tickTimer; // managed by lvgl
@@ -54,16 +65,6 @@ private:
     int clockUpdateAlarm = 0; // counts down, triggers GUI update at <= 0
     static constexpr unsigned int CLOCK_WRAP_SECONDS = 60 * 60 * 24;
     unsigned int elapsedTimerStartS = 2 * CLOCK_WRAP_SECONDS;
-    enum clockMode {
-        REAL_WORLD_TIME_LOCAL,
-        SIM_TIME_ZULU,
-        SIM_TIME_LOCAL,
-        ELAPSED_TIMER,
-        NUM_CLOCK_MODES
-    };
-    int curClockMode = REAL_WORLD_TIME_LOCAL;
-
-    bool showFps = true;
     void onScreenResize(int width, int height) override;
 
     void createSettingsContainer();

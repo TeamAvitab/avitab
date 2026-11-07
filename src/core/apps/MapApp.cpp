@@ -15,9 +15,7 @@
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include <sstream>
-#include <iomanip>
-#include <cmath>
+
 #include "MapApp.h"
 #include "Logger.h"
 #include "platform/Platform.h"
@@ -26,6 +24,10 @@
 #include "maps/sources/GeoTIFFSource.h"
 #include "maps/sources/LocalFileSource.h"
 #include "maps/sources/EPSGSource.h"
+#include <sstream>
+#include <iomanip>
+#include <cmath>
+#include <cassert>
 
 namespace avitab {
 
@@ -35,8 +37,11 @@ MapApp::MapApp(FuncsPtr funcs):
     savedSettings(funcs->getSettings()),
     updateTimer(std::bind(&MapApp::onTimer, this), 200)
 {
-    overlayConf = api().getSettings()->getOverlayConfig();
-    mapConf = api().getSettings()->getMapConfig();
+    overlayConfig = std::make_shared<maps::OverlayConfig>();
+    auto settings = api().getSettings();
+    appConfig.init(settings, "/map", [this] () { onAppConfigChanged(); });
+    generalConfig.init(settings, "/general", [this] () { onGeneralConfigChanged(); });
+    overlayConfig->init(settings, "/overlay", [this] () { onOverlayConfigChanged(); });
 
     window->setOnClose([this] () { exit(); });
     window->addSymbol(Widget::Symbol::LIST, std::bind(&MapApp::onSettingsButton, this));
@@ -189,7 +194,7 @@ void MapApp::selectMercator() {
                 setTileSource(docSource);
                 fileChooser.reset();
                 chooserContainer->setVisible(false);
-                if (savedSettings->getGeneralSetting<bool>("show_calibration_msg_on_load")) {
+                if (generalConfig.showCalibrateMsgOnLoad) {
                     finalizeCalibration(map->getCalibrationReport());
                 } else if (map->isCalibrated()) {
                     finalizeCalibration("Chart is georeferenced");
@@ -301,7 +306,10 @@ void MapApp::selectOnlineMaps(bool interactive) {
         containerWithClickableList->setListItems(slippyMapNames);
 
         containerWithClickableList->setSelectCallback([this](int selectedItem) {
-            mapConf->onlineMapIndex = selectedItem;
+            if (appConfig.onlineMapIndex != selectedItem) {
+                appConfig.onlineMapIndex = selectedItem;
+                appConfig.update();
+            }
             const auto &conf = slippyMaps.at(selectedItem);
             std::shared_ptr<img::TileSource> tileSource;
 
@@ -330,8 +338,11 @@ void MapApp::selectOnlineMaps(bool interactive) {
     } else {
         // If non-interactive selection, pick the last used map
         // found in the mapconfig.json
-        mapConf->onlineMapIndex = (slippyMaps.size() > mapConf->onlineMapIndex) ? mapConf->onlineMapIndex : 0;
-        const auto &conf = slippyMaps.at(mapConf->onlineMapIndex);
+        if (appConfig.onlineMapIndex >= slippyMaps.size()) {
+            appConfig.onlineMapIndex = 0;
+            appConfig.update();
+        }
+        const auto &conf = slippyMaps.at(appConfig.onlineMapIndex);
         std::shared_ptr<img::TileSource> tileSource;
         tileSource =
             std::make_shared<maps::OnlineSlippySource>(
@@ -388,10 +399,7 @@ void MapApp::selectNavigraph(maps::NavigraphMapType type) {
         zoom = map->getZoomLevel();
     }
 
-    // reading and then writing immediately back ensures the setting is stored in the prefs file
-    bool globalNightMode = api().getSettings()->getGeneralSetting<bool>("night_mode");
-    api().getSettings()->setGeneralSetting<bool>("night_mode", globalNightMode);
-    auto source = std::make_shared<maps::NavigraphSource>(api().getChartService()->getNavigraph(), !globalNightMode, type);
+    auto source = std::make_shared<maps::NavigraphSource>(api().getChartService()->getNavigraph(), !generalConfig.nightMode, type);
     setTileSource(source);
 
     if (reCenter) {
@@ -414,7 +422,7 @@ void MapApp::setTileSource(std::shared_ptr<img::TileSource> source) {
     mapStitcher = std::make_shared<img::Stitcher>(mapImage, tileSource);
     mapStitcher->setCacheDirectory(api().getAvitabDataDir() /"MapTiles");
 
-    map = std::make_shared<maps::OverlayedMap>(mapStitcher, overlayConf);
+    map = std::make_shared<maps::OverlayedMap>(mapStitcher, overlayConfig);
     map->loadOverlayIcons(api().getAvitabInstallDir()/"icons");
     map->setRedrawCallback([this] () { onRedrawNeeded(); });
     map->setGetRouteCallback([this] () { return api().getRoute(); });
@@ -455,6 +463,21 @@ void MapApp::suspend() {
 
 void MapApp::resume() {
     suspended = false;
+}
+
+void MapApp::onGeneralConfigChanged() {
+    generalConfig.unpack();
+    // no further update, changes take effect on future UI interaction
+}
+
+void MapApp::onAppConfigChanged() {
+    // this function should not be called since the app config is (currently) only changed by the map app
+    assert(0);
+}
+
+void MapApp::onOverlayConfigChanged() {
+    // this function should not be called since the overlay config is (currently) only changed by the map app
+    assert(0);
 }
 
 void MapApp::onSettingsButton() {
@@ -520,80 +543,80 @@ void MapApp::showOverlaySettings() {
     overlayLabel->alignInTopLeft();
 
     myAircraftCheckbox = std::make_shared<Checkbox>(overlaysContainer, "My Aircraft");
-    myAircraftCheckbox->setChecked(overlayConf->drawMyAircraft);
+    myAircraftCheckbox->setChecked(overlayConfig->drawMyAircraft);
     myAircraftCheckbox->alignBelow(overlayLabel);
-    myAircraftCheckbox->setCallback([this] (bool checked) { overlayConf->drawMyAircraft = checked; });
+    myAircraftCheckbox->setCallback([this] (bool checked) { overlayConfig->drawMyAircraft = checked; overlayConfig->update(); });
 
     otherAircraftCheckbox = std::make_shared<Checkbox>(overlaysContainer, "Other Aircraft");
-    otherAircraftCheckbox->setChecked(overlayConf->drawOtherAircraft);
+    otherAircraftCheckbox->setChecked(overlayConfig->drawOtherAircraft);
     otherAircraftCheckbox->alignRightOf(myAircraftCheckbox);
-    otherAircraftCheckbox->setCallback([this] (bool checked) { overlayConf->drawOtherAircraft = checked; });
+    otherAircraftCheckbox->setCallback([this] (bool checked) { overlayConfig->drawOtherAircraft = checked; overlayConfig->update(); });
 
     routeCheckbox = std::make_shared<Checkbox>(overlaysContainer, "Route");
-    routeCheckbox->setChecked(overlayConf->drawRoute);
+    routeCheckbox->setChecked(overlayConfig->drawRoute);
     routeCheckbox->alignRightOf(otherAircraftCheckbox);
-    routeCheckbox->setCallback([this] (bool checked) { overlayConf->drawRoute = checked; });
+    routeCheckbox->setCallback([this] (bool checked) { overlayConfig->drawRoute = checked; overlayConfig->update(); });
     routeCheckbox->setVisible((bool)api().getRoute());
 
     airportCheckbox = std::make_shared<Checkbox>(overlaysContainer, "Airports");
-    airportCheckbox->setChecked(overlayConf->drawAirports);
+    airportCheckbox->setChecked(overlayConfig->drawAirports);
     airportCheckbox->alignBelow(myAircraftCheckbox);
-    airportCheckbox->setCallback([this] (bool checked) { overlayConf->drawAirports = checked; });
+    airportCheckbox->setCallback([this] (bool checked) { overlayConfig->drawAirports = checked; overlayConfig->update(); });
 
     airstripCheckbox = std::make_shared<Checkbox>(overlaysContainer, "Airstrips");
-    airstripCheckbox->setChecked(overlayConf->drawAirstrips);
+    airstripCheckbox->setChecked(overlayConfig->drawAirstrips);
     airstripCheckbox->alignRightOf(airportCheckbox);
-    airstripCheckbox->setCallback([this] (bool checked) { overlayConf->drawAirstrips = checked; });
+    airstripCheckbox->setCallback([this] (bool checked) { overlayConfig->drawAirstrips = checked; overlayConfig->update(); });
 
     heliseaportCheckbox = std::make_shared<Checkbox>(overlaysContainer, "Heli/Seaports");
-    heliseaportCheckbox->setChecked(overlayConf->drawHeliportsSeaports);
+    heliseaportCheckbox->setChecked(overlayConfig->drawHeliportsSeaports);
     heliseaportCheckbox->alignRightOf(airstripCheckbox);
-    heliseaportCheckbox->setCallback([this] (bool checked) { overlayConf->drawHeliportsSeaports = checked; });
+    heliseaportCheckbox->setCallback([this] (bool checked) { overlayConfig->drawHeliportsSeaports = checked; overlayConfig->update(); });
 
     vorCheckbox = std::make_shared<Checkbox>(overlaysContainer, "VOR/DME");
-    vorCheckbox->setChecked(overlayConf->drawVORs);
+    vorCheckbox->setChecked(overlayConfig->drawVORs);
     vorCheckbox->alignBelow(airportCheckbox);
-    vorCheckbox->setCallback([this] (bool checked) { overlayConf->drawVORs = checked; });
+    vorCheckbox->setCallback([this] (bool checked) { overlayConfig->drawVORs = checked; overlayConfig->update(); });
 
     ndbCheckbox = std::make_shared<Checkbox>(overlaysContainer, "NDB");
-    ndbCheckbox->setChecked(overlayConf->drawNDBs);
+    ndbCheckbox->setChecked(overlayConfig->drawNDBs);
     ndbCheckbox->alignRightOf(vorCheckbox);
-    ndbCheckbox->setCallback([this] (bool checked) { overlayConf->drawNDBs = checked; });
+    ndbCheckbox->setCallback([this] (bool checked) { overlayConfig->drawNDBs = checked; overlayConfig->update(); });
 
     ilsCheckbox = std::make_shared<Checkbox>(overlaysContainer, "ILS");
-    ilsCheckbox->setChecked(overlayConf->drawILSs);
+    ilsCheckbox->setChecked(overlayConfig->drawILSs);
     ilsCheckbox->alignRightOf(ndbCheckbox);
-    ilsCheckbox->setCallback([this] (bool checked) { overlayConf->drawILSs = checked; });
+    ilsCheckbox->setCallback([this] (bool checked) { overlayConfig->drawILSs = checked; overlayConfig->update(); });
 
     waypointCheckbox = std::make_shared<Checkbox>(overlaysContainer, "Waypoint");
-    waypointCheckbox->setChecked(overlayConf->drawWaypoints);
+    waypointCheckbox->setChecked(overlayConfig->drawWaypoints);
     waypointCheckbox->alignRightOf(ilsCheckbox);
-    waypointCheckbox->setCallback([this] (bool checked) { overlayConf->drawWaypoints = checked; });
+    waypointCheckbox->setCallback([this] (bool checked) { overlayConfig->drawWaypoints = checked; overlayConfig->update(); });
 
     loadUserFixesButton = std::make_shared<Button>(overlaysContainer, "Load");
     loadUserFixesButton->alignBelow(vorCheckbox, 10);
     loadUserFixesButton->setCallback([this] (const Button &) { selectUserFixesFile(); });
 
     poiCheckbox = std::make_shared<Checkbox>(overlaysContainer, "POI");
-    poiCheckbox->setChecked(overlayConf->drawPOIs);
+    poiCheckbox->setChecked(overlayConfig->drawPOIs);
     poiCheckbox->alignRightOf(loadUserFixesButton, 5);
-    poiCheckbox->setCallback([this] (bool checked) { overlayConf->drawPOIs = checked; });
+    poiCheckbox->setCallback([this] (bool checked) { overlayConfig->drawPOIs = checked; overlayConfig->update(); });
 
     vrpCheckbox = std::make_shared<Checkbox>(overlaysContainer, "VRP");
-    vrpCheckbox->setChecked(overlayConf->drawVRPs);
+    vrpCheckbox->setChecked(overlayConfig->drawVRPs);
     vrpCheckbox->alignRightOf(poiCheckbox);
-    vrpCheckbox->setCallback([this] (bool checked) { overlayConf->drawVRPs = checked; });
+    vrpCheckbox->setCallback([this] (bool checked) { overlayConfig->drawVRPs = checked; overlayConfig->update(); });
 
     markerCheckbox = std::make_shared<Checkbox>(overlaysContainer, "Marker");
-    markerCheckbox->setChecked(overlayConf->drawMarkers);
+    markerCheckbox->setChecked(overlayConfig->drawMarkers);
     markerCheckbox->alignRightOf(vrpCheckbox);
-    markerCheckbox->setCallback([this] (bool checked) { overlayConf->drawMarkers = checked; });
+    markerCheckbox->setCallback([this] (bool checked) { overlayConfig->drawMarkers = checked; overlayConfig->update(); });
 
 }
 
 void MapApp::selectUserFixesFile() {
     resetWidgets();
-    std::filesystem::path userfixes_file = savedSettings->getGeneralSetting<std::string>("userfixes_file");
+    std::filesystem::path userfixes_file = generalConfig.userFixesFile;
     if ((userfixes_file == "") || !std::filesystem::exists(userfixes_file.parent_path())) {
         fileChooser = std::make_unique<FileChooser>(&api(), "Fixes: ", api().getAvitabDataDir());
     } else {
@@ -603,11 +626,12 @@ void MapApp::selectUserFixesFile() {
     fileChooser->setSelectCallback([this] (const std::filesystem::path &selectedUTF8) {
         api().executeLater([this, selectedUTF8] () {
             try {
-                api().loadUserFixes(selectedUTF8);
+                api().loadUserFixes(selectedUTF8); // TODO - we can remove this and convert the navdb to a settings listener
                 fileChooser.reset();
                 chooserContainer->setVisible(false);
                 showOverlaySettings();
-                savedSettings->setGeneralSetting<std::string>("userfixes_file", selectedUTF8.u8string());
+                generalConfig.userFixesFile = selectedUTF8.u8string();
+                generalConfig.update();
             } catch (const std::exception &e) {
                 logger::warn("Couldn't open user fix file '%s': %s", selectedUTF8.string().c_str(), e.what());
             }
@@ -926,6 +950,14 @@ bool MapApp::onTimer() {
                            map->getZoomLevel(), map->getVerticalRange());
 
     return true;
+}
+
+void MapAppConfig::unpack() {
+    onlineMapIndex = json.value("online_map", 0);
+}
+
+void MapAppConfig::pack() {
+    json["online_map"] = onlineMapIndex;
 }
 
 } /* namespace avitab */

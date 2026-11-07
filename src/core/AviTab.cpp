@@ -16,9 +16,6 @@
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <future>
-#include <filesystem>
-#include <memory>
 #include "AviTabCore.h"
 #include "apps/AppFunctions.h"
 #include "UiDriver.h"
@@ -34,6 +31,10 @@
 #include "nav/NavDbManager.h"
 #include "nav/routing/RouteFinder.h"
 #include "AviTabBuildSettings.h"
+#include <nlohmann/json.hpp>
+#include <future>
+#include <filesystem>
+#include <memory>
 
 namespace avitab {
 
@@ -185,10 +186,14 @@ void AviTab::start(std::shared_ptr<Settings> prefs, std::shared_ptr<SimDriverBas
 
     navManager = std::make_unique<navdb::NavDbManager>(simDriver->getXpNavDataRootPath(), simDriver->getMsfsNavDataRootPath());
     img::TTFStamper::setFontDirectory(simDriver->getFontDirectory());
-    std::vector<std::string> remote_georefs_urls = settings->getGeneralSetting<std::vector<std::string>>("remote_georefs_urls");
+
+    std::vector<std::string> remote_georefs_urls;
+    try {
+        remote_georefs_urls = settings->get("/georefs/remote_urls").get<std::vector<std::string>>();
+    } catch (...) {}
     chartService = std::make_shared<apis::ChartService>(simDriver->getDataRootPath(), remote_georefs_urls);
 
-    std::string userfixes_file = settings->getGeneralSetting<std::string>("userfixes_file");
+    auto userfixes_file = settings->get("/general").value("userfixes_file", "");
     navManager->loadUserFixes(userfixes_file);
 
     lvglUI = std::make_shared<LVGLToolkit>(uiDriver);

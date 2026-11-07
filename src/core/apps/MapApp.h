@@ -40,6 +40,12 @@
 
 namespace avitab {
 
+struct MapAppConfig : public ConfigBase {
+    int onlineMapIndex;
+    void unpack() override;
+    void pack() override;
+};
+
 class MapApp: public App {
 public:
     MapApp(FuncsPtr funcs);
@@ -48,6 +54,15 @@ public:
     void pan(int x, int y) override;
     void suspend() override;
     void resume() override;
+
+private: // this group relates to the map app configuration
+    void onGeneralConfigChanged();
+    void onAppConfigChanged();
+    void onOverlayConfigChanged();
+    GeneralConfig generalConfig;
+    MapAppConfig appConfig;
+    std::shared_ptr<maps::OverlayConfig> overlayConfig;
+
 private:
     enum class MapSource {
         MERCATOR,
@@ -62,8 +77,6 @@ private:
 
     MapSource currentActiveMapSource;
     std::string currentActiveOnlineMap;
-    std::shared_ptr<maps::OverlayConfig> overlayConf;
-    std::shared_ptr<maps::MapConfig> mapConf;
     std::unique_ptr<FileChooser> fileChooser;
     std::unique_ptr<ContainerWithClickableCustomList> containerWithClickableList;
     std::shared_ptr<img::TileSource> tileSource;

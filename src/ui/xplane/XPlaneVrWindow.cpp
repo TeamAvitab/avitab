@@ -103,3 +103,7 @@ void XPlaneVrWindow::onDraw()
 
     render();
 }
+
+void XPlaneVrWindow::onWindowMoved(int l, int t, int r, int b) {
+    winLeft = l; winTop = t; winRight = r; winBottom = b;
+}
