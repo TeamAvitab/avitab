@@ -173,6 +173,8 @@ void XPlaneCockpitPanel::destroy() {
 int XPlaneCockpitPanel::onDrawCallback(XPLMDrawingPhase phase, int isBefore, void *ref) {
     XPlaneCockpitPanel *us = reinterpret_cast<XPlaneCockpitPanel *>(ref);
     us->drawPanel();
+    us->updateAvitabXY();
+
     return 1;
 }
 
@@ -381,6 +383,18 @@ bool XPlaneCockpitPanel::panelClickXYtoAvitabXY(float & px, float & py, int & mx
     bool isInAvitabWindow = (mx >= 0) && (mx < common.frameBufferWidth) && (my >= 0) && (my < common.frameBufferHeight);
 
     return isInAvitabWindow;
+}
+
+void XPlaneCockpitPanel::updateAvitabXY() {
+    auto active = panelEnabled && panelPowered && (panelMode != PanelMode::NO_PANEL);
+    if (!active) return;
+
+    float px, py;
+    int mx, my;
+    if (panelClickXYtoAvitabXY(px, py, mx, my)) {
+        common.mouseX = mx;
+        common.mouseY = my;
+    }
 }
 
 

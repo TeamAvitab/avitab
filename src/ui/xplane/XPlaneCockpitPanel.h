@@ -63,6 +63,7 @@ private:
     bool onPanelWheel(int clicks);
 
     bool panelClickXYtoAvitabXY(float & px, float & py, int & mx, int & my);
+    void updateAvitabXY();
 
 private:
     XPlaneUiSharedData & common;
