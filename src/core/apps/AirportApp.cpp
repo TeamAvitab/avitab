@@ -436,6 +436,13 @@ void AirportApp::onChartsLoaded(std::shared_ptr<Page> page, const apis::ChartSer
 
             auto chart = listTab.charts.at(index);
 
+            for (auto tabPage: pages) {
+                if (tabPage.chart == chart) {
+                    tabs->setActiveTab(tabs->getTabIndex(tabPage.page));
+                    return;
+                }
+            }
+
             TabPage newTab;
             newTab.page = tabs->addTab(tabs, chart->getICAO() + " " + chart->getIndex());
             newTab.page->setShowScrollbar(false);
