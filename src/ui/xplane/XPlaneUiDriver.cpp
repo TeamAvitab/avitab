@@ -340,7 +340,9 @@ void XPlaneUiDriver::createAvionicsPanel() {
         return xplm_CursorDefault;
     };
     params.keyboardCallback = nullptr;
-    params.brightnessCallback = nullptr;
+    params.brightnessCallback = [] (float rheo, float ambient, float busVoltsRatio, void *ref) -> float {
+        return 1.0f;
+    };
     params.deviceID = deviceIdStr;
     params.deviceName = deviceNameStr;
     params.refcon = this;
