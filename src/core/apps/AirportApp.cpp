@@ -630,6 +630,14 @@ void AirportApp::onMouseWheel(int dir, int x, int y) {
 
         if (tab.map) {
             if (dir > 0) {
+                if (!tab.trackPlane) {
+                    // Zoom in on the point under the mouse: first move the map centre there.
+                    // The wheel can also arrive without a pointer (x/y 0,0) which is outside the map.
+                    int mapX = x, mapY = y;
+                    if (tab.pixMap && tab.pixMap->screenToLocal(mapX, mapY)) {
+                        tab.map->pan(mapX - tab.pixMap->getWidth() / 2, mapY - tab.pixMap->getHeight() / 2);
+                    }
+                }
                 tab.map->zoomIn();
             } else {
                 tab.map->zoomOut();
