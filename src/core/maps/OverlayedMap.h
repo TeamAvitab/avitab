@@ -54,6 +54,9 @@ public:
     void updateImage();
     void zoomIn();
     void zoomOut();
+    // Zooms one level in/out keeping the map point under the pointer where it is
+    // dx, dy: pointer offset in pixels from the centre of the displayed (possibly rotated) map.
+    void zoomAt(bool in, int dx, int dy);
 
     bool isCalibrated() const;
     void beginCalibration();
