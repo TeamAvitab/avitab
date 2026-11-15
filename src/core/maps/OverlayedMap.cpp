@@ -192,6 +192,44 @@ void OverlayedMap::zoomOut() {
     lastClickX = lastClickY = INVALID_CLICK;
 }
 
+void OverlayedMap::zoomAt(bool in, int dx, int dy) {
+    int oldZoom = stitcher->getZoomLevel();
+    int page = stitcher->getCurrentPage();
+    auto center = stitcher->getCenter();
+    auto oldDim = tileSource->getTileDimensions(oldZoom);
+
+    // the pointer offset on the screen -> offset in the unrotated map image (same mapping as Stitcher::pan)
+    double ux = dx, uy = dy;
+    switch (stitcher->getRotation()) {
+    case 90:  ux = dy;  uy = -dx; break;
+    case 180: ux = -dx; uy = -dy; break;
+    case 270: ux = -dy; uy = dx;  break;
+    }
+
+    // the map point under the pointer, in tile units at the old zoom level
+    double ptX = center.x + ux / oldDim.x;
+    double ptY = center.y + uy / oldDim.y;
+
+    if (in) {
+        zoomIn();
+    } else {
+        zoomOut();
+    }
+
+    int newZoom = stitcher->getZoomLevel();
+    if (newZoom == oldZoom) {
+        return; // already at the zoom limit
+    }
+
+    // put that point under the pointer again: centre = point - pointer offset
+    auto newPt = tileSource->transformZoomedPoint(page, ptX, ptY, oldZoom, newZoom);
+    auto newDim = tileSource->getTileDimensions(newZoom);
+    double cx = newPt.x - ux / newDim.x;
+    double cy = newPt.y - uy / newDim.y;
+    tileSource->constrainXY(cx, cy, newZoom);
+    stitcher->setCenter(cx, cy);
+}
+
 void OverlayedMap::updateImage() {
     stitcher->updateImage();
 }

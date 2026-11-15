@@ -685,7 +685,11 @@ void MapApp::onMapPan(int x, int y, bool start, bool end) {
 }
 
 void MapApp::onMouseWheel(int dir, int x, int y) {
-    if (dir > 0) {
+    // Zoom around the point under the mouse, unless the map follows the plane.
+    // The wheel can also arrive without a pointer (x/y 0,0) which is outside the map.
+    if (!trackPlane && mapWidget->screenToLocal(x, y)) {
+        map->zoomAt(dir > 0, x - mapWidget->getWidth() / 2, y - mapWidget->getHeight() / 2);
+    } else if (dir > 0) {
         map->zoomIn();
     } else {
         map->zoomOut();
