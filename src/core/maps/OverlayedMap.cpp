@@ -15,10 +15,7 @@
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include <cstring>
-#include <algorithm>
-#include <cmath>
-#include <cassert>
+
 #include "OverlayedMap.h"
 #include "OverlayedAirport.h"
 #include "OverlayedDME.h"
@@ -27,7 +24,11 @@
 #include "OverlayedILSLocalizer.h"
 #include "OverlayedWaypoint.h"
 #include "OverlayedUserFix.h"
+#include "AircraftIcons.h"
 #include "Logger.h"
+#include <algorithm>
+#include <cmath>
+#include <cassert>
 
 constexpr static bool DBG_OVERLAYS = false;
 constexpr static int INVALID_CLICK = -9999;
@@ -69,9 +70,7 @@ OverlayedMap::OverlayedMap(std::shared_ptr<img::Stitcher> stitchedMap, std::shar
         cosTable[angle] = std::cos(angle * world::DEG_TO_RAD);
     }
 
-    otherAircraftColors[RelativeHeight::below] = overlayConfig->colorOtherAircraftBelow;
-    otherAircraftColors[RelativeHeight::same] = overlayConfig->colorOtherAircraftSame;
-    otherAircraftColors[RelativeHeight::above] = overlayConfig->colorOtherAircraftAbove;
+    planeIcons = AircraftIcons::factory(overlayConfig->colorOtherAircraftBelow, overlayConfig->colorOtherAircraftSame, overlayConfig->colorOtherAircraftAbove);
 
     overlayNodeCache = std::make_shared<NavNodeToOverlayMap>();
 }
@@ -82,15 +81,6 @@ void OverlayedMap::setRedrawCallback(OverlaysDrawnCallback cb) {
 
 void OverlayedMap::setGetRouteCallback(GetRouteCallback cb) {
     getRoute = cb;
-}
-
-void OverlayedMap::loadOverlayIcons(const std::filesystem::path& path) {
-    std::string planeIconName = "if_icon-plane_211875.png";
-    try {
-        planeIcon.loadImageFile(path / planeIconName);
-    } catch (const std::exception &e) {
-        logger::warn("Couldn't load icon %s: %s", planeIconName.c_str(), e.what());
-    }
 }
 
 void OverlayedMap::setNavWorld(std::shared_ptr<navdb::NavDatabase> world) {
@@ -267,10 +257,11 @@ void OverlayedMap::drawAircraftOverlay() {
     int py, px;
     std::tie(py, px) = locationToPixel(planeLocations[0]);
 
-    px -= planeIcon.getWidth() / 2;
-    py -= planeIcon.getHeight() / 2;
+    auto icon = planeIcons->getUserPlaneIcon(planeLocations[0].hdgDegrees() + getNorthOffset());
 
-    mapImage->blendImage(planeIcon, px, py, planeLocations[0].hdgDegrees() + getNorthOffset());
+    px -= icon->getWidth() / 2;
+    py -= icon->getHeight() / 2;
+    mapImage->blendImage0(*icon, px, py);
 }
 
 void OverlayedMap::drawOtherAircraftOverlay() {
@@ -282,28 +273,19 @@ void OverlayedMap::drawOtherAircraftOverlay() {
     for (size_t i = 1; i < planeLocations.size(); ++i) {
         bool isAbove = (planeLocations[i].alt_metres > (planeLocations[0].alt_metres + 30));
         bool isBelow = (planeLocations[i].alt_metres < (planeLocations[0].alt_metres - 30));
-        uint32_t color = (isAbove ? otherAircraftColors[RelativeHeight::above]
-                                  : (isBelow ? otherAircraftColors[RelativeHeight::below] 
-                                             : otherAircraftColors[RelativeHeight::same]));
         std::tie(py, px) = locationToPixel(planeLocations[i]);
-        mapImage->drawCircle(px, py, 6, color);
-        mapImage->drawCircle(px, py, 7, color);
-        double ax, ay, tx, ty, rx, ry;
-        fastPolarToCartesian(12.0, static_cast<int>(planeLocations[i].hdgDegrees() + getNorthOffset()), ax, ay);
-        fastPolarToCartesian(3.0, static_cast<int>(planeLocations[i].hdgDegrees() + getNorthOffset()), tx, ty);
-        fastPolarToCartesian(2.0, static_cast<int>(planeLocations[i].hdgDegrees() + getNorthOffset()) + 90, rx, ry);
-        mapImage->drawLineAA(px + tx + rx, py + ty + ry, px + ax, py + ay, color);
-        mapImage->drawLineAA(px + tx - rx, py + ty - ry, px + ax, py + ay, color);
+        auto icon = planeIcons->getOtherPlaneIcon(planeLocations[i].hdgDegrees() + getNorthOffset(), isBelow, isAbove);
+        mapImage->blendImage0(*icon, px - (icon->getWidth() / 2), py - (icon->getHeight() / 2));
         unsigned int flightLevel = static_cast<unsigned int>(planeLocations[i].altFeet() + 50.0) / 100.0;
         std::string flText = "---";
         flText[0] = '0' + (flightLevel / 100) % 10;
         flText[1] = '0' + (flightLevel / 10) % 10;
         flText[2] = '0' + (flightLevel / 1) % 10;
         if (isAbove) {
-            mapImage->drawText(flText, 12, px, py - 17, color, img::COLOR_TRANSPARENT_WHITE, img::Align::CENTRE);
+            mapImage->drawText(flText, 12, px, py - 18, img::COLOR_BLACK, img::COLOR_TRANSPARENT_WHITE, img::Align::CENTRE);
         }
         if (isBelow) {
-            mapImage->drawText(flText, 12, px, py + 7, color, img::COLOR_TRANSPARENT_WHITE, img::Align::CENTRE);
+            mapImage->drawText(flText, 12, px, py + 7, img::COLOR_BLACK, img::COLOR_TRANSPARENT_WHITE, img::Align::CENTRE);
         }
     }
 }

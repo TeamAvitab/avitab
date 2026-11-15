@@ -117,9 +117,9 @@ elseif(LINUX OR UNIX) # targetting Linux systems
     add_compile_definitions(AVITAB_LINUX)
 endif()
 
-## This custom tool is used to compile SVG icons and is declared at this outer
-## level as it is referenced in the resources sub-tree below.
-#add_executable(avitab_svgc)
+# This custom tool is used to compile SVG icons and is declared at this outer
+# level as it is referenced in the resources sub-tree below.
+add_executable(avitab_svgc)
 
 # Avitab common source code is here
 add_subdirectory(src)

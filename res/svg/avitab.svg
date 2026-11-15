@@ -1,0 +1,11 @@
+<svg width="320" height="320" xmlns="http://www.w3.org/2000/svg">
+  <path d="M160,20 A140,140,0,1,1,160,300" fill="none" style="stroke:black;stroke-width:10"/>
+  <path d="M160,20 A170,170,0,0,1,160,300" fill="none" style="stroke:black;stroke-width:10"/>
+  <line x1="160" y1="20" x2="160" y2="300" style="stroke:black;stroke-width:10" />
+  <path d="M160,20 A170,170,0,0,0,160,300" fill="none" style="stroke:black;stroke-width:10"/>
+  <path d="M160,20 A140,140,0,1,0,160,300" fill="none" style="stroke:black;stroke-width:10"/>
+  <line x1="160" y1="20" x2="160" y2="300" style="stroke:black;stroke-width:10" />
+  <line x1="35" y1="90" x2="285" y2="90" style="stroke:black;stroke-width:10" />
+  <line x1="20" y1="160" x2="300" y2="160" style="stroke:black;stroke-width:10" />
+  <line x1="35" y1="230" x2="285" y2="230" style="stroke:black;stroke-width:10" />
+</svg>
