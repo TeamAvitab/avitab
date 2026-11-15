@@ -22,6 +22,7 @@
 #include "OverlayedNDB.h"
 #include "OverlayedVOR.h"
 #include "OverlayedILSLocalizer.h"
+#include "OverlayedFPAP.h"
 #include "OverlayedWaypoint.h"
 #include "OverlayedUserFix.h"
 #include "AircraftIcons.h"
@@ -327,7 +328,7 @@ void OverlayedMap::drawNavWorldOverlays() {
     nodeFilter |= (overlayConfig->drawAirports) ? navdb::NavDatabase::VISIT_TOWERED_AIRPORTS : 0;
     nodeFilter |= (overlayConfig->drawAirstrips || overlayConfig->drawHeliportsSeaports) ? navdb::NavDatabase::VISIT_OTHER_AIRPORTS : 0;
     nodeFilter |= (overlayConfig->drawWaypoints) ? navdb::NavDatabase::VISIT_FIXES : 0;
-    nodeFilter |= (overlayConfig->drawVORs || overlayConfig->drawNDBs || overlayConfig->drawILSs) ? navdb::NavDatabase::VISIT_NAVAIDS : 0;
+    nodeFilter |= (overlayConfig->drawVORs || overlayConfig->drawNDBs || overlayConfig->drawILSs || overlayConfig->drawFPAPs) ? navdb::NavDatabase::VISIT_NAVAIDS : 0;
     nodeFilter |= (overlayConfig->drawPOIs || overlayConfig->drawVRPs || overlayConfig->drawMarkers) ? navdb::NavDatabase::VISIT_USER_FIXES : 0;
     if (!nodeFilter) {
         return;
@@ -702,6 +703,7 @@ bool maps::OverlayedMap::isOverlayConfigured(const navdb::Node *nn) const {
             draw |= (nf->getVOR() && overlayConfig->drawVORs);
             draw |= (nf->getDME() && overlayConfig->drawVORs);
             draw |= (nf->getILSLocalizer() && overlayConfig->drawILSs);
+            draw |= (nf->getFPAP() && overlayConfig->drawFPAPs);
         }
         return draw;
     } else if (auto uf = dynamic_cast<const navdb::UserFix *>(nn)) {
@@ -724,6 +726,8 @@ std::shared_ptr<OverlayedNode> OverlayedMap::makeOverlayedNode(navdb::Node const
     } else if (auto nf = dynamic_cast<const navdb::NavFix *>(nn)) {
         if (nf->getILSLocalizer()) {
             on = std::make_shared<OverlayedILSLocalizer>(static_cast<IOverlayHelper *>(this), nf);
+        } else if (nf->getFPAP()) {
+            on = std::make_shared<OverlayedFPAP>(static_cast<IOverlayHelper *>(this), nf);
         } else if (nf->getVOR()) {
             on = std::make_shared<OverlayedVOR>(static_cast<IOverlayHelper *>(this), nf);
         } else if (nf->getDME()) {

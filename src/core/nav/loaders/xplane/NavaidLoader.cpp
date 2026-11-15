@@ -48,15 +48,24 @@ void NavaidLoader::load(const std::filesystem::path& file) {
 }
 
 void NavaidLoader::onNavaidLoaded(const NavaidData& navaid) {
+    if (navaid.type == NavaidData::Type::LTP_FTP) {
+        // not a fix of its own, only the start of an FPAP's final approach course
+        onThresholdLoaded(navaid);
+        return;
+    }
+
     bool new_dme = (navaid.type == NavaidData::Type::DME_SINGLE || navaid.type == NavaidData::Type::DME_COMP);
     bool new_vor = (navaid.type == NavaidData::Type::VOR);
     bool new_ndb = (navaid.type == NavaidData::Type::NDB);
+    bool new_fpap = (navaid.type == NavaidData::Type::FPAP);
     auto fix = std::dynamic_pointer_cast<navdb::NavFixModel>(world->findFixByRegionAndID(navaid.icaoRegion, navaid.id));
     bool dontPair = false;
     if (fix) {
         bool old_ndb = (bool)fix->getNDB();
         bool old_vor_dme = fix->getVOR() || fix->getDME();
         dontPair = ((new_vor || new_dme) && old_ndb) || (new_ndb && old_vor_dme);
+        // FPAP procedure identifiers (e.g. R07CY) repeat at different airports of a region
+        dontPair |= new_fpap;
     }
     if (!fix || dontPair) {
         auto loc = world::Location::fromGCS(navaid.latitude, navaid.longitude);
@@ -79,6 +88,21 @@ void NavaidLoader::onNavaidLoaded(const NavaidData& navaid) {
         if (airport) {
             airport->attachILSData(rwy, fix);
         }
+    } else if (new_fpap) {
+        std::istringstream rwyAndType(navaid.name);
+        std::string rwy;
+        std::string type;
+        rwyAndType >> rwy;
+        rwyAndType >> type;
+        auto fpap = std::make_unique<navdb::FPAPModel>(navaid.radio, navaid.bearing, rwy, type);
+        ApproachKey key(navaid.terminalRegion, navaid.id);
+        auto pending = pendingThresholds.find(key);
+        if (pending != pendingThresholds.end()) {
+            fpap->setThreshold(pending->second);
+            pendingThresholds.erase(pending);
+        }
+        fpaps[key] = fpap.get();
+        fix->attachFPAP(fpap);
     } else if (new_ndb) {
         navdb::RadioFrequency ndbFrq = navdb::RadioFrequency(navaid.radio, 0, navdb::FrequencyUnit::KHZ, navaid.name);
         auto ndb = std::make_unique<navdb::NDBModel>(ndbFrq, navaid.range);
@@ -91,6 +115,17 @@ void NavaidLoader::onNavaidLoaded(const NavaidData& navaid) {
         navdb::RadioFrequency dmeFreq = navdb::RadioFrequency(navaid.radio, 2, navdb::FrequencyUnit::MHZ, navaid.name);
         auto dme = std::make_unique<navdb::DMEModel>(dmeFreq, navaid.range, navaid.type == NavaidData::Type::DME_COMP);
         fix->attachDME(dme);
+    }
+}
+
+void NavaidLoader::onThresholdLoaded(const NavaidData& navaid) {
+    auto loc = world::Location::fromGCS(navaid.latitude, navaid.longitude);
+    ApproachKey key(navaid.terminalRegion, navaid.id);
+    auto it = fpaps.find(key);
+    if (it != fpaps.end()) {
+        it->second->setThreshold(loc);
+    } else {
+        pendingThresholds[key] = loc;
     }
 }
 

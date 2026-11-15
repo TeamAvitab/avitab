@@ -39,6 +39,7 @@ struct OverlayConfig : public avitab::ConfigBase {
     bool drawVORs = false;
     bool drawNDBs = false;
     bool drawILSs = false;
+    bool drawFPAPs = false;
     bool drawWaypoints = false;
     bool drawPOIs = false;
     bool drawVRPs = false;

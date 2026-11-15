@@ -13,6 +13,8 @@ target_sources(avitab_core_lib PRIVATE
     OverlayedDME.h
     OverlayedFix.cpp
     OverlayedFix.h
+    OverlayedFPAP.cpp
+    OverlayedFPAP.h
     OverlayedILSLocalizer.cpp
     OverlayedILSLocalizer.h
     OverlayedMap.cpp

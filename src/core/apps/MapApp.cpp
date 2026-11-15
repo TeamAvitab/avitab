@@ -440,6 +440,7 @@ void MapApp::resetWidgets() {
     ndbCheckbox.reset();
     vorCheckbox.reset();
     ilsCheckbox.reset();
+    fpapCheckbox.reset();
     waypointCheckbox.reset();
     airportCheckbox.reset();
     airstripCheckbox.reset();
@@ -602,9 +603,14 @@ void MapApp::showOverlaySettings() {
     ilsCheckbox->alignRightOf(ndbCheckbox);
     ilsCheckbox->setCallback([this] (bool checked) { overlayConfig->drawILSs = checked; overlayConfig->update(); });
 
+    fpapCheckbox = std::make_shared<Checkbox>(overlaysContainer, "RNP");
+    fpapCheckbox->setChecked(overlayConfig->drawFPAPs);
+    fpapCheckbox->alignRightOf(ilsCheckbox);
+    fpapCheckbox->setCallback([this] (bool checked) { overlayConfig->drawFPAPs = checked; overlayConfig->update(); });
+
     waypointCheckbox = std::make_shared<Checkbox>(overlaysContainer, "Waypoint");
     waypointCheckbox->setChecked(overlayConfig->drawWaypoints);
-    waypointCheckbox->alignRightOf(ilsCheckbox);
+    waypointCheckbox->alignRightOf(fpapCheckbox);
     waypointCheckbox->setCallback([this] (bool checked) { overlayConfig->drawWaypoints = checked; overlayConfig->update(); });
 
     loadUserFixesButton = std::make_shared<Button>(overlaysContainer, "Load");

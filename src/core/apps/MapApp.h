@@ -93,7 +93,7 @@ private:
     std::shared_ptr<Label> overlayLabel;
     std::shared_ptr<Checkbox> myAircraftCheckbox, otherAircraftCheckbox, routeCheckbox;
     std::shared_ptr<Checkbox> airportCheckbox, heliseaportCheckbox, airstripCheckbox;
-    std::shared_ptr<Checkbox> vorCheckbox, ndbCheckbox, ilsCheckbox, waypointCheckbox;
+    std::shared_ptr<Checkbox> vorCheckbox, ndbCheckbox, ilsCheckbox, fpapCheckbox, waypointCheckbox;
     std::shared_ptr<Button> loadUserFixesButton;
     std::shared_ptr<Checkbox> poiCheckbox, vrpCheckbox, markerCheckbox;
 
