@@ -45,12 +45,13 @@ public:
     void setGetMagneticVariationsCallback(GetMagneticVariationsCallback cb);
     void setNavWorld(std::shared_ptr<navdb::NavDatabase> world);
 
-    bool mouse(int px, int py, bool down);
-    void pan(int dx, int dy, int relx = -1, int rely = -1);
+    void mouseClick(int px, int py);
+    void pan(int dx, int dy);
 
-    void centerOnLocation(const world::Location &loc); // was centerOnWorldPos
-    void centerOnPlane();
-    void setPlaneLocations(std::vector<world::Position> &locs);
+    bool centerOnLocation(const world::Location &loc); // was centerOnWorldPos
+    void setPlaneLocations(std::vector<world::Position> &locs, bool followPlane = false);
+    // true: rotate the map so the user's aircraft points up, false: north up
+    void setTrackUp(bool enable);
     world::Location getCenterLocation();
     float getVerticalRange() const;
 
@@ -107,6 +108,7 @@ private:
     int maxNodeDensity;
 
     int lastClickX, lastClickY;
+    void invalidateLastClick() { lastClickX = lastClickY = -1; }
 
     OverlaysDrawnCallback onOverlaysDrawn;
 
@@ -128,12 +130,17 @@ private:
 
     std::shared_ptr<navdb::NavDatabase> navWorld;
     std::vector<world::Position> planeLocations;
-    //enum RelativeHeight { below, same, above, total };
-    //uint32_t otherAircraftColors[RelativeHeight::total];
+    bool trackUp = false;
 
     int calibrationStep = 0;
 
     void drawOverlays();
+    bool applyTrackUpRotation();
+    // In track-up mode the overlays are drawn after the map has been rotated, directly onto the
+    // target image, so that text and symbols stay upright. The overlay classes then get pixel
+    // positions and headings in that rotated frame, via the IOverlayHelper functions.
+    bool overlaysOnScreen() const;
+    std::shared_ptr<img::Image> overlayImage() const;
     void drawAircraftOverlay();
     void drawOtherAircraftOverlay();
     void drawNavWorldOverlays();

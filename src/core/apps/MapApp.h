@@ -86,7 +86,7 @@ private:
 
     std::shared_ptr<Window> window;
     std::shared_ptr<PixMap> mapWidget;
-    std::shared_ptr<Button> trackButton;
+    std::shared_ptr<Button> trackPlaneButton, trackHeadingUpButton;
     std::shared_ptr<Button> rotateButton;
     std::shared_ptr<Container> settingsContainer, chooserContainer, overlaysContainer;
     std::shared_ptr<Button> mercatorButton, geoTiffButton, epsgButton, naviLowButton, naviHighButton, naviVFRButton, naviWorldButton, onlineMapsButton;
@@ -108,11 +108,30 @@ private:
     std::shared_ptr<Label> onlineMapsLabel;
 
     Timer updateTimer;
-    bool trackPlane = true;
     bool suspended = true;
 
-    int panPosX = 0, panPosY = 0;
-    bool wasTrackingPlaneAtPanStart;
+    // nested struct to encapsulate the tracking mode states, could be extracted into parent?
+    struct MapTrackingMode {
+        bool isTracking() const { return trackingNorthUp || trackingHeadingUp; }
+        bool isNotTracking() const { return !isTracking(); }
+        bool isTrackingNorthUp() const  { return trackingNorthUp; }
+        bool isTrackingHeadingUp() const  { return trackingHeadingUp; }
+        void setTrackingOff() { setTracking(false, false); }
+        void setTrackingNorthUp() { setTracking(true, false); }
+        void setTrackingHeadingUp() { setTracking(false, true); }
+        void setTracking(bool northUp, bool headingUp);
+        MapTrackingMode(MapApp &p) : parent(p), trackingNorthUp(true), trackingHeadingUp(false) { }
+        MapApp &parent;
+        bool trackingNorthUp;
+        bool trackingHeadingUp;
+    };
+    MapTrackingMode trackMode;
+
+    // mouse click'n'drag state to distinguish click from pan
+    int clickStartX, clickStartY;
+    int dragLastX, dragLastY;
+    bool panDetected;
+
     std::filesystem::path mercatorDir;
 
     void createSettingsLayout();
@@ -136,7 +155,8 @@ private:
     void onMapPan(int x, int y, bool start, bool end);
     void onPlusButton();
     void onMinusButton();
-    void onTrackButton();
+    void onTrackPlaneButton();
+    void onTrackHeadingUpButton();
     void onRotate();
     void startCalibration();
     double getCoordinate(const std::string &str);

@@ -680,10 +680,7 @@ bool AirportApp::onTimer() {
             for (AircraftID i = 0; i < api().getActiveAircraftCount(); ++i) {
                 locs.push_back(api().getAircraftPosition(i));
             }
-            tab.map->setPlaneLocations(locs);
-            if (tab.trackPlane) {
-                tab.map->centerOnPlane();
-            }
+            tab.map->setPlaneLocations(locs, tab.trackPlane);
             tab.map->doWork();
         }
     }
