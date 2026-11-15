@@ -49,10 +49,6 @@ void OverlayedILSLocalizer::configure(const OverlayConfig &cfg, const world::Loc
 
 void OverlayedILSLocalizer::drawGraphic()
 {
-    if (linkedDME) {
-        linkedDME->drawGraphic();
-    }
-
     if (!enabled) return;
 
     auto mapImage = overlayHelper->getMapImage();
