@@ -213,7 +213,6 @@ void DocumentsApp::loadFile(PageInfo tab, const std::filesystem::path &docPath) 
     tab->stitcher->setCacheDirectory(api().getAvitabDataDir()/"MapTiles");
 
     tab->map = std::make_shared<maps::OverlayedMap>(tab->stitcher, overlayConfig);
-    tab->map->loadOverlayIcons(api().getAvitabInstallDir()/"icons");
     tab->map->setGetRouteCallback([this] () { return api().getRoute(); });
 
     auto pixMap = tab->pixMap;

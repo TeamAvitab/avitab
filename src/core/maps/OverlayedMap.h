@@ -31,13 +31,14 @@
 
 namespace maps {
 
+class AircraftIcons;
+
 class OverlayedMap : public IOverlayHelper {
 public:
     using OverlaysDrawnCallback = std::function<void(void)>;
     using GetRouteCallback = std::function<std::shared_ptr<navdb::Route>(void)>;
 
     OverlayedMap(std::shared_ptr<img::Stitcher> stitchedMap, std::shared_ptr<OverlayConfig> overlays);
-    void loadOverlayIcons(const std::filesystem::path &path);
     void setRedrawCallback(OverlaysDrawnCallback cb);
     void setGetRouteCallback(GetRouteCallback cb);
     void setNavWorld(std::shared_ptr<navdb::NavDatabase> world);
@@ -92,6 +93,7 @@ private:
     std::shared_ptr<img::TileSource> tileSource;
     std::shared_ptr<img::Stitcher> stitcher;
     std::shared_ptr<OverlayConfig> overlayConfig;
+    AircraftIcons *planeIcons;
     img::TTFStamper copyrightStamp;
 
     // current map display attributes, updated on each frame
@@ -116,9 +118,8 @@ private:
 
     std::shared_ptr<navdb::NavDatabase> navWorld;
     std::vector<world::Position> planeLocations;
-    img::Image planeIcon;
-    enum RelativeHeight { below, same, above, total };
-    uint32_t otherAircraftColors[RelativeHeight::total];
+    //enum RelativeHeight { below, same, above, total };
+    //uint32_t otherAircraftColors[RelativeHeight::total];
 
     int calibrationStep = 0;
 

@@ -105,7 +105,7 @@ private:
     std::unique_ptr<std::vector<uint8_t>> encodedData;
     std::unique_ptr<std::vector<uint32_t>> pixels;
 
-    std::map<uint64_t, std::shared_ptr<img::Image>> circleCache;
+    std::map<uint64_t, std::shared_ptr<img::Image>> circleCache; // TODO - ??? shouldn't this be a static structure shared by all Image instances ???
 
     void fillCircleCacheImage(int x_centre, int y_centre, int radius, uint32_t color);
     void plot(int x, int y, float brightness);
