@@ -32,7 +32,6 @@
 #include <cassert>
 
 constexpr static bool DBG_OVERLAYS = false;
-constexpr static int INVALID_CLICK = -9999;
 
 namespace maps {
 
@@ -41,9 +40,7 @@ OverlayedMap::OverlayedMap(std::shared_ptr<img::Stitcher> stitchedMap, std::shar
     tileSource(stitchedMap->getTileSource()),
     stitcher(stitchedMap),
     overlayConfig(overlays),
-    copyrightStamp("Inconsolata.ttf"),
-    lastClickX(INVALID_CLICK),
-    lastClickY(INVALID_CLICK)
+    copyrightStamp("Inconsolata.ttf")
 {
     /*
      * This class is injected between a stitcher and its client:
@@ -51,12 +48,21 @@ OverlayedMap::OverlayedMap(std::shared_ptr<img::Stitcher> stitchedMap, std::shar
      * call the client.
      */
 
+    invalidateLastClick();
+
     copyrightStamp.setSize(16);
     copyrightStamp.setColor(0x404040);
     copyrightStamp.setText(tileSource->getCopyrightInfo());
 
-    stitcher->setPreRotateCallback([this] () { drawOverlays(); });
+    stitcher->setPreRotateCallback([this] () {
+        if (!overlaysOnScreen()) {
+            drawOverlays();
+        }
+    });
     stitcher->setRedrawCallback([this] () {
+        if (overlaysOnScreen()) {
+            drawOverlays();
+        }
         copyrightStamp.applyStamp(*(stitcher->getTargetImage()), 0);
         if (tileSource->isDocumentSource() && tileSource->supportsWorldCoords()) {
             drawCompass();
@@ -92,20 +98,22 @@ void OverlayedMap::setNavWorld(std::shared_ptr<navdb::NavDatabase> world) {
     navWorld = world;
 }
 
-void OverlayedMap::centerOnLocation(const world::Location &loc) {
+// Returns true if the map was moved and redrawn
+bool OverlayedMap::centerOnLocation(const world::Location &loc) {
     if (!tileSource->supportsWorldCoords()) {
-        return;
+        return false;
     }
 
     int zoomLevel = stitcher->getZoomLevel();
     auto centerXY = tileSource->worldToXY(loc, zoomLevel);
     int page = stitcher->getCurrentPage();
     if (tileSource->isTileValid(page, centerXY.x, centerXY.y, zoomLevel)) {
-        stitcher->setCenter(centerXY.x, centerXY.y);
+        return stitcher->setCenter(centerXY.x, centerXY.y);
     }
+    return false;
 }
 
-void OverlayedMap::setPlaneLocations(std::vector<world::Position> &locs) {
+void OverlayedMap::setPlaneLocations(std::vector<world::Position> &locs, bool followPlane) {
     if (!tileSource->supportsWorldCoords()) {
         return;
     }
@@ -123,19 +131,38 @@ void OverlayedMap::setPlaneLocations(std::vector<world::Position> &locs) {
     }
     planeLocations = locs;
 
-    if (movement) {
+    // rotate and centre first, so the map is drawn only once per update
+    bool rotated = applyTrackUpRotation();
+    if (followPlane && !planeLocations.empty() && centerOnLocation(planeLocations[0])) {
+        return; // moving the centre has already redrawn the map
+    }
+    // a changed rotation redraws as well
+    if (rotated || movement) {
         stitcher->updateImage();
     }
 }
 
-void OverlayedMap::centerOnPlane() {
-    if (!tileSource->supportsWorldCoords()) {
-        return;
+void OverlayedMap::setTrackUp(bool enable) {
+    trackUp = enable;
+    invalidateLastClick();
+    if (applyTrackUpRotation()) {
+        stitcher->updateImage();
     }
+}
 
-    if (!planeLocations.empty()) {
-        centerOnLocation(planeLocations[0]);
+// Returns true if the rotation or position of the map changed
+bool OverlayedMap::applyTrackUpRotation() {
+    double rotation = 0;
+    if (trackUp && !planeLocations.empty()) {
+        // whole degrees, so a steady heading doesn't redraw the map all the time
+        // the tile source's own offset: getNorthOffset() already includes this rotation
+        rotation = -std::round(planeLocations[0].hdgDegrees() + tileSource->getNorthOffsetAngle());
     }
+    // in track-up mode keep the aircraft near the bottom to see more of what is ahead
+    int offsetY = trackUp ? stitcher->getTargetImage()->getHeight() / 3 : 0;
+    bool rotated = stitcher->setViewRotation(rotation);
+    bool moved = stitcher->setViewOffsetY(offsetY);
+    return rotated || moved;
 }
 
 world::Location OverlayedMap::getCenterLocation() {
@@ -149,42 +176,30 @@ float OverlayedMap::getVerticalRange() const {
     return (float)rangeKM * 1000;
 }
 
-bool OverlayedMap::mouse(int x, int y, bool down)
+void OverlayedMap::mouseClick(int x, int y)
 {
-    bool wasClick = false;
-    if ((x < 0) || (y < 0)) return wasClick;
-    if (down) {
-        lastClickX = 0 - x;
-        lastClickY = 0 - y;
-    } else {
-        // if the mouse down and up points are sufficiently close then assume this was a click
-        // rather than a pan and use this to highlight the nearest overlay
-        if ((std::abs(x + lastClickX) + std::abs(y + lastClickY)) < 10) {
-            lastClickX = x;
-            lastClickY = y;
-            stitcher->convertSourceImageToRenderedCoords(lastClickX, lastClickY);
-            wasClick = true;
-        } else {
-            lastClickX = lastClickY = INVALID_CLICK;
-        }
+    if ((x < 0) || (y < 0)) return;
+    lastClickX = x; lastClickY = y;
+    if (!overlaysOnScreen()) {
+        stitcher->convertSourceImageToRenderedCoords(lastClickX, lastClickY);
     }
-    return wasClick;
 }
 
-void OverlayedMap::pan(int dx, int dy, int relx, int rely) {
+void OverlayedMap::pan(int dx, int dy) {
     stitcher->pan(dx, dy);
+    invalidateLastClick();
 }
 
 void OverlayedMap::zoomIn() {
     int zoomLevel = stitcher->getZoomLevel();
     stitcher->setZoomLevel(zoomLevel + 1);
-    lastClickX = lastClickY = INVALID_CLICK;
+    invalidateLastClick();
 }
 
 void OverlayedMap::zoomOut() {
     int zoomLevel = stitcher->getZoomLevel();
     stitcher->setZoomLevel(zoomLevel - 1);
-    lastClickX = lastClickY = INVALID_CLICK;
+    invalidateLastClick();
 }
 
 void OverlayedMap::zoomAt(bool in, int dx, int dy) {
@@ -240,7 +255,8 @@ void OverlayedMap::drawOverlays() {
         skippedFirst = true;
         return;
     }
-    if ((mapImage->getWidth() == 0) || (mapImage->getHeight() == 0)) {
+    auto img = overlayImage();
+    if ((img->getWidth() == 0) || (img->getHeight() == 0)) {
         return;
     }
     if (tileSource->supportsWorldCoords()) {
@@ -260,16 +276,24 @@ void OverlayedMap::drawAircraftOverlay() {
     }
 
     int py, px;
-    std::tie(py, px) = locationToPixel(planeLocations[0]);
-
+    double angle;
     auto icon = planeIcons->getUserPlaneIcon();
-
-    px -= icon->getWidth() / 2;
-    py -= icon->getHeight() / 2;
-    mapImage->blendImage(*icon, px, py, planeLocations[0].hdgDegrees() + getNorthOffset());
+    if (trackUp) {
+        px = overlayImage()->getWidth() / 2 - icon->getWidth() / 2;
+        py = overlayImage()->getHeight() / 2 + stitcher->getViewOffsetY() - icon->getHeight() / 2;
+        angle = 0;
+    }
+    else {
+        std::tie(py, px) = locationToPixel(planeLocations[0]);
+        px -= icon->getWidth() / 2;
+        py -= icon->getHeight() / 2;
+        angle = planeLocations[0].hdgDegrees() + getNorthOffset();
+    }
+    overlayImage()->blendImage(*icon, px, py, angle);
 }
 
 void OverlayedMap::drawOtherAircraftOverlay() {
+    auto img = overlayImage();
     if (!overlayConfig->drawOtherAircraft || (planeLocations.size() < 2)) {
         return;
     }
@@ -280,17 +304,17 @@ void OverlayedMap::drawOtherAircraftOverlay() {
         bool isBelow = (planeLocations[i].alt_metres < (planeLocations[0].alt_metres - 30));
         std::tie(py, px) = locationToPixel(planeLocations[i]);
         auto icon = planeIcons->getOtherPlaneIcon(isBelow, isAbove);
-        mapImage->blendImage(*icon, px - (icon->getWidth() / 2), py - (icon->getHeight() / 2), planeLocations[i].hdgDegrees() + getNorthOffset());
+        img->blendImage(*icon, px - (icon->getWidth() / 2), py - (icon->getHeight() / 2), planeLocations[i].hdgDegrees() + getNorthOffset());
         unsigned int flightLevel = static_cast<unsigned int>(planeLocations[i].altFeet() + 50.0) / 100.0;
         std::string flText = "---";
         flText[0] = '0' + (flightLevel / 100) % 10;
         flText[1] = '0' + (flightLevel / 10) % 10;
         flText[2] = '0' + (flightLevel / 1) % 10;
         if (isAbove) {
-            mapImage->drawText(flText, 12, px, py - 18, img::COLOR_BLACK, img::COLOR_TRANSPARENT_WHITE, img::Align::CENTRE);
+            img->drawText(flText, 12, px, py - 17, img::COLOR_BLACK, img::COLOR_TRANSPARENT_WHITE, img::Align::CENTRE);
         }
         if (isBelow) {
-            mapImage->drawText(flText, 12, px, py + 7, img::COLOR_BLACK, img::COLOR_TRANSPARENT_WHITE, img::Align::CENTRE);
+            img->drawText(flText, 12, px, py + 7, img::COLOR_BLACK, img::COLOR_TRANSPARENT_WHITE, img::Align::CENTRE);
         }
     }
 }
@@ -308,17 +332,18 @@ void OverlayedMap::drawCalibrationOverlay() {
     } else {
         color = img::COLOR_DARK_GREEN;
     }
-    int centerX = mapImage->getWidth() / 2;
-    int centerY = mapImage->getHeight() / 2;
+    auto img = overlayImage();
+    int centerX = img->getWidth() / 2;
+    int centerY = img->getHeight() / 2 + (overlaysOnScreen() ? stitcher->getViewOffsetY() : 0);
     int r = 10;
 
-    mapImage->drawLine(centerX - r, centerY - r, centerX + r, centerY - r, color);
-    mapImage->drawLine(centerX - r, centerY + r, centerX + r, centerY + r, color);
-    mapImage->drawLine(centerX - r, centerY - r, centerX - r, centerY + r, color);
-    mapImage->drawLine(centerX + r, centerY - r, centerX + r, centerY + r, color);
+    img->drawLine(centerX - r, centerY - r, centerX + r, centerY - r, color);
+    img->drawLine(centerX - r, centerY + r, centerX + r, centerY + r, color);
+    img->drawLine(centerX - r, centerY - r, centerX - r, centerY + r, color);
+    img->drawLine(centerX + r, centerY - r, centerX + r, centerY + r, color);
 
-    mapImage->drawLine(centerX - r / 2, centerY, centerX + r / 2, centerY, color);
-    mapImage->drawLine(centerX, centerY + r / 2, centerX, centerY - r / 2, color);
+    img->drawLine(centerX - r / 2, centerY, centerX + r / 2, centerY, color);
+    img->drawLine(centerX, centerY + r / 2, centerX, centerY - r / 2, color);
 }
 
 void OverlayedMap::drawNavWorldOverlays() {
@@ -422,7 +447,7 @@ void OverlayedMap::drawNavWorldOverlays() {
         highlights[i].reset();
     }
     if (!showDetailedText) {
-        if (lastClickX > 0) {
+        if (lastClickX >= 0) {
             highlights[LAST_CLICK].activate(lastClickX, lastClickY);
         }
         if (overlayConfig->drawMyAircraft && !planeLocations.empty()) {
@@ -430,7 +455,8 @@ void OverlayedMap::drawNavWorldOverlays() {
             std::tie(y,x) = locationToPixel(planeLocations[0]);
             highlights[USER_PLANE].activate(x, y);
         }
-        highlights[MAP_CENTER].activate(mapImage->getWidth() / 2, mapImage->getHeight() / 2);
+        auto img = overlayImage();
+        highlights[MAP_CENTER].activate(img->getWidth() / 2, img->getHeight() / 2 + (overlaysOnScreen() ? stitcher->getViewOffsetY() : 0));
     }
 
     // split the collection of nodes into fixes and aerodromes, and find the ones to be highlighted
@@ -490,6 +516,7 @@ double OverlayedMap::getMapWidthNM() const {
 }
 
 void OverlayedMap::drawScale() {
+    auto img = overlayImage();
     bool useFeet = (mapScaleNMperPixel < 0.005);
     std::string units = useFeet ? "ft" : "nm";
     double perPixel = useFeet ? (mapScaleNMperPixel * 6076) : mapScaleNMperPixel;
@@ -506,24 +533,31 @@ void OverlayedMap::drawScale() {
         step, units.c_str(),  rangeToShow, units.c_str());
     int x = 5;
     int y = 195;
+    if (overlaysOnScreen()) {
+        // x, y are relative to the pre-rotated image of a north-up map, a square with the target
+        // image centred in it; keep the scale where it is in that case (top left)
+        int size = std::max(img->getWidth(), img->getHeight());
+        x -= (size - img->getWidth()) / 2;
+        y -= (size - img->getHeight()) / 2;
+    }
     if (perPixel == 0) {
         return;
     }
     int lineLength = rangeToShow / perPixel;
-    mapImage->drawLine(x, y,  x + lineLength, y,  img::COLOR_BLACK);
+    img->drawLine(x, y,  x + lineLength, y,  img::COLOR_BLACK);
     for (int tick = 0; tick <= rangeToShow; tick += step) {
-        mapImage->drawLine(x + (tick / perPixel), y,  x + (tick / perPixel), y + 10,  img::COLOR_BLACK);
+        img->drawLine(x + (tick / perPixel), y,  x + (tick / perPixel), y + 10,  img::COLOR_BLACK);
     }
     std::string text = std::to_string(int(rangeToShow)) + units;
     int xtext = x + lineLength + 2;
-    mapImage->drawText(text, 12, xtext, y, img::COLOR_BLACK, img::COLOR_TRANSPARENT_WHITE, img::Align::LEFT);
+    img->drawText(text, 12, xtext, y, img::COLOR_BLACK, img::COLOR_TRANSPARENT_WHITE, img::Align::LEFT);
 }
 
 void OverlayedMap::drawCompass() {
     int cx = stitcher->getTargetImage()->getWidth() - 30;
     int cy = 30;
     auto rotatedImage = stitcher->getTargetImage();
-    int compassDir = (stitcher->getRotation() + (int)getNorthOffset()) % 360;
+    int compassDir = (int)(stitcher->getRotation() + stitcher->getViewRotation() + tileSource->getNorthOffsetAngle()) % 360;
     rotatedImage->drawCircle(cx, cy, 20, img::COLOR_RED);
     double xt, yt, xm, ym, xp, yp;
     fastPolarToCartesian(20, compassDir,      xt, yt);
@@ -555,10 +589,20 @@ std::pair<int, int>  OverlayedMap::locationToPixel(const world::Location& loc, i
         tileXY.x += mapWidth;
     }
 
-    int px = mapImage->getWidth() / 2 + (tileXY.x - centerXY.x) * dim.x;
-    int py = mapImage->getHeight() / 2 + (tileXY.y - centerXY.y) * dim.y;
+    double px = mapImage->getWidth() / 2.0 + (tileXY.x - centerXY.x) * dim.x;
+    double py = mapImage->getHeight() / 2.0 + (tileXY.y - centerXY.y) * dim.y;
 
-    return std::make_pair(py, px);
+    if (overlaysOnScreen()) {
+        // from the pre-rotated image to the rotated target image
+        double a = (stitcher->getRotation() + stitcher->getViewRotation()) * world::DEG_TO_RAD;
+        double rx = px - mapImage->getWidth() / 2.0;
+        double ry = py - mapImage->getHeight() / 2.0;
+        auto target = stitcher->getTargetImage();
+        px = target->getWidth() / 2.0 + rx * std::cos(a) - ry * std::sin(a);
+        py = target->getHeight() / 2.0 + stitcher->getViewOffsetY() + rx * std::sin(a) + ry * std::cos(a);
+    }
+
+    return std::make_pair((int) std::lround(py), (int) std::lround(px));
 }
 
 void OverlayedMap::updateMapAttributes()
@@ -616,8 +660,9 @@ void OverlayedMap::polarToCartesian(float radius, float angleDegrees, double& x,
 }
 
 bool OverlayedMap::isAreaVisible(int xmin, int ymin, int xmax, int ymax) const {
-    return (xmax > 0) && (xmin < mapImage->getWidth()) &&
-           (ymax > 0) && (ymin < mapImage->getHeight());
+    auto img = overlayImage();
+    return (xmax > 0) && (xmin < img->getWidth()) &&
+           (ymax > 0) && (ymin < img->getHeight());
 }
 
 int OverlayedMap::getZoomLevel() const {
@@ -669,7 +714,20 @@ float OverlayedMap::getMagneticVariation(const world::Location &loc) const {
 }
 
 double OverlayedMap::getNorthOffset() const {
-    return tileSource->getNorthOffsetAngle();
+    double offset = tileSource->getNorthOffsetAngle();
+    if (overlaysOnScreen()) {
+        // headings are drawn in the rotated frame
+        offset += stitcher->getRotation() + stitcher->getViewRotation();
+    }
+    return offset;
+}
+
+bool OverlayedMap::overlaysOnScreen() const {
+    return trackUp && tileSource->supportsWorldCoords();
+}
+
+std::shared_ptr<img::Image> OverlayedMap::overlayImage() const {
+    return overlaysOnScreen() ? stitcher->getTargetImage() : mapImage;
 }
 
 bool OverlayedMap::isCalibrated() const {
@@ -719,7 +777,7 @@ int OverlayedMap::getCalibrationStep() const {
 }
 
 std::shared_ptr<img::Image> OverlayedMap::getMapImage() {
-    return mapImage;
+    return overlayImage();
 }
 
 void OverlayedMap::drawRoute() {

@@ -813,6 +813,32 @@ void Image::rotate(Image& dst, int angle) {
     }
 }
 
+void Image::rotateArbitrary(Image &dst, double angleDegrees, int centerOffsetY) {
+    dst.clear(0);
+
+    double theta = angleDegrees * world::DEG_TO_RAD;
+    double c = std::cos(theta);
+    double s = std::sin(theta);
+
+    const uint32_t *srcPtr = getPixels();
+    uint32_t *dstPtr = dst.getPixels();
+    double srcCx = width / 2.0;
+    double srcCy = height / 2.0;
+
+    // For every destination pixel find where it comes from in the source (inverse rotation)
+    for (int y = 0; y < dst.height; y++) {
+        double ry = y - (dst.height / 2.0 + centerOffsetY) + 0.5;
+        double fx = (0 - dst.width / 2.0 + 0.5) * c + ry * s + srcCx;
+        double fy = -(0 - dst.width / 2.0 + 0.5) * s + ry * c + srcCy;
+        for (int x = 0; x < dst.width; x++, fx += c, fy -= s) {
+            if (fx < 0 || fy < 0 || fx >= width || fy >= height) {
+                continue;
+            }
+            dstPtr[y * dst.width + x] = srcPtr[(int) fy * width + (int) fx];
+        }
+    }
+}
+
 void Image::drawText(const std::string &text, int size, int x, int y, uint32_t fgColor, uint32_t bgColor, Align al) {
     // x, y, is top left corner
     static TTFStamper textBox("Inconsolata.ttf");

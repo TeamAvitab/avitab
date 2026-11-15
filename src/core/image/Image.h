@@ -97,6 +97,9 @@ public:
     void rotate180(Image &dst);
     void rotate270(Image &dst);
     void rotate(Image &dst, int angle);
+    // Rotates clockwise by any angle about the centre (nearest neighbour)
+    // The rotation centre appears centerOffsetY pixels below the centre of dst.
+    void rotateArbitrary(Image &dst, double angleDegrees, int centerOffsetY = 0);
 
     virtual ~Image() = default;
 private:

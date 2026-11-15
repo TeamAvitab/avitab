@@ -35,7 +35,8 @@ MapApp::MapApp(FuncsPtr funcs):
     App(funcs),
     window(std::make_shared<Window>(getUIContainer(), "")),
     savedSettings(funcs->getSettings()),
-    updateTimer(std::bind(&MapApp::onTimer, this), 200)
+    updateTimer(std::bind(&MapApp::onTimer, this), 200),
+    trackMode(*this)
 {
     overlayConfig = std::make_shared<maps::OverlayConfig>();
     auto settings = api().getSettings();
@@ -48,8 +49,10 @@ MapApp::MapApp(FuncsPtr funcs):
     window->addSymbol(Widget::Symbol::SETTINGS, std::bind(&MapApp::onOverlaysButton, this));
     window->addSymbol(Widget::Symbol::MINUS, std::bind(&MapApp::onMinusButton, this));
     window->addSymbol(Widget::Symbol::PLUS, std::bind(&MapApp::onPlusButton, this));
-    trackButton = window->addSymbol(Widget::Symbol::GPS, std::bind(&MapApp::onTrackButton, this));
-    trackButton->setToggleState(trackPlane);
+    trackHeadingUpButton = window->addSymbol(Widget::Symbol::UP, std::bind(&MapApp::onTrackHeadingUpButton, this));
+    trackHeadingUpButton->setToggleState(trackMode.isTrackingHeadingUp());
+    trackPlaneButton = window->addSymbol(Widget::Symbol::GPS, std::bind(&MapApp::onTrackPlaneButton, this));
+    trackPlaneButton->setToggleState(trackMode.isTrackingNorthUp());
     rotateButton = window->addSymbol(Widget::Symbol::ROTATE, std::bind(&MapApp::onRotate, this));
     rotateButton->setVisible(false);
 
@@ -393,7 +396,7 @@ void MapApp::selectNavigraph(maps::NavigraphMapType type) {
     world::Location center;
     int zoom = 0;
 
-    if (!trackPlane && map && map->isCalibrated()) {
+    if (trackMode.isNotTracking() && map && map->isCalibrated()) {
         reCenter = true;
         center = map->getCenterLocation();
         zoom = map->getZoomLevel();
@@ -403,8 +406,7 @@ void MapApp::selectNavigraph(maps::NavigraphMapType type) {
     setTileSource(source);
 
     if (reCenter) {
-        trackPlane = false;
-        trackButton->setToggleState(trackPlane);
+        trackMode.setTrackingOff();
         if (zoom >= source->getMinZoomLevel() && zoom <= source->getMaxZoomLevel()) {
             mapStitcher->setZoomLevel(zoom);
         }
@@ -418,13 +420,13 @@ void MapApp::setTileSource(std::shared_ptr<img::TileSource> source) {
     mapStitcher.reset();
     tileSource = source;
 
-    trackPlane = true;
-    trackButton->setToggleState(trackPlane);
+    trackMode.setTrackingNorthUp();
 
     mapStitcher = std::make_shared<img::Stitcher>(mapImage, tileSource);
     mapStitcher->setCacheDirectory(api().getAvitabDataDir() /"MapTiles");
 
     map = std::make_shared<maps::OverlayedMap>(mapStitcher, overlayConfig);
+    map->setTrackUp(trackMode.isTrackingHeadingUp());
     map->setRedrawCallback([this] () { onRedrawNeeded(); });
     map->setGetRouteCallback([this] () { return api().getRoute(); });
     map->setGetMagneticVariationsCallback([this] (std::vector<world::Location> &locs) { return api().getMagneticVariations(locs); });
@@ -683,32 +685,34 @@ void MapApp::onRedrawNeeded() {
 }
 
 void MapApp::onMapPan(int x, int y, bool start, bool end) {
+    // this is the widget click handler
     if (start) {
-        wasTrackingPlaneAtPanStart = trackPlane;
-        trackPlane = false;
-        trackButton->setToggleState(trackPlane);
-        (void)map->mouse(x, y, true);
+        // mouse button down at x,y: start tracking
+        clickStartX = x; clickStartY = y;
+        panDetected = false; // until proven otherwise
     } else if (!end) {
-        int panVecX = panPosX - x;
-        int panVecY = panPosY - y;
-        map->pan(panVecX, panVecY, x, y);
+        // mouse button held down at x,y: has mouse moved enough to trigger pan?
+        if ((std::abs(x - clickStartX) + std::abs(y - clickStartY)) >= 10) {
+            panDetected = true;
+            trackMode.setTrackingOff();
+        }
+        if (panDetected) {
+            map->pan(dragLastX - x, dragLastY - y);
+        }
     } else {
-        if (map->mouse(x, y, false)) {
-            // restore the trackPlane setting before the pan started
-            if (wasTrackingPlaneAtPanStart) {
-                trackPlane = true;
-                trackButton->setToggleState(trackPlane);
-            }
+        // mouse button released: report click if no pan was detected
+        if (!panDetected) {
+            map->mouseClick(x, y);
         }
     }
-    panPosX = x;
-    panPosY = y;
+    dragLastX = x;
+    dragLastY = y;
 }
 
 void MapApp::onMouseWheel(int dir, int x, int y) {
     // Zoom around the point under the mouse, unless the map follows the plane.
     // The wheel can also arrive without a pointer (x/y 0,0) which is outside the map.
-    if (!trackPlane && mapWidget->screenToLocal(x, y)) {
+    if (trackMode.isNotTracking() && mapWidget->screenToLocal(x, y)) {
         map->zoomAt(dir > 0, x - mapWidget->getWidth() / 2, y - mapWidget->getHeight() / 2);
     } else if (dir > 0) {
         map->zoomIn();
@@ -719,16 +723,11 @@ void MapApp::onMouseWheel(int dir, int x, int y) {
 }
 
 void MapApp::recentre() {
-    if (!trackPlane) {
-        onTrackButton();
-    }
+    trackMode.setTrackingNorthUp();
 }
 
 void MapApp::pan(int x, int y) {
-    if (trackPlane) {
-        trackPlane = false;
-        trackButton->setToggleState(trackPlane);
-    }
+    trackMode.setTrackingOff();
     map->pan(mapWidget->getWidth() * x / 100, mapWidget->getHeight() * y / 100);
 }
 
@@ -742,7 +741,7 @@ void MapApp::onMinusButton() {
     onTimer();
 }
 
-void MapApp::onTrackButton() {
+void MapApp::onTrackPlaneButton() {
     if (!map->isCalibrated()) {
         int step = map->getCalibrationStep();
         if (step == 0) {
@@ -753,8 +752,20 @@ void MapApp::onTrackButton() {
         return;
     }
 
-    trackPlane = !trackPlane;
-    trackButton->setToggleState(trackPlane);
+    if (trackMode.isTracking()) {
+        trackMode.setTrackingOff();
+    } else {
+        trackMode.setTrackingNorthUp();
+    }
+    onTimer();
+}
+
+void MapApp::onTrackHeadingUpButton() {
+    if (trackMode.isTrackingHeadingUp()) {
+        trackMode.setTrackingNorthUp();
+    } else {
+        trackMode.setTrackingHeadingUp();
+    }
     onTimer();
 }
 
@@ -791,7 +802,7 @@ void MapApp::startCalibration() {
     keyboard->alignInBottomCenter();
     keyboard->setOnOk([this] {
         api().executeLater([this] {
-            onTrackButton();
+            onTrackPlaneButton();
         });
     });
 }
@@ -963,10 +974,7 @@ bool MapApp::onTimer() {
         locs.push_back(api().getAircraftPosition(i));
     }
 
-    map->setPlaneLocations(locs);
-    if (trackPlane) {
-        map->centerOnPlane();
-    }
+    map->setPlaneLocations(locs, trackMode.isTracking());
 
     map->doWork();
 
@@ -983,6 +991,18 @@ void MapAppConfig::unpack() {
 
 void MapAppConfig::pack() {
     json["online_map"] = onlineMapIndex;
+}
+
+void MapApp::MapTrackingMode::setTracking(bool northUp, bool headingUp) {
+    assert(!(northUp && headingUp)); // internally these are mutually exclusive (UI displays differently)
+    if (northUp) headingUp = false; // in case of bad API use
+    trackingNorthUp = northUp;
+    parent.trackPlaneButton->setToggleState(northUp || headingUp);
+    trackingHeadingUp = headingUp;
+    parent.trackHeadingUpButton->setToggleState(headingUp);
+    if (parent.map) {
+        parent.map->setTrackUp(headingUp);
+    }
 }
 
 } /* namespace avitab */

@@ -18,6 +18,7 @@
 #include <cmath>
 #include "Stitcher.h"
 #include "Logger.h"
+#include "WorldGeometry.h"
 
 namespace img {
 
@@ -47,12 +48,14 @@ void Stitcher::setPreRotateCallback(PreRotateCallback cb) {
     onPreRotate = cb;
 }
 
-void Stitcher::setCenter(double x, double y) {
+bool Stitcher::setCenter(double x, double y) {
     if (std::abs(centerX - x) > 0.00001 || std::abs(centerY - y) > 0.00001) {
         centerX = x;
         centerY = y;
         updateImage();
+        return true;
     }
+    return false;
 }
 
 img::Point<double> Stitcher::getCenter() const {
@@ -89,6 +92,17 @@ int Stitcher::getCurrentPage() const {
 
 void Stitcher::pan(int dx, int dy) {
     auto dim = tileSource->getTileDimensions(zoomLevel);
+    if (hasFreeView()) {
+        // screen vector -> pre-rotated image vector (inverse of the rotation)
+        double a = (rotAngle + viewRotation) * world::DEG_TO_RAD;
+        double ux = dx * std::cos(a) + dy * std::sin(a);
+        double uy = -dx * std::sin(a) + dy * std::cos(a);
+        centerX += ux / dim.x;
+        centerY += uy / dim.y;
+        tileSource->constrainXY(centerX, centerY, zoomLevel);
+        updateImage();
+        return;
+    }
     switch (rotAngle) {
     case 0:
         centerX += dx / (double) dim.x;
@@ -143,6 +157,14 @@ std::shared_ptr<TileSource> Stitcher::getTileSource() {
 }
 
 void Stitcher::convertSourceImageToRenderedCoords(int &x, int &y) {
+    if (hasFreeView()) {
+        double a = (rotAngle + viewRotation) * world::DEG_TO_RAD;
+        double rx = x - dstImage->getWidth() / 2.0;
+        double ry = y - (dstImage->getHeight() / 2.0 + viewOffsetY);
+        x = std::lround(rx * std::cos(a) + ry * std::sin(a) + unrotatedImage->getWidth() / 2.0);
+        y = std::lround(-rx * std::sin(a) + ry * std::cos(a) + unrotatedImage->getHeight() / 2.0);
+        return;
+    }
     int unrotatedCentreX = unrotatedImage->getWidth() / 2;
     int unrotatedCentreY = unrotatedImage->getHeight() / 2;
     int dstCentreX = dstImage->getWidth() / 2;
@@ -155,6 +177,51 @@ void Stitcher::convertSourceImageToRenderedCoords(int &x, int &y) {
 
 int Stitcher::getRotation() const {
     return rotAngle;
+}
+
+bool Stitcher::setViewRotation(double degrees) {
+    degrees = std::fmod(degrees, 360.0);
+    if (degrees < 0) {
+        degrees += 360.0;
+    }
+    if (std::abs(degrees - viewRotation) < 0.01) {
+        return false;
+    }
+    viewRotation = degrees;
+    resizeUnrotatedImage();
+    return true;
+}
+
+double Stitcher::getViewRotation() const {
+    return viewRotation;
+}
+
+bool Stitcher::setViewOffsetY(int pixels) {
+    if (pixels == viewOffsetY) {
+        return false;
+    }
+    viewOffsetY = pixels;
+    resizeUnrotatedImage();
+    return true;
+}
+
+int Stitcher::getViewOffsetY() const {
+    return viewOffsetY;
+}
+
+bool Stitcher::hasFreeView() const {
+    return (viewRotation != 0.0) || (viewOffsetY != 0);
+}
+
+void Stitcher::resizeUnrotatedImage() {
+    int w = dstImage->getWidth();
+    int h = dstImage->getHeight();
+    // must cover the target image around the (offset) rotation centre at any angle
+    int size = hasFreeView() ? (int) std::ceil(2 * std::hypot(w / 2.0, h / 2.0 + std::abs(viewOffsetY)))
+                             : std::max(w, h);
+    if (unrotatedImage->getWidth() != size) {
+        unrotatedImage->resize(size, size, 0);
+    }
 }
 
 void Stitcher::rotateRight() {
@@ -232,7 +299,11 @@ void Stitcher::updateImage() {
         onPreRotate();
     }
 
-    unrotatedImage->rotate(*dstImage, rotAngle);
+    if (hasFreeView()) {
+        unrotatedImage->rotateArbitrary(*dstImage, rotAngle + viewRotation, viewOffsetY);
+    } else {
+        unrotatedImage->rotate(*dstImage, rotAngle);
+    }
 
     if (onRedraw) {
         onRedraw();

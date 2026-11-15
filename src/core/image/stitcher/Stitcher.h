@@ -35,7 +35,7 @@ public:
     void setPreRotateCallback(PreRotateCallback cb);
     void setRedrawCallback(RedrawCallback cb);
 
-    void setCenter(double x, double y);
+    bool setCenter(double x, double y); // true if the centre moved and the image was redrawn
     img::Point<double> getCenter() const;
 
     int getCurrentPage() const;
@@ -53,6 +53,15 @@ public:
 
     int getRotation() const;
     void rotateRight();
+    // Free rotation (clockwise degrees) on top of the 90 degree steps. Returns true if it changed;
+    // the caller must call updateImage() then. While non-zero the pre-rotated image is enlarged
+    // so that it still covers the target image at any angle.
+    bool setViewRotation(double degrees);
+    double getViewRotation() const;
+    // Shows the centre of the map this many pixels below the centre of the target image
+    // (e.g. to keep the aircraft near the bottom). Returns true if it changed.
+    bool setViewOffsetY(int pixels);
+    int getViewOffsetY() const;
 
     std::shared_ptr<Image> getPreRotatedImage();
     std::shared_ptr<Image> getTargetImage();
@@ -72,7 +81,11 @@ private:
     double centerX = 0, centerY = 0;
     bool pendingTiles = true;
     int rotAngle = 0;
+    double viewRotation = 0;
+    int viewOffsetY = 0;
 
+    bool hasFreeView() const;
+    void resizeUnrotatedImage();
     void forEachTileInView(std::function<void(int, int, img::Image &)> f);
 };
 
