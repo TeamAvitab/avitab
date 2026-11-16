@@ -32,14 +32,14 @@ class AircraftIcons {
 public:
     static AircraftIcons *factory(uint32_t colorBelow, uint32_t colorSame, uint32_t colorAbove);
 
-    const img::Image *getUserPlaneIcon(int hdg);
-    const img::Image *getOtherPlaneIcon(int hdg, bool below, bool above);
+    const img::Image *getUserPlaneIcon() { return &userPlaneIcon; }
+    const img::Image *getOtherPlaneIcon(bool below, bool above) { return below ? &otherPlaneBelowIcon : (above ? &otherPlaneAboveIcon : &otherPlaneSameIcon ); }
 
 private:
     AircraftIcons(uint32_t colorBelow, uint32_t colorSame, uint32_t colorAbove);
     virtual ~AircraftIcons() = default;
 
-    const img::Image *createIcon(int hdg, bool user, bool below, bool above, uint32_t key);
+    void createIcon(img::Image *icon, int size, uint32_t color);
 
 private:
     static AircraftIcons *singleton;
@@ -47,18 +47,10 @@ private:
     const uint32_t colorSame;
     const uint32_t colorAbove;
 
-private:
-    // cached images
-    struct IconCacheEntry {
-        img::Image icon;
-        int lastUsed;
-    };
-    std::map<uint32_t, std::unique_ptr<IconCacheEntry>> iconCache;
-    int timestamp;
-
-    uint32_t makeCacheKey(int hdg, bool user, bool below, bool above);
-    int roundedHeading(int hdg);
-
+    img::Image userPlaneIcon;
+    img::Image otherPlaneBelowIcon;
+    img::Image otherPlaneSameIcon;
+    img::Image otherPlaneAboveIcon;
 };
 
 }

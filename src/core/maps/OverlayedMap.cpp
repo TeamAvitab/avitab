@@ -257,11 +257,11 @@ void OverlayedMap::drawAircraftOverlay() {
     int py, px;
     std::tie(py, px) = locationToPixel(planeLocations[0]);
 
-    auto icon = planeIcons->getUserPlaneIcon(planeLocations[0].hdgDegrees() + getNorthOffset());
+    auto icon = planeIcons->getUserPlaneIcon();
 
     px -= icon->getWidth() / 2;
     py -= icon->getHeight() / 2;
-    mapImage->blendImage0(*icon, px, py);
+    mapImage->blendImage(*icon, px, py, planeLocations[0].hdgDegrees() + getNorthOffset());
 }
 
 void OverlayedMap::drawOtherAircraftOverlay() {
@@ -274,8 +274,8 @@ void OverlayedMap::drawOtherAircraftOverlay() {
         bool isAbove = (planeLocations[i].alt_metres > (planeLocations[0].alt_metres + 30));
         bool isBelow = (planeLocations[i].alt_metres < (planeLocations[0].alt_metres - 30));
         std::tie(py, px) = locationToPixel(planeLocations[i]);
-        auto icon = planeIcons->getOtherPlaneIcon(planeLocations[i].hdgDegrees() + getNorthOffset(), isBelow, isAbove);
-        mapImage->blendImage0(*icon, px - (icon->getWidth() / 2), py - (icon->getHeight() / 2));
+        auto icon = planeIcons->getOtherPlaneIcon(isBelow, isAbove);
+        mapImage->blendImage(*icon, px - (icon->getWidth() / 2), py - (icon->getHeight() / 2), planeLocations[i].hdgDegrees() + getNorthOffset());
         unsigned int flightLevel = static_cast<unsigned int>(planeLocations[i].altFeet() + 50.0) / 100.0;
         std::string flText = "---";
         flText[0] = '0' + (flightLevel / 100) % 10;
