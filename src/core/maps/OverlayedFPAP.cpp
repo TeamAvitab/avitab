@@ -37,11 +37,7 @@ void OverlayedFPAP::configure(const OverlayConfig &cfg, const world::Location &l
     enabled = navFPAP && cfg.drawFPAPs && cfg.drawAirports;
     if (enabled) {
         // the FPAP is beyond the far end of the runway, the final approach starts at the threshold
-        startX = posX;
-        startY = posY;
-        if (auto threshold = navFPAP->getThreshold()) {
-            std::tie(startY, startX) = overlayHelper->locationToPixel(*threshold);
-        }
+        std::tie(startY, startX) = overlayHelper->locationToPixel(getCourseLocation());
         setTailCoords();
         textLocationX =  (startX + 4 * cx) / 5;       // Draw NavTextBox 1/5 of the way from end of tail to airport
         textLocationY = ((startY + 4 * cy) / 5) - 20; // And up a bit
@@ -70,8 +66,14 @@ void OverlayedFPAP::drawText(bool detailed)
         double course = navFPAP->getApproachCourse();
         std::ostringstream str;
         if (!std::isnan(course)) {
-            // the data only provides the true course
-            str << std::setfill('0') << std::setw(3) << (int(std::floor(course + 0.5)) % 360) << "T";
+            // the data only provides the true course, show the magnetic course once the variation is known
+            float magVar = overlayHelper->getMagneticVariation(getCourseLocation());
+            if (std::isnan(magVar)) {
+                str << std::setfill('0') << std::setw(3) << (int(std::floor(course + 0.5)) % 360) << "T";
+            } else {
+                int magCourse = (int(std::floor(course + magVar + 0.5)) + 360) % 360;
+                str << std::setfill('0') << std::setw(3) << ((magCourse == 0) ? 360 : magCourse);
+            }
         }
         // an FPAP transmits no ident, so no morse code
         drawNavTextBox(type, id, channel, textLocationX, textLocationY,
@@ -81,6 +83,11 @@ void OverlayedFPAP::drawText(bool detailed)
         mapImage->drawText(getID(), 12, textLocationX, textLocationY,
                            color, img::COLOR_TRANSPARENT_WHITE, img::Align::CENTRE);
     }
+}
+
+const world::Location &OverlayedFPAP::getCourseLocation() const {
+    auto threshold = navFPAP->getThreshold();
+    return threshold ? *threshold : fix->getLocation();
 }
 
 OverlayedNode::Hotspot OverlayedFPAP::getClickHotspot() const {

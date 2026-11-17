@@ -34,6 +34,9 @@ public:
 
     Hotspot getClickHotspot() const override;
 
+    // where the final approach starts: the threshold (LTP/FTP), or the FPAP if that is unknown
+    const world::Location &getCourseLocation() const;
+
 private:
     void setTailCoords();
     void polarToCartesian(float radius, float angleDegrees, double& x, double& y);

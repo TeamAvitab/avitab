@@ -427,6 +427,7 @@ void MapApp::setTileSource(std::shared_ptr<img::TileSource> source) {
     map = std::make_shared<maps::OverlayedMap>(mapStitcher, overlayConfig);
     map->setRedrawCallback([this] () { onRedrawNeeded(); });
     map->setGetRouteCallback([this] () { return api().getRoute(); });
+    map->setGetMagneticVariationsCallback([this] (std::vector<world::Location> &locs) { return api().getMagneticVariations(locs); });
     map->setNavWorld(api().getNavDatabase());
 
     keyboard.reset();

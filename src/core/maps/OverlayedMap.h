@@ -37,10 +37,12 @@ class OverlayedMap : public IOverlayHelper {
 public:
     using OverlaysDrawnCallback = std::function<void(void)>;
     using GetRouteCallback = std::function<std::shared_ptr<navdb::Route>(void)>;
+    using GetMagneticVariationsCallback = std::function<std::vector<float>(std::vector<world::Location> &)>;
 
     OverlayedMap(std::shared_ptr<img::Stitcher> stitchedMap, std::shared_ptr<OverlayConfig> overlays);
     void setRedrawCallback(OverlaysDrawnCallback cb);
     void setGetRouteCallback(GetRouteCallback cb);
+    void setGetMagneticVariationsCallback(GetMagneticVariationsCallback cb);
     void setNavWorld(std::shared_ptr<navdb::NavDatabase> world);
 
     bool mouse(int px, int py, bool down);
@@ -82,6 +84,7 @@ public:
     void fastPolarToCartesian(float radius, int angleDegrees, double& x, double& y) const override;
     std::pair<int, int> locationToPixel(const world::Location&) const override;
     std::pair<int, int> locationToPixel(const world::Location&, int zoomLevel) const override;
+    float getMagneticVariation(const world::Location&) const override;
 
 private:
     // Highlighted nodes
@@ -112,6 +115,13 @@ private:
 
     std::unique_ptr<OverlayedRoute> overlayedRoute;
     GetRouteCallback getRoute;
+
+    // Getting the magnetic variation from X-Plane blocks until the next sim frame, so the values
+    // are fetched in one batch for the new nodes in view and cached for good. The cache is keyed
+    // by (lat, lon), so it is shared by all maps and survives a reload of the NAV database.
+    GetMagneticVariationsCallback getMagneticVariations;
+    static std::map<std::pair<double, double>, float> magneticVariationCache;
+    void fetchMagneticVariations(const NavNodeToOverlayMap &nodes);
 
     float sinTable[360];
     float cosTable[360];
