@@ -404,6 +404,7 @@ void MapApp::selectNavigraph(maps::NavigraphMapType type) {
 
     if (reCenter) {
         trackPlane = false;
+        trackButton->setToggleState(trackPlane);
         if (zoom >= source->getMinZoomLevel() && zoom <= source->getMaxZoomLevel()) {
             mapStitcher->setZoomLevel(zoom);
         }
@@ -418,6 +419,7 @@ void MapApp::setTileSource(std::shared_ptr<img::TileSource> source) {
     tileSource = source;
 
     trackPlane = true;
+    trackButton->setToggleState(trackPlane);
 
     mapStitcher = std::make_shared<img::Stitcher>(mapImage, tileSource);
     mapStitcher->setCacheDirectory(api().getAvitabDataDir() /"MapTiles");
