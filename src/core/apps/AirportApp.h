@@ -81,11 +81,11 @@ private:
         std::shared_ptr<maps::OverlayedMap> map;
         std::shared_ptr<PixMap> pixMap;
 
+        bool nightMode = false;
         int panPosX = 0, panPosY = 0;
         bool trackPlane = true;
     };
     std::vector<TabPage> pages;
-    bool nightMode = false;
 
     Timer updateTimer;
     std::shared_ptr<Page> searchPage;
@@ -100,6 +100,7 @@ private:
     std::shared_ptr<Keyboard> keys;
     std::shared_ptr<Button> nearestButton;
 
+    void setActiveTab(int tabIndex);
     void removeTab(std::shared_ptr<Page> page);
     void resetLayout();
     void onSearchEntered(const std::string &code);

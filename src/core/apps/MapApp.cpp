@@ -465,8 +465,21 @@ void MapApp::resume() {
 }
 
 void MapApp::onGeneralConfigChanged() {
+    // detect nightmode change
+    bool oldNightMode = generalConfig.nightMode;
     generalConfig.unpack();
-    // no further update, changes take effect on future UI interaction
+    if (oldNightMode != generalConfig.nightMode) {
+        switch (currentActiveMapSource) {
+        case MapSource::NAVIGRAPH_HIGH:
+        case MapSource::NAVIGRAPH_LOW:
+        case MapSource::NAVIGRAPH_VFR:
+        case MapSource::NAVIGRAPH_WORLD:
+            setMapSource(currentActiveMapSource, false);
+            break;
+        default:
+            break;
+        }
+    }
 }
 
 void MapApp::onAppConfigChanged() {

@@ -52,6 +52,7 @@ private:
 
     std::shared_ptr<Container> prefContainer;
     std::shared_ptr<Slider> brightnessSlider;
+    std::shared_ptr<Checkbox> nightModeCheckbox;
     std::shared_ptr<Checkbox> fpsCheckbox;
     std::shared_ptr<Button> pauseButton, nextButton, prevButton;
     std::shared_ptr<Label> brightLabel, mediaLabel;
