@@ -158,14 +158,6 @@ std::shared_ptr<Screen> &LVGLToolkit::screen() {
     return mainScreen;
 }
 
-void LVGLToolkit::setBrightness(float b) {
-    driver->setBrightness(b);
-}
-
-float LVGLToolkit::getBrightness() {
-    return driver->getBrightness();
-}
-
 void LVGLToolkit::handleKeyboard() {
     // check if the current widget hierarchy includes an active keyboard
     auto keyboard = searchActiveKeyboard(lv_scr_act());

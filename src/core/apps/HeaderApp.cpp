@@ -114,7 +114,9 @@ void HeaderApp::createSettingsContainer() {
 }
 
 void HeaderApp::toggleSettings() {
-    prefContainer->setVisible(!prefContainer->isVisible());
+    bool showing = !prefContainer->isVisible();
+    if (showing) { brightnessSlider->setValue(api().getBrightness() * 100); }
+    prefContainer->setVisible(showing);
 }
 
 void HeaderApp::onBrightnessChange(int brightness) {

@@ -37,7 +37,7 @@ void XPlaneUiDriver::start(std::shared_ptr<avitab::Settings> s, std::shared_ptr<
 
     sharedData.brightnessRef = std::make_unique<xdata::DataRefExport<float>>("avitab/brightness", this,
         [] (void *self) { return (reinterpret_cast<XPlaneUiDriver *>(self))->sharedData.brightness; },
-        [] (void *self, float v) { (reinterpret_cast<XPlaneUiDriver *>(self))->sharedData.brightness = v; });
+        [] (void *self, float v) { (reinterpret_cast<XPlaneUiDriver *>(self))->sharedData.brightness = (v < 0.1f ? 0.1f : (v > 1.0f ? 1.0f : v)); });
     sharedData.frameBufferData = data();
     sharedData.frameBufferWidth = width();
     sharedData.frameBufferHeight = height();
