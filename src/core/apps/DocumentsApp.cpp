@@ -37,6 +37,9 @@ DocumentsApp::DocumentsApp(FuncsPtr appFuncs, const std::string &title, const st
     appConfig.init(settings, "/" + group, [this] () { onAppConfigChanged(); });
     generalConfig.init(settings, "/general", [this] () { onGeneralConfigChanged(); });
     overlayConfig->init(settings, "/overlay", [this] () { onOverlayConfigChanged(); });
+    if (!generalConfig.showChartOverlays) {
+        overlayConfig->disable();
+    }
 }
 
 void DocumentsApp::Run() {

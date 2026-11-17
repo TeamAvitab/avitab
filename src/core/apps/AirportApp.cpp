@@ -40,6 +40,9 @@ AirportApp::AirportApp(FuncsPtr appFuncs):
     appConfig.init(settings, "/airports", [this] () { onAppConfigChanged(); });
     generalConfig.init(settings, "/general", [this] () { onGeneralConfigChanged(); });
     overlayConfig->init(settings, "/overlay", [this] () { onOverlayConfigChanged(); });
+    if (!generalConfig.showAirportOverlays) {
+        overlayConfig->disable();
+    }
 
     resetLayout();
     createSettingsContainer();
