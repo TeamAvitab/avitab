@@ -41,6 +41,8 @@ private:
     const navdb::FPAP * const navFPAP;
 
     static constexpr const uint32_t color = img::COLOR_DARK_GREY;
+    static constexpr const float CENTRE_DASH_PX = 6; // dashed centre line, constant size at any zoom
+    static constexpr const float CENTRE_GAP_PX = 4;
     static constexpr const double FEATHER_LENGTH_NM = 9; // the data has no range for an FPAP, 9nm as shown by Little Navmap
 
     int textLocationX = 0;

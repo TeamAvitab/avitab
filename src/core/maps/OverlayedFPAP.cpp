@@ -54,7 +54,7 @@ void OverlayedFPAP::drawGraphic()
 
     auto mapImage = overlayHelper->getMapImage();
     mapImage->drawLineAA(startX, startY, lx, ly, color);
-    mapImage->drawLineAA(startX, startY, cx, cy, color);
+    mapImage->drawLineAADashed(startX, startY, cx, cy, color, CENTRE_DASH_PX, CENTRE_GAP_PX);
     mapImage->drawLineAA(startX, startY, rx, ry, color);
     mapImage->drawLineAA(lx, ly, rx, ry, color);
 }

@@ -75,6 +75,7 @@ public:
     void drawPixel(int x, int y, uint32_t color);
     void drawLine(int x1, int y1, int x2, int y2, uint32_t color);
     void drawLineAA(float x0, float y0, float x1, float y1, uint32_t color);
+    void drawLineAADashed(float x0, float y0, float x1, float y1, uint32_t color, float dashLength, float gapLength);
     void drawImage(const Image &src, int dstX, int dstY);
     void copyTo(Image &dst, int srcX, int srcY);
     void blendImage(const Image &src, int dstX, int dstY, double angle);
