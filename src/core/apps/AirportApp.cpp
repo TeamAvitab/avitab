@@ -141,7 +141,7 @@ void AirportApp::onSearchEntered(const std::string& code) {
 void AirportApp::onAirportSelected(std::shared_ptr<navdb::Airport> airport) {
     for (auto tabPage: pages) {
         if (tabPage.airport == airport) {
-            tabs->setActiveTab(tabs->getTabIndex(tabPage.page));
+            setActiveTab(tabs->getTabIndex(tabPage.page));
             return;
         }
     }
@@ -187,6 +187,14 @@ void AirportApp::clearSearch() {
     searchLabel->setText("");
     resultList.reset();
     nextButton.reset();
+}
+
+void AirportApp::setActiveTab(int tabIndex) {
+    if ((tabIndex < 0) || (tabIndex >= pages.size())) return;
+    // set the nightmode button toggle status according to the tab's night mode flag
+    TabPage &tab = pages[tabIndex];
+    tab.nightModeButton->setToggleState(tab.map ? tab.nightMode : false);
+    tabs->setActiveTab(tabIndex);
 }
 
 void AirportApp::removeTab(std::shared_ptr<Page> page) {
@@ -447,7 +455,7 @@ void AirportApp::onChartsLoaded(std::shared_ptr<Page> page, const apis::ChartSer
 
             for (auto tabPage: pages) {
                 if (tabPage.chart == chart) {
-                    tabs->setActiveTab(tabs->getTabIndex(tabPage.page));
+                    setActiveTab(tabs->getTabIndex(tabPage.page));
                     return;
                 }
             }
@@ -518,13 +526,13 @@ void AirportApp::onChartLoaded(std::shared_ptr<Page> page) {
     tab.nightModeButton = tab.window->addSymbol(Widget::Symbol::IMAGE, [this, page] () {
         TabPage &tab = findPage(page);
         if (tab.map) {
-            nightMode = !nightMode;
-            tab.nightModeButton->setToggleState(nightMode);
-            tab.chart->changeNightMode(tab.mapSource, nightMode);
+            tab.nightMode = !tab.nightMode;
+            tab.nightModeButton->setToggleState(tab.nightMode);
+            tab.chart->changeNightMode(tab.mapSource, tab.nightMode);
             tab.mapStitcher->invalidateCache();
         }
     });
-    tab.nightModeButton->setToggleState(nightMode);
+    tab.nightModeButton->setToggleState(tab.nightMode);
     tab.trackButton = tab.window->addSymbol(Widget::Symbol::GPS, [this, page] {
         TabPage &tab = findPage(page);
         if (tab.map) {
@@ -542,7 +550,8 @@ void AirportApp::onChartLoaded(std::shared_ptr<Page> page) {
         tab.pixMap->setDimensions(tab.window->getContentWidth(), tab.window->getHeight() - padHeight);
         tab.pixMap->centerInParent();
 
-        tab.mapSource = tab.chart->createTileSource(nightMode);
+        tab.nightMode = generalConfig.nightMode;
+        tab.mapSource = tab.chart->createTileSource(tab.nightMode);
         tab.mapStitcher = std::make_shared<img::Stitcher>(tab.mapImage, tab.mapSource);
         tab.map = std::make_shared<maps::OverlayedMap>(tab.mapStitcher, overlayConfig);
         tab.map->setRedrawCallback([this, page] () { redrawPage(page); });
@@ -550,6 +559,7 @@ void AirportApp::onChartLoaded(std::shared_ptr<Page> page) {
         tab.map->setGetRouteCallback([this] () { return api().getRoute(); });
 
         tab.trackButton->setToggleState(tab.trackPlane);
+        tab.nightModeButton->setToggleState(tab.nightMode);
 
         if (tab.mapSource->getPageCount() > 1) {
             tab.window->addSymbol(Widget::Symbol::RIGHT, [this, page] {
@@ -659,7 +669,7 @@ void AirportApp::changeChartTab(bool next) {
     if (tabCount == 0)
         return;
     int newIndex = (activeIndex + (next ? 1 : -1)) % tabCount;
-    tabs->setActiveTab(newIndex);
+    setActiveTab(newIndex);
 }
 
 bool AirportApp::onTimer() {

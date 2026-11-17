@@ -88,17 +88,22 @@ void HeaderApp::createSettingsContainer() {
     brightnessSlider->setCallback([this] (int brightness) { onBrightnessChange(brightness); });
     brightnessSlider->alignRightOf(brightLabel, HOR_PADDING);
 
+    nightModeCheckbox = std::make_shared<Checkbox>(prefContainer, "Night mode");
+    nightModeCheckbox->setChecked(generalConfig.nightMode);
+    nightModeCheckbox->setCallback([this] (bool checked) { generalConfig.nightMode = checked; generalConfig.update(); });
+    nightModeCheckbox->alignRightOf(brightnessSlider, HOR_PADDING);
+
     fpsCheckbox = std::make_shared<Checkbox>(prefContainer, "Show FPS");
     fpsCheckbox->setChecked(generalConfig.showFPS);
     fpsCheckbox->setCallback([this] (bool checked) { generalConfig.showFPS = checked; generalConfig.update(); fpsLabel->setVisible(generalConfig.showFPS); });
-    fpsCheckbox->alignRightOf(brightnessSlider);
+    fpsCheckbox->alignBelow(brightLabel, VERT_PADDING);
 
     mediaLabel = std::make_shared<Label>(prefContainer, "Ext. Media");
-    mediaLabel->alignBelow(brightLabel, VERT_PADDING);
+    mediaLabel->alignBelow(fpsCheckbox, VERT_PADDING);
 
     prevButton = std::make_shared<Button>(prefContainer, Widget::Symbol::PREV);
     prevButton->setCallback([] (const Button &) { platform::controlMediaPlayer(platform::MediaControl::MEDIA_PREV); });
-    prevButton->alignBelow(brightnessSlider);
+    prevButton->alignRightOf(mediaLabel);
 
     pauseButton = std::make_shared<Button>(prefContainer, Widget::Symbol::PAUSE);
     pauseButton->setCallback([] (const Button &) { platform::controlMediaPlayer(platform::MediaControl::MEDIA_PAUSE); });
@@ -110,7 +115,7 @@ void HeaderApp::createSettingsContainer() {
 
     closeButton = std::make_shared<Button>(prefContainer, "Close AviTab");
     closeButton->setCallback([this] (const Button &) { toggleSettings(); api().onAppClosed(); });
-    closeButton->alignBelow(mediaLabel, VERT_PADDING);
+    closeButton->alignRightOf(nextButton, HOR_PADDING);
 }
 
 void HeaderApp::toggleSettings() {
