@@ -35,9 +35,6 @@ public:
 
     void resizeScreen(int w, int h);
 
-    void setBrightness(float b);
-    float getBrightness();
-
     std::shared_ptr<Screen> &screen();
     unsigned long getFrameCount() const { return frameCounter; }
 

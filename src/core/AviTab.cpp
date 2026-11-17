@@ -500,11 +500,11 @@ unsigned int AviTab::getLocalTimeSeconds() {
 }
 
 void AviTab::setBrightness(float brightness) {
-    lvglUI->setBrightness(brightness);
+    uiDriver->setBrightness(brightness);
 }
 
 float AviTab::getBrightness() {
-    return lvglUI->getBrightness();
+    return uiDriver->getBrightness();
 }
 
 void AviTab::executeLater(std::function<void()> func) {
