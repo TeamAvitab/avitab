@@ -45,9 +45,21 @@ void NavaidLoader::load(const std::filesystem::path& file) {
         }
     });
     parser.loadNavaids();
+    if (skippedFPAPs > 0) {
+        logger::info("Skipped %d FPAPs of airports not in the NAV database", skippedFPAPs);
+    }
 }
 
 void NavaidLoader::onNavaidLoaded(const NavaidData& navaid) {
+    if ((navaid.type == NavaidData::Type::FPAP) || (navaid.type == NavaidData::Type::LTP_FTP)) {
+        // skip approaches to airports that are not in the NAV database
+        if (!world->findAirportByID(navaid.terminalRegion)) {
+            if (navaid.type == NavaidData::Type::FPAP) {
+                ++skippedFPAPs;
+            }
+            return;
+        }
+    }
     if (navaid.type == NavaidData::Type::LTP_FTP) {
         // not a fix of its own, only the start of an FPAP's final approach course
         onThresholdLoaded(navaid);

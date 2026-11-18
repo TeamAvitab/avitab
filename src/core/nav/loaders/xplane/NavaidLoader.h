@@ -49,6 +49,7 @@ private:
     using ApproachKey = std::pair<std::string, std::string>; // airport, procedure identifier
     std::map<ApproachKey, navdb::FPAPModel *> fpaps;           // owned by their fixes in the nav database
     std::map<ApproachKey, world::Location> pendingThresholds; // LTP/FTP seen before its FPAP
+    int skippedFPAPs = 0;
 
 };
 
