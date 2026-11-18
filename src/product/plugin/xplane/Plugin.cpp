@@ -135,6 +135,9 @@ PLUGIN_API void XPluginStop(void) {
         uiDriver.reset();
         simDriver.reset();
 
+        settings->saveAll();
+        settings.reset();
+
         curl_global_cleanup();
     } catch (const std::exception &e) {
         logger::error("Exception in XPluginStop: %s", e.what());
