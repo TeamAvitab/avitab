@@ -111,7 +111,7 @@ void OverlayedFPAP::setTailCoords()
         rangePixels = (FEATHER_LENGTH_NM * mapImage->getWidth()) / mw;
     }
     double dcx, dcy, dlx, dly, drx, dry;
-    const double OUTER_ANGLE = 2.5;
+    const double OUTER_ANGLE = 4;
     polarToCartesian(rangePixels, tailHeading - OUTER_ANGLE, dlx, dly);
     polarToCartesian(rangePixels * std::cos(OUTER_ANGLE * world::DEG_TO_RAD), tailHeading, dcx, dcy);
     polarToCartesian(rangePixels, tailHeading + OUTER_ANGLE, drx, dry);
