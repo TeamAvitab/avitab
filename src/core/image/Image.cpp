@@ -363,6 +363,26 @@ void Image::drawLineAA(float x0, float y0, float x1, float y1, uint32_t color) {
     }
 }
 
+// Anti-aliased dashed line, starting with a dash at x0/y0. Dash and gap lengths are in pixels.
+void Image::drawLineAADashed(float x0, float y0, float x1, float y1, uint32_t color, float dashLength, float gapLength) {
+    if (dashLength <= 0 || gapLength <= 0) {
+        drawLineAA(x0, y0, x1, y1, color);
+        return;
+    }
+
+    const float length = std::hypot(x1 - x0, y1 - y0);
+    if (length == 0) {
+        return;
+    }
+    const float ux = (x1 - x0) / length;
+    const float uy = (y1 - y0) / length;
+
+    for (float pos = 0; pos < length; pos += dashLength + gapLength) {
+        const float end = std::min(pos + dashLength, length);
+        drawLineAA(x0 + ux * pos, y0 + uy * pos, x0 + ux * end, y0 + uy * end, color);
+    }
+}
+
 void Image::drawCircle(int x_centre, int y_centre, int radius, uint32_t color) {
     // Anti-aliased, by considering all pixels in the enclosing square, but with several
     // short-cuts so that obvious transparent pixels don't take time.

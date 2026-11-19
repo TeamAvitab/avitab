@@ -557,6 +557,7 @@ void AirportApp::onChartLoaded(std::shared_ptr<Page> page) {
         tab.map->setRedrawCallback([this, page] () { redrawPage(page); });
         tab.map->setNavWorld(api().getNavDatabase());
         tab.map->setGetRouteCallback([this] () { return api().getRoute(); });
+        tab.map->setGetMagneticVariationsCallback([this] (std::vector<world::Location> &locs) { return api().getMagneticVariations(locs); });
 
         tab.trackButton->setToggleState(tab.trackPlane);
         tab.nightModeButton->setToggleState(tab.nightMode);

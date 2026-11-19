@@ -31,6 +31,7 @@ void OverlayConfig::pack() {
     json["VORs"]               = drawVORs;
     json["NDBs"]               = drawNDBs;
     json["ILSs"]               = drawILSs;
+    json["FPAPs"]              = drawFPAPs;
     json["waypoints"]          = drawWaypoints;
     json["POIs"]               = drawPOIs;
     json["VRPs"]               = drawVRPs;
@@ -50,6 +51,7 @@ void OverlayConfig::unpack() {
     drawVORs = json.value("VORs", false);
     drawNDBs = json.value("NDBs", false);
     drawILSs = json.value("ILSs", false);
+    drawFPAPs = json.value("FPAPs", false);
     drawWaypoints = json.value("waypoints", false);
     drawPOIs = json.value("POIs", false);
     drawVRPs = json.value("VRPs", false);
@@ -86,6 +88,7 @@ void OverlayConfig::disable() {
     drawVORs = false;
     drawNDBs = false;
     drawILSs = false;
+    drawFPAPs = false;
     drawWaypoints = false;
     drawPOIs = false;
     drawVRPs = false;

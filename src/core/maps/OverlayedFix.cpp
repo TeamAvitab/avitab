@@ -34,29 +34,42 @@ std::string OverlayedFix::getID() const {
     return fix->getIdent();
 }
 
-void OverlayedFix::drawNavTextBox(const std::string &type, const std::string &id, const std::string &freq, int x, int y, uint32_t color, const std::string &ilsHeadingMagnetic) {
+void OverlayedFix::drawNavTextBox(const std::string &type, const std::string &id, const std::string &freq, int x, int y, uint32_t color, const std::string &ilsHeadingMagnetic, bool showMorse) {
     auto mapImage = overlayHelper->getMapImage();
-    // x, y is top left corner of rectangular border. If type is not required, pass in as ""
+    // x, y is top left corner of rectangular border. If type or freq are not required, pass in as ""
     const int MORSE_SIZE = 2;
     const int XBORDER = 2;
     // If type is required, id and freq text and bottom of rectangular border drop by half text height
     int yo = ((type == "") ? 0 : (TEXT_SIZE / 2));
     int textWidth = std::max(mapImage->getTextWidth(id, TEXT_SIZE), mapImage->getTextWidth(freq, TEXT_SIZE));
     int morseWidth = 0;
-    for (char const &c: id) {
-        morseWidth = std::max(morseWidth, morse.getLength(c) * MORSE_SIZE);
+    if (showMorse) {
+        for (char const &c: id) {
+            morseWidth = std::max(morseWidth, morse.getLength(c) * MORSE_SIZE);
+        }
     }
     int boxWidth = textWidth + morseWidth + (XBORDER * 4);
-    int numLines = (ilsHeadingMagnetic == "") ? 2 : 3;
+    int freqLines = (freq == "") ? 0 : 1;
+    int numLines = 1 + freqLines + ((ilsHeadingMagnetic == "") ? 0 : 1);
     int boxHeight = (TEXT_SIZE * numLines) + yo + 2;
-    int xTextCentre = x + textWidth / 2 + XBORDER + 1;
+    if (showMorse) {
+        // one morse row (MORSE_SIZE high, plus a gap) per character, starting 4 pixels down
+        int morseHeight = 4 + (int)id.size() * MORSE_SIZE * 2;
+        boxHeight = std::max(boxHeight, morseHeight + yo);
+    }
+    // without morse code the text is centred in the box
+    int xTextCentre = showMorse ? (x + textWidth / 2 + XBORDER + 1) : (x + boxWidth / 2);
 
     mapImage->fillRectangle(x + 1, y + 1, x + boxWidth, y + boxHeight, img::COLOR_WHITE);
     mapImage->drawText(id, TEXT_SIZE, xTextCentre, y + yo + 1, color, 0, img::Align::CENTRE);
-    mapImage->drawText(freq, TEXT_SIZE, xTextCentre, y + TEXT_SIZE + yo + 1, color, 0, img::Align::CENTRE);
-    drawMorse(x + textWidth + (XBORDER * 3), y + yo + 4, id, MORSE_SIZE, color);
+    if (freq != "") {
+        mapImage->drawText(freq, TEXT_SIZE, xTextCentre, y + TEXT_SIZE + yo + 1, color, 0, img::Align::CENTRE);
+    }
+    if (showMorse) {
+        drawMorse(x + textWidth + (XBORDER * 3), y + yo + 4, id, MORSE_SIZE, color);
+    }
     if (ilsHeadingMagnetic != "") {
-        mapImage->drawText(ilsHeadingMagnetic, TEXT_SIZE, x + (boxWidth / 2), y + (TEXT_SIZE * 2) + yo + 1, color, 0, img::Align::CENTRE);
+        mapImage->drawText(ilsHeadingMagnetic, TEXT_SIZE, x + (boxWidth / 2), y + (TEXT_SIZE * (1 + freqLines)) + yo + 1, color, 0, img::Align::CENTRE);
     }
     mapImage->drawRectangle(x, y, x + boxWidth, y + boxHeight, color);
     if (type != "") {

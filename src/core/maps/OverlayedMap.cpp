@@ -22,6 +22,7 @@
 #include "OverlayedNDB.h"
 #include "OverlayedVOR.h"
 #include "OverlayedILSLocalizer.h"
+#include "OverlayedFPAP.h"
 #include "OverlayedWaypoint.h"
 #include "OverlayedUserFix.h"
 #include "AircraftIcons.h"
@@ -81,6 +82,10 @@ void OverlayedMap::setRedrawCallback(OverlaysDrawnCallback cb) {
 
 void OverlayedMap::setGetRouteCallback(GetRouteCallback cb) {
     getRoute = cb;
+}
+
+void OverlayedMap::setGetMagneticVariationsCallback(GetMagneticVariationsCallback cb) {
+    getMagneticVariations = cb;
 }
 
 void OverlayedMap::setNavWorld(std::shared_ptr<navdb::NavDatabase> world) {
@@ -327,7 +332,7 @@ void OverlayedMap::drawNavWorldOverlays() {
     nodeFilter |= (overlayConfig->drawAirports) ? navdb::NavDatabase::VISIT_TOWERED_AIRPORTS : 0;
     nodeFilter |= (overlayConfig->drawAirstrips || overlayConfig->drawHeliportsSeaports) ? navdb::NavDatabase::VISIT_OTHER_AIRPORTS : 0;
     nodeFilter |= (overlayConfig->drawWaypoints) ? navdb::NavDatabase::VISIT_FIXES : 0;
-    nodeFilter |= (overlayConfig->drawVORs || overlayConfig->drawNDBs || overlayConfig->drawILSs) ? navdb::NavDatabase::VISIT_NAVAIDS : 0;
+    nodeFilter |= (overlayConfig->drawVORs || overlayConfig->drawNDBs || overlayConfig->drawILSs || overlayConfig->drawFPAPs) ? navdb::NavDatabase::VISIT_NAVAIDS : 0;
     nodeFilter |= (overlayConfig->drawPOIs || overlayConfig->drawVRPs || overlayConfig->drawMarkers) ? navdb::NavDatabase::VISIT_USER_FIXES : 0;
     if (!nodeFilter) {
         return;
@@ -405,6 +410,8 @@ void OverlayedMap::drawNavWorldOverlays() {
                             }
                         },
                         nodeFilter);
+
+    fetchMagneticVariations(*nodes);
 
     // decide whether all nodes should show their detailed text, this will be based
     // on the reported node density
@@ -621,6 +628,46 @@ int OverlayedMap::getMaxZoomLevel() const {
     return tileSource->getMaxZoomLevel();
 }
 
+std::map<std::pair<double, double>, float> OverlayedMap::magneticVariationCache;
+
+void OverlayedMap::fetchMagneticVariations(const NavNodeToOverlayMap &nodes) {
+    if (!getMagneticVariations) {
+        return;
+    }
+
+    std::vector<world::Location> locs;
+    for (auto &n: nodes) {
+        if (auto fpap = std::dynamic_pointer_cast<OverlayedFPAP>(n.second)) {
+            auto &loc = fpap->getCourseLocation();
+            if (std::isnan(getMagneticVariation(loc))) {
+                locs.push_back(loc);
+            }
+        }
+    }
+    if (locs.empty()) {
+        return;
+    }
+
+    try {
+        auto magVars = getMagneticVariations(locs);
+        for (size_t i = 0; i < std::min(locs.size(), magVars.size()); ++i) {
+            magneticVariationCache[{locs[i].lat(), locs[i].lon()}] = magVars[i];
+        }
+    } catch (const std::exception &e) {
+        // e.g. the sim driver is stopped, leave the values unknown and retry on the next redraw
+        static bool logged = false;
+        if (!logged) {
+            LOG_ERROR("Couldn't get magnetic variations: %s", e.what());
+            logged = true;
+        }
+    }
+}
+
+float OverlayedMap::getMagneticVariation(const world::Location &loc) const {
+    auto i = magneticVariationCache.find({loc.lat(), loc.lon()});
+    return (i == magneticVariationCache.end()) ? std::nanf("") : i->second;
+}
+
 double OverlayedMap::getNorthOffset() const {
     return tileSource->getNorthOffsetAngle();
 }
@@ -702,6 +749,7 @@ bool maps::OverlayedMap::isOverlayConfigured(const navdb::Node *nn) const {
             draw |= (nf->getVOR() && overlayConfig->drawVORs);
             draw |= (nf->getDME() && overlayConfig->drawVORs);
             draw |= (nf->getILSLocalizer() && overlayConfig->drawILSs);
+            draw |= (nf->getFPAP() && overlayConfig->drawFPAPs);
         }
         return draw;
     } else if (auto uf = dynamic_cast<const navdb::UserFix *>(nn)) {
@@ -724,6 +772,8 @@ std::shared_ptr<OverlayedNode> OverlayedMap::makeOverlayedNode(navdb::Node const
     } else if (auto nf = dynamic_cast<const navdb::NavFix *>(nn)) {
         if (nf->getILSLocalizer()) {
             on = std::make_shared<OverlayedILSLocalizer>(static_cast<IOverlayHelper *>(this), nf);
+        } else if (nf->getFPAP()) {
+            on = std::make_shared<OverlayedFPAP>(static_cast<IOverlayHelper *>(this), nf);
         } else if (nf->getVOR()) {
             on = std::make_shared<OverlayedVOR>(static_cast<IOverlayHelper *>(this), nf);
         } else if (nf->getDME()) {

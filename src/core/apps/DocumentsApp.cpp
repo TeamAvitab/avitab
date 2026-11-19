@@ -217,6 +217,7 @@ void DocumentsApp::loadFile(PageInfo tab, const std::filesystem::path &docPath) 
 
     tab->map = std::make_shared<maps::OverlayedMap>(tab->stitcher, overlayConfig);
     tab->map->setGetRouteCallback([this] () { return api().getRoute(); });
+    tab->map->setGetMagneticVariationsCallback([this] (std::vector<world::Location> &locs) { return api().getMagneticVariations(locs); });
 
     auto pixMap = tab->pixMap;
     tab->map->setRedrawCallback([pixMap] () { if (pixMap) pixMap->invalidate(); });

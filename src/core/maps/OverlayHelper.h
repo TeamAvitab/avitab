@@ -37,6 +37,8 @@ public:
     virtual void fastPolarToCartesian(float radius, int angleDegrees, double& x, double& y) const = 0;
     virtual std::pair<int, int> locationToPixel(const world::Location&) const = 0;
     virtual std::pair<int, int> locationToPixel(const world::Location&, int zoomLevel) const = 0;
+    // X-Plane's magnetic variation (magnetic = true + variation), NaN if not (yet) known
+    virtual float getMagneticVariation(const world::Location&) const = 0;
 
     virtual ~IOverlayHelper() = default;
 };
