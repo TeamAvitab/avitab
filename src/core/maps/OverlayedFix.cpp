@@ -17,6 +17,7 @@
  */
 
 #include "OverlayedFix.h"
+#include <algorithm>
 
 namespace maps {
 
@@ -41,7 +42,9 @@ void OverlayedFix::drawNavTextBox(const std::string &type, const std::string &id
     const int XBORDER = 2;
     // If type is required, id and freq text and bottom of rectangular border drop by half text height
     int yo = ((type == "") ? 0 : (TEXT_SIZE / 2));
-    int textWidth = std::max(mapImage->getTextWidth(id, TEXT_SIZE), mapImage->getTextWidth(freq, TEXT_SIZE));
+    int textWidth = std::max({mapImage->getTextWidth(id, TEXT_SIZE),
+                              mapImage->getTextWidth(freq, TEXT_SIZE),
+                              mapImage->getTextWidth(ilsHeadingMagnetic, TEXT_SIZE)});
     int morseWidth = 0;
     if (showMorse) {
         for (char const &c: id) {
@@ -49,6 +52,8 @@ void OverlayedFix::drawNavTextBox(const std::string &type, const std::string &id
         }
     }
     int boxWidth = textWidth + morseWidth + (XBORDER * 4);
+    // the type is drawn on the top border, the box must be at least as wide
+    boxWidth = std::max(boxWidth, mapImage->getTextWidth(type, TEXT_SIZE) + (XBORDER * 4));
     int freqLines = (freq == "") ? 0 : 1;
     int numLines = 1 + freqLines + ((ilsHeadingMagnetic == "") ? 0 : 1);
     int boxHeight = (TEXT_SIZE * numLines) + yo + 2;

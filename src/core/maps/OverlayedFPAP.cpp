@@ -62,7 +62,7 @@ void OverlayedFPAP::drawText(bool detailed)
     std::string type = navFPAP->getApproachType().empty() ? "RNP" : "RNP/" + navFPAP->getApproachType();
     if (detailed) {
         std::string channel = "";
-        std::string id = "   " + getID() + "   ";
+        std::string id = getID();
         double course = navFPAP->getApproachCourse();
         std::ostringstream str;
         if (!std::isnan(course)) {
