@@ -134,8 +134,6 @@ PLUGIN_API void XPluginStop(void) {
         aviTab.reset();
         uiDriver.reset();
         simDriver.reset();
-
-        settings->saveAll();
         settings.reset();
 
         curl_global_cleanup();
