@@ -304,17 +304,39 @@ void DocumentsApp::onMinus() {
     }
 }
 
+// true if, moving from 'before' to 'after', we reached or passed 'target' on the axis that actually moved
+static bool crossedTarget(img::Point<double> before, img::Point<double> after, img::Point<double> target) {
+    auto crossed = [] (double from, double to, double target) {
+        if (to > from) return to >= target;
+        if (to < from) return to <= target;
+        return false;
+    };
+    return crossed(before.x, after.x, target.x) || crossed(before.y, after.y, target.y);
+}
+
 void DocumentsApp::onScrollUp() {
     auto tab = getActiveDocPage();
     if (tab && tab->map) {
+        auto topEdge = computeAlignedCenter(tab, VerticalPosition::Top, HorizontalPosition::Middle);
+        auto before = tab->stitcher->getCenter();
         tab->stitcher->pan(0, -100);
+        auto after = tab->stitcher->getCenter();
+        if (crossedTarget(before, after, topEdge)) {
+            onPrevPage();
+        }
     }
 }
 
 void DocumentsApp::onScrollDown() {
     auto tab = getActiveDocPage();
     if (tab && tab->map) {
+        auto bottomEdge = computeAlignedCenter(tab, VerticalPosition::Bottom, HorizontalPosition::Middle);
+        auto before = tab->stitcher->getCenter();
         tab->stitcher->pan(0, 100);
+        auto after = tab->stitcher->getCenter();
+        if (crossedTarget(before, after, bottomEdge)) {
+            onNextPage();
+        }
     }
 }
 
@@ -417,11 +439,10 @@ void DocumentsApp::positionPage(PageInfo tab, VerticalPosition vp, HorizontalPos
         return;
     }
 
-    img::Point<int> aperturexy{tab->pixMap->getWidth(), tab->pixMap->getHeight()};
-    auto angle = tab->stitcher->getRotation();
-
     // set the required zoom
     if (za != ZoomAdjust::None) {
+        img::Point<int> aperturexy{tab->pixMap->getWidth(), tab->pixMap->getHeight()};
+        auto angle = tab->stitcher->getRotation();
         // start with maximal zoom, and then zoom out until all criteria are met
         int z  = doc->getMaxZoomLevel();
         while (z > doc->getMinZoomLevel()) {
@@ -437,9 +458,22 @@ void DocumentsApp::positionPage(PageInfo tab, VerticalPosition vp, HorizontalPos
     }
 
     // now adjust the tile centre to align as requested
+    auto center = computeAlignedCenter(tab, vp, hp);
+    tab->stitcher->setCenter(center.x, center.y);
+}
+
+img::Point<double> DocumentsApp::computeAlignedCenter(PageInfo tab, VerticalPosition vp, HorizontalPosition hp) {
+    auto doc = tab->stitcher->getTileSource();
+    img::Point<int> aperturexy{tab->pixMap->getWidth(), tab->pixMap->getHeight()};
+    auto angle = tab->stitcher->getRotation();
     auto zoomNow = tab->map->getZoomLevel();
     auto tilexy = doc->getTileDimensions(zoomNow);
     auto pagexy = doc->getPageDimensions(tab->stitcher->getCurrentPage(), zoomNow);
+
+    if (tilexy.x == 0 || tilexy.y == 0) {
+        return tab->stitcher->getCenter();
+    }
+
     float cx = 0.0, cy = 0.0;
     if (angle == 0) {
         cx = (hp == HorizontalPosition::Left) ? (aperturexy.x / 2) : ((hp == HorizontalPosition::Right) ? (pagexy.x - (aperturexy.x / 2)) : (pagexy.x / 2));
@@ -455,9 +489,7 @@ void DocumentsApp::positionPage(PageInfo tab, VerticalPosition vp, HorizontalPos
         cy = (hp == HorizontalPosition::Left) ? (aperturexy.x / 2) : ((hp == HorizontalPosition::Right) ? (pagexy.y - (aperturexy.x / 2)) : (pagexy.y / 2));
     }
 
-    if (tilexy.x != 0 && tilexy.y != 0) {
-        tab->stitcher->setCenter((float) cx / tilexy.x, (float) cy / tilexy.y);
-    }
+    return img::Point<double>{(double) cx / tilexy.x, (double) cy / tilexy.y};
 }
 
 void DocumentsApp::onAppConfigChanged() {

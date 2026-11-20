@@ -124,6 +124,7 @@ private:
     enum class HorizontalPosition { Left, Middle, Right };
     enum class ZoomAdjust { None, Height, Width, All };
     void positionPage(PageInfo tab, VerticalPosition vp, HorizontalPosition hp, ZoomAdjust za = ZoomAdjust::None);
+    img::Point<double> computeAlignedCenter(PageInfo tab, VerticalPosition vp, HorizontalPosition hp);
 };
 
 } /* namespace avitab */
