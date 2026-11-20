@@ -679,8 +679,7 @@ void AviTab::coreThreadLoop() {
 }
 
 static const char *defaultMapConfigJson() {
-    return R"x(
-[
+    return R"x([
     {
         "name": "OpenTopoMap",
         "servers": [
@@ -711,6 +710,21 @@ static const char *defaultMapConfigJson() {
         "tile_height_px": 256,
         "enabled": false,
         "comment": "https://wiki.openstreetmap.org/wiki/Raster_tile_providers"
+    },
+    {
+        "name": "Esri World Topo",
+        "servers": [
+            "services.arcgisonline.com/arcgis/rest/services/World_Topo_Map/MapServer"
+        ],
+        "protocol": "https",
+        "copyright": "(c) OpenStreetMap contributors, and the GIS User Community",
+        "url": "tile/{z}/{y}/{x}.jpeg",
+        "min_zoom_level": 1,
+        "max_zoom_level": 19,
+        "tile_width_px": 256,
+        "tile_height_px": 256,
+        "enabled": true,
+        "comment": "https://www.arcgis.com/home/item.html?id=6e850093c837475e8c23d905ac43b7d0"
     }
 ]
 )x";
