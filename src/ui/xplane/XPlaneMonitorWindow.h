@@ -38,6 +38,7 @@ protected:
     void onDraw();
     XPLMCursorStatus getCursor(int x, int y) { return xplm_CursorDefault; }
 
+    void getWindowGeometry(int &left, int &top, int &right, int &bottom) override;
     void onWindowMoved(int left, int top, int right, int bottom) override;
 
 private:

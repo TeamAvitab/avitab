@@ -65,9 +65,12 @@ void XPlaneVrWindow::create() {
     XPLMSetWindowPositioningMode(winHandle, xplm_WindowVR, -1);
     XPLMSetWindowTitle(winHandle, "Aviator's Tablet " AVITAB_VERSION_STR);
     XPLMSetWindowGeometryVR(winHandle, avitab::UiDriverBase::INITIAL_WIDTH, avitab::UiDriverBase::INITIAL_HEIGHT);
+    // In VR window resizing is currently disabled.
+    // The same effect can be achieved by moving the window's distance from the 'eyes',
+    // and this simplifies maintaining the aspect ratio.
     XPLMSetWindowResizingLimits(winHandle,
         avitab::UiDriverBase::INITIAL_WIDTH, avitab::UiDriverBase::INITIAL_HEIGHT,
-        avitab::UiDriverBase::INITIAL_WIDTH, avitab::UiDriverBase::INITIAL_HEIGHT); // essentially disable resizing
+        avitab::UiDriverBase::INITIAL_WIDTH, avitab::UiDriverBase::INITIAL_HEIGHT);
     XPLMSetWindowIsVisible(winHandle, 1);
 }
 
@@ -98,10 +101,16 @@ void XPlaneVrWindow::onDraw()
     if (++winCheckTimer > 30) {
         winCheckTimer = 0;
         auto sizeChanged = updateWindowGeometry();
-        // TODO - if/when we support change of window size then notify here
+        // TODO - if/when we support change of window aspect ratio then handle that here
     }
 
     render();
+}
+
+void XPlaneVrWindow::getWindowGeometry(int &l, int &t, int &r, int &b) {
+    XPLMGetWindowGeometryVR(winHandle, &r, &b);
+    l = winLeft;
+    t = winTop;
 }
 
 void XPlaneVrWindow::onWindowMoved(int l, int t, int r, int b) {

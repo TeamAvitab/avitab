@@ -39,6 +39,7 @@ public:
 protected:
     void render();
     bool updateWindowGeometry();
+    virtual void getWindowGeometry(int &left, int &top, int &right, int &bottom) = 0;
     virtual void onWindowMoved(int left, int top, int right, int bottom) = 0;
 
     int onLeftClick(int x, int y, XPLMMouseStatus status);
