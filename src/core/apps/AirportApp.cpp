@@ -15,14 +15,15 @@
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+#include "AirportApp.h"
+#include "Logger.h"
 #include <sstream>
 #include <iomanip>
-#include <limits>
 #include <cmath>
 #include <algorithm>
 #include <tuple>
-#include "AirportApp.h"
-#include "Logger.h"
+#include <cassert>
 
 namespace avitab {
 
@@ -34,7 +35,15 @@ AirportApp::AirportApp(FuncsPtr appFuncs):
     App(appFuncs),
     updateTimer(std::bind(&AirportApp::onTimer, this), 200)
 {
-    airportConfig = api().getSettings()->getAirportConfig();
+    overlayConfig = std::make_shared<maps::OverlayConfig>();
+    auto settings = api().getSettings();
+    appConfig.init(settings, "/airports", [this] () { onAppConfigChanged(); });
+    generalConfig.init(settings, "/general", [this] () { onGeneralConfigChanged(); });
+    overlayConfig->init(settings, "/overlay", [this] () { onOverlayConfigChanged(); });
+    if (!generalConfig.showAirportOverlays) {
+        overlayConfig->disable();
+    }
+
     resetLayout();
     createSettingsContainer();
 }
@@ -99,7 +108,7 @@ void AirportApp::onSearchEntered(const std::string& code) {
     } else {
         searchLabel->setText("");
     }
-    if (airportConfig->doSort) {
+    if (appConfig.sortEnabled) {
         sortSearchResults(airports);
     }
 
@@ -124,7 +133,7 @@ void AirportApp::onSearchEntered(const std::string& code) {
 void AirportApp::onAirportSelected(std::shared_ptr<navdb::Airport> airport) {
     for (auto tabPage: pages) {
         if (tabPage.airport == airport) {
-            tabs->setActiveTab(tabs->getTabIndex(tabPage.page));
+            setActiveTab(tabs->getTabIndex(tabPage.page));
             return;
         }
     }
@@ -170,6 +179,14 @@ void AirportApp::clearSearch() {
     resultList.reset();
 }
 
+void AirportApp::setActiveTab(int tabIndex) {
+    if ((tabIndex < 0) || (tabIndex >= pages.size())) return;
+    // set the nightmode button toggle status according to the tab's night mode flag
+    TabPage &tab = pages[tabIndex];
+    tab.nightModeButton->setToggleState(tab.map ? tab.nightMode : false);
+    tabs->setActiveTab(tabIndex);
+}
+
 void AirportApp::removeTab(std::shared_ptr<Page> page) {
     for (auto it = pages.begin(); it != pages.end(); ++it) {
         if (it->page == page) {
@@ -183,7 +200,7 @@ void AirportApp::removeTab(std::shared_ptr<Page> page) {
 
 void AirportApp::sortSearchResults(std::vector<std::shared_ptr<navdb::Airport>>& airports) {
     auto loc = api().getAircraftPosition(0);
-    bool sortOrder = airportConfig->sortAscending;
+    bool sortOrder = appConfig.sortAscending;
     std::sort(airports.begin(), airports.end(),
         [loc, sortOrder] (std::shared_ptr<navdb::Airport> a, std::shared_ptr<navdb::Airport> b) {
             auto aLoc = a->getLocation();
@@ -285,24 +302,18 @@ std::string AirportApp::toRunwayInfo(std::shared_ptr<navdb::Airport> airport) {
         str <<  ", " << rwyF->getSurfaceTypeDescription() << ")\n";
         for (auto rwy : {rwyF, rwyS} ) {
             str << "    " + rwy->getIdent();
-            int rwHeading = (int)(rwy->getHeading() + magneticVariation + 0.5 + 360.0) % 360;
+            int rwHeading = toMagneticHeading(rwy->getHeading(), magneticVariation);
             auto na = rwy->getNavaidILS();
             if (na) {
-                auto ils = na->getILSLocalizer();
-                int ilsHeading = (int)(ils->getRunwayHeading() + magneticVariation + 0.5 + 360.0) % 360;
-
-                str << " " << ils->getFrequency().getDescription();
-                str << " (ID #6c71c4 " << na->getIdent() << "#";
-                str << " on #859900 " << ils->getFrequency().getFrequencyString() << "#";
-                if (ilsHeading != rwHeading) {
-                    str << ", CRS " << ilsHeading << "° M";
-                }
-                str << "),";
+                str << toILSInfo(*na, rwHeading, magneticVariation);
             }
             if (!std::isnan(rwHeading)) {
                 str << " CRS " << rwHeading << "° M";
             }
             str << "\n";
+            for (auto &fpapFix : rwy->getNavaidFPAPs()) {
+                str << "      " << toFPAPInfo(*fpapFix, rwHeading, magneticVariation) << "\n";
+            } 
         }
     });
     return str.str();
@@ -337,6 +348,52 @@ std::string AirportApp::toWeatherInfo(std::shared_ptr<navdb::Airport> airport) {
         }
     }
     return winfo;
+}
+
+std::string AirportApp::toILSInfo(const navdb::NavFix &na, int rwHeading, float magneticVariation) {
+    auto ils = na.getILSLocalizer();
+    if (!ils) return "";
+
+    int ilsHeading = toMagneticHeading(ils->getRunwayHeading(), magneticVariation);
+    std::stringstream str;
+    str << " " << ils->getFrequency().getDescription();
+    str << " (ID #6c71c4 " << na.getIdent() << "#";
+    str << " on #859900 " << ils->getFrequency().getFrequencyString() << "#";
+    if (ilsHeading != rwHeading) {
+        str << ", CRS " << ilsHeading << "° M";
+    }
+    str << "),";
+    return str.str();
+}
+
+std::string AirportApp::toFPAPInfo(const navdb::NavFix &na, int rwHeading, float magneticVariation) {
+    auto fpap = na.getFPAP();
+    if (!fpap) return "";
+
+    int fpapCourse = toMagneticHeading(fpap->getApproachCourse(), magneticVariation);
+    std::stringstream str;
+    const std::string &approachType = fpap->getApproachType();
+    std::string type = approachType.empty() ? "RNP" : (approachType == "GLS") ? "GLS" : "RNP/" + approachType;
+
+    str << type;
+    str << " (ID " << na.getIdent();
+    int channel = fpap->getChannel();
+    str << ", CH " << channel / 1000 << "." << std::setw(3) << std::setfill('0') << channel % 1000;
+    if (fpapCourse != rwHeading) {
+        str << ", CRS " << fpapCourse << "° M";
+    }
+    double gpa = fpap->getGlidepathAngle();
+    if (!std::isnan(gpa) && (gpa > 0)) {
+        // one decimal unless the angle needs two, e.g. 3.25
+        int hundredths = (int) std::round(gpa * 100);
+        str << ", GP " << std::fixed << std::setprecision((hundredths % 10) ? 2 : 1) << gpa;
+    }
+    str << ")";
+    return str.str();
+}
+
+int AirportApp::toMagneticHeading(double trueHeading, float magneticVariation) {
+    return (int)(trueHeading + magneticVariation + 0.5 + 360.0) % 360;
 }
 
 AirportApp::TabPage &AirportApp::findPage(std::shared_ptr<Page> page) {
@@ -424,6 +481,13 @@ void AirportApp::onChartsLoaded(std::shared_ptr<Page> page, const apis::ChartSer
 
             auto chart = listTab.charts.at(index);
 
+            for (auto tabPage: pages) {
+                if (tabPage.chart == chart) {
+                    setActiveTab(tabs->getTabIndex(tabPage.page));
+                    return;
+                }
+            }
+
             TabPage newTab;
             newTab.page = tabs->addTab(tabs, chart->getICAO() + " " + chart->getIndex());
             auto newPage = newTab.page;
@@ -467,11 +531,6 @@ void AirportApp::onChartsLoaded(std::shared_ptr<Page> page, const apis::ChartSer
 void AirportApp::onChartLoaded(std::shared_ptr<Page> page) {
     TabPage &tab = findPage(page);
 
-    if (api().getSettings()->getGeneralSetting<bool>("show_overlays_in_airport_app")) {
-        tab.overlays = api().getSettings()->getOverlayConfig();
-    } else {
-        tab.overlays = std::make_shared<maps::OverlayConfig>();
-    }
     tab.trackButton = tab.window->addSymbol(Widget::Symbol::GPS, [this, page] {
         TabPage &tab = findPage(page);
         if (tab.map) {
@@ -482,13 +541,13 @@ void AirportApp::onChartLoaded(std::shared_ptr<Page> page) {
     tab.nightModeButton = tab.window->addSymbol(Widget::Symbol::IMAGE, [this, page] () {
         TabPage &tab = findPage(page);
         if (tab.map) {
-            nightMode = !nightMode;
-            tab.nightModeButton->setToggleState(nightMode);
-            tab.chart->changeNightMode(tab.mapSource, nightMode);
+            tab.nightMode = !tab.nightMode;
+            tab.nightModeButton->setToggleState(tab.nightMode);
+            tab.chart->changeNightMode(tab.mapSource, tab.nightMode);
             tab.mapStitcher->invalidateCache();
         }
     });
-    tab.nightModeButton->setToggleState(nightMode);
+    tab.nightModeButton->setToggleState(tab.nightMode);
     tab.window->addSymbol(Widget::Symbol::ROTATE, [this, page] {
         TabPage &tab = findPage(page);
         if (tab.map) {
@@ -517,15 +576,17 @@ void AirportApp::onChartLoaded(std::shared_ptr<Page> page) {
         tab.pixMap->setClickable(true);
         tab.pixMap->setClickHandler([this, page] (int x, int y, bool pr, bool rel) { onMapPan(page, x, y, pr, rel); });
 
-        tab.mapSource = tab.chart->createTileSource(nightMode);
+        tab.nightMode = generalConfig.nightMode;
+        tab.mapSource = tab.chart->createTileSource(tab.nightMode);
         tab.mapStitcher = std::make_shared<img::Stitcher>(tab.mapImage, tab.mapSource);
-        tab.map = std::make_shared<maps::OverlayedMap>(tab.mapStitcher, tab.overlays);
-        tab.map->loadOverlayIcons();
+        tab.map = std::make_shared<maps::OverlayedMap>(tab.mapStitcher, overlayConfig);
         tab.map->setRedrawCallback([this, page] () { redrawPage(page); });
         tab.map->setNavWorld(api().getNavDatabase());
         tab.map->setGetRouteCallback([this] () { return api().getRoute(); });
+        tab.map->setGetMagneticVariationsCallback([this] (std::vector<world::Location> &locs) { return api().getMagneticVariations(locs); });
 
         tab.trackButton->setToggleState(tab.trackPlane);
+        tab.nightModeButton->setToggleState(tab.nightMode);
 
         if (tab.mapSource->getPageCount() > 1) {
             tab.window->addSymbol(Widget::Symbol::LEFT, [this, page] {
@@ -567,22 +628,14 @@ void AirportApp::createSettingsContainer() {
 
     sortLabel = std::make_shared<Label>(prefContainer, "Sort options");
     sortCheckbox = std::make_shared<Checkbox>(prefContainer, "Distance");
-    sortCheckbox->setChecked(airportConfig->doSort);
-    sortCheckbox->setCallback([this] (bool checked) { airportConfig->doSort = checked; });
+    sortCheckbox->setChecked(appConfig.sortEnabled);
+    sortCheckbox->setCallback([this] (bool checked) { appConfig.sortEnabled = checked; appConfig.update(); });
     sortCheckbox->alignBelow(sortLabel);
 
     sortAscCheckbox = std::make_shared<Checkbox>(prefContainer, "Ascending");
-    sortAscCheckbox->setChecked(airportConfig->sortAscending);
-    sortAscCheckbox->setCallback([this] (bool checked) { airportConfig->sortAscending = checked; });
+    sortAscCheckbox->setChecked(appConfig.sortAscending);
+    sortAscCheckbox->setCallback([this] (bool checked) { appConfig.sortAscending = checked; appConfig.update(); });
     sortAscCheckbox->alignRightOf(sortCheckbox);
-
-    overlaysCheckbox = std::make_shared<Checkbox>(prefContainer, "Show Map overlays");
-    overlaysCheckbox->alignBelow(sortCheckbox, 10);
-    overlaysCheckbox->setChecked(api().getSettings()->getGeneralSetting<bool>("show_overlays_in_airport_app"));
-    overlaysCheckbox->setCallback([this] (bool checked) {
-        api().getSettings()->setGeneralSetting<bool>("show_overlays_in_airport_app", checked);
-    });
-    overlaysCheckbox->alignBelow(sortCheckbox);
 }
 
 void AirportApp::onMapPan(std::shared_ptr<Page> page, int x, int y, bool start, bool end) {
@@ -620,7 +673,12 @@ void AirportApp::onMouseWheel(int dir, int x, int y) {
         }
 
         if (tab.map) {
-            if (dir > 0) {
+            // Zoom around the point under the mouse, unless the map follows the plane.
+            // The wheel can also arrive without a pointer (x/y 0,0) which is outside the map.
+            int mapX = x, mapY = y;
+            if (!tab.trackPlane && tab.pixMap && tab.pixMap->screenToLocal(mapX, mapY)) {
+                tab.map->zoomAt(dir > 0, mapX - tab.pixMap->getWidth() / 2, mapY - tab.pixMap->getHeight() / 2);
+            } else if (dir > 0) {
                 tab.map->zoomIn();
             } else {
                 tab.map->zoomOut();
@@ -650,7 +708,7 @@ void AirportApp::changeChartTab(bool next) {
     if (tabCount == 0)
         return;
     int newIndex = (activeIndex + (next ? 1 : -1)) % tabCount;
-    tabs->setActiveTab(newIndex);
+    setActiveTab(newIndex);
 }
 
 bool AirportApp::onTimer() {
@@ -660,10 +718,7 @@ bool AirportApp::onTimer() {
             for (AircraftID i = 0; i < api().getActiveAircraftCount(); ++i) {
                 locs.push_back(api().getAircraftPosition(i));
             }
-            tab.map->setPlaneLocations(locs);
-            if (tab.trackPlane) {
-                tab.map->centerOnPlane();
-            }
+            tab.map->setPlaneLocations(locs, tab.trackPlane);
             tab.map->doWork();
         }
     }
@@ -672,6 +727,38 @@ bool AirportApp::onTimer() {
 
 size_t AirportApp::countCharts(const apis::ChartService::ChartList& list, apis::ChartCategory category) {
     return std::count_if(list.begin(), list.end(), [category] (auto chart) { return chart->getCategory() == category; });
+}
+
+void AirportApp::onAppConfigChanged() {
+    // this function should not be called since the app config is (currently) only changed by the app
+    assert(0);
+}
+
+void AirportApp::onGeneralConfigChanged() {
+    generalConfig.unpack();
+    if (generalConfig.showAirportOverlays) {
+        overlayConfig->unpack();
+    } else {
+        overlayConfig->disable();
+    }
+}
+
+void AirportApp::onOverlayConfigChanged() {
+    if (generalConfig.showAirportOverlays) {
+        overlayConfig->unpack();
+    } else {
+        overlayConfig->disable();
+    }
+}
+
+void AirportAppConfig::unpack() {
+    sortEnabled = json.value("sort", true);
+    sortAscending = json.value("sort_ascending", true);
+}
+
+void AirportAppConfig::pack() {
+    json["sort"] = sortEnabled;
+    json["sort_ascending"] = sortAscending;
 }
 
 } /* namespace avitab */

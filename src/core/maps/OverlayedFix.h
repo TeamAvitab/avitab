@@ -34,7 +34,8 @@ protected:
 
     void drawNavTextBox(const std::string &type, const std::string &id, const std::string &freq,
                                 int x, int y, uint32_t color,
-                                const std::string &ilsHeadingMagnetic = "");
+                                const std::string &ilsHeadingMagnetic = "",
+                                bool showMorse = true);
 
 protected:
     const navdb::Fix *fix;

@@ -75,6 +75,7 @@ public:
     void drawPixel(int x, int y, uint32_t color);
     void drawLine(int x1, int y1, int x2, int y2, uint32_t color);
     void drawLineAA(float x0, float y0, float x1, float y1, uint32_t color);
+    void drawLineAADashed(float x0, float y0, float x1, float y1, uint32_t color, float dashLength, float gapLength);
     void drawImage(const Image &src, int dstX, int dstY);
     void copyTo(Image &dst, int srcX, int srcY);
     void blendImage(const Image &src, int dstX, int dstY, double angle);
@@ -96,6 +97,9 @@ public:
     void rotate180(Image &dst);
     void rotate270(Image &dst);
     void rotate(Image &dst, int angle);
+    // Rotates clockwise by any angle about the centre (nearest neighbour)
+    // The rotation centre appears centerOffsetY pixels below the centre of dst.
+    void rotateArbitrary(Image &dst, double angleDegrees, int centerOffsetY = 0);
 
     virtual ~Image() = default;
 private:
@@ -105,7 +109,7 @@ private:
     std::unique_ptr<std::vector<uint8_t>> encodedData;
     std::unique_ptr<std::vector<uint32_t>> pixels;
 
-    std::map<uint64_t, std::shared_ptr<img::Image>> circleCache;
+    std::map<uint64_t, std::shared_ptr<img::Image>> circleCache; // TODO - ??? shouldn't this be a static structure shared by all Image instances ???
 
     void fillCircleCacheImage(int x_centre, int y_centre, int radius, uint32_t color);
     void plot(int x, int y, float brightness);

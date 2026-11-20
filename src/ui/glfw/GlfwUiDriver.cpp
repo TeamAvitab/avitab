@@ -26,7 +26,7 @@
 GlfwUiDriver::GlfwUiDriver() {
 }
 
-void GlfwUiDriver::start(std::shared_ptr<avitab::Settings> prefs, std::shared_ptr<avitab::AviTabCore> core) {
+void GlfwUiDriver::start(std::shared_ptr<avitab::Settings> s, std::shared_ptr<avitab::AviTabCore> core) {
     logger::info("Initializing GLFW driver...");
     if (!glfwInit()) {
         throw std::runtime_error("Couldn't initialize GLFW");

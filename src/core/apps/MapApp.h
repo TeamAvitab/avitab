@@ -40,6 +40,12 @@
 
 namespace avitab {
 
+struct MapAppConfig : public ConfigBase {
+    int onlineMapIndex;
+    void unpack() override;
+    void pack() override;
+};
+
 class MapApp: public App {
 public:
     MapApp(FuncsPtr funcs);
@@ -48,6 +54,15 @@ public:
     void pan(int x, int y) override;
     void suspend() override;
     void resume() override;
+
+private: // this group relates to the map app configuration
+    void onGeneralConfigChanged();
+    void onAppConfigChanged();
+    void onOverlayConfigChanged();
+    GeneralConfig generalConfig;
+    MapAppConfig appConfig;
+    std::shared_ptr<maps::OverlayConfig> overlayConfig;
+
 private:
     enum class MapSource {
         MERCATOR,
@@ -62,8 +77,6 @@ private:
 
     MapSource currentActiveMapSource;
     std::string currentActiveOnlineMap;
-    std::shared_ptr<maps::OverlayConfig> overlayConf;
-    std::shared_ptr<maps::MapConfig> mapConf;
     std::unique_ptr<FileChooser> fileChooser;
     std::unique_ptr<ContainerWithClickableCustomList> containerWithClickableList;
     std::shared_ptr<img::TileSource> tileSource;
@@ -73,14 +86,14 @@ private:
 
     std::shared_ptr<Window> window;
     std::shared_ptr<PixMap> mapWidget;
-    std::shared_ptr<Button> trackButton;
+    std::shared_ptr<Button> trackPlaneButton, trackHeadingUpButton;
     std::shared_ptr<Button> rotateButton;
     std::shared_ptr<Container> settingsContainer, chooserContainer, overlaysContainer;
     std::shared_ptr<Button> mercatorButton, geoTiffButton, epsgButton, naviLowButton, naviHighButton, naviVFRButton, naviWorldButton, onlineMapsButton;
     std::shared_ptr<Label> overlayLabel;
     std::shared_ptr<Checkbox> myAircraftCheckbox, otherAircraftCheckbox, routeCheckbox;
     std::shared_ptr<Checkbox> airportCheckbox, heliseaportCheckbox, airstripCheckbox;
-    std::shared_ptr<Checkbox> vorCheckbox, ndbCheckbox, ilsCheckbox, waypointCheckbox;
+    std::shared_ptr<Checkbox> vorCheckbox, ndbCheckbox, ilsCheckbox, fpapCheckbox, waypointCheckbox;
     std::shared_ptr<Button> loadUserFixesButton;
     std::shared_ptr<Checkbox> poiCheckbox, vrpCheckbox, markerCheckbox;
 
@@ -95,11 +108,30 @@ private:
     std::shared_ptr<Label> onlineMapsLabel;
 
     Timer updateTimer;
-    bool trackPlane = true;
     bool suspended = true;
 
-    int panPosX = 0, panPosY = 0;
-    bool wasTrackingPlaneAtPanStart;
+    // nested struct to encapsulate the tracking mode states, could be extracted into parent?
+    struct MapTrackingMode {
+        bool isTracking() const { return trackingNorthUp || trackingHeadingUp; }
+        bool isNotTracking() const { return !isTracking(); }
+        bool isTrackingNorthUp() const  { return trackingNorthUp; }
+        bool isTrackingHeadingUp() const  { return trackingHeadingUp; }
+        void setTrackingOff() { setTracking(false, false); }
+        void setTrackingNorthUp() { setTracking(true, false); }
+        void setTrackingHeadingUp() { setTracking(false, true); }
+        void setTracking(bool northUp, bool headingUp);
+        MapTrackingMode(MapApp &p) : parent(p), trackingNorthUp(true), trackingHeadingUp(false) { }
+        MapApp &parent;
+        bool trackingNorthUp;
+        bool trackingHeadingUp;
+    };
+    MapTrackingMode trackMode;
+
+    // mouse click'n'drag state to distinguish click from pan
+    int clickStartX, clickStartY;
+    int dragLastX, dragLastY;
+    bool panDetected;
+
     std::filesystem::path mercatorDir;
 
     void createSettingsLayout();
@@ -123,7 +155,8 @@ private:
     void onMapPan(int x, int y, bool start, bool end);
     void onPlusButton();
     void onMinusButton();
-    void onTrackButton();
+    void onTrackPlaneButton();
+    void onTrackHeadingUpButton();
     void onRotate();
     void startCalibration();
     double getCoordinate(const std::string &str);

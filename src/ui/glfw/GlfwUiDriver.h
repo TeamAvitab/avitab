@@ -29,7 +29,7 @@ public:
     ~GlfwUiDriver();
 
     // The top-level state machine is start -> enable -> disable { -> enable -> disable } -> stop
-    void start(std::shared_ptr<avitab::Settings> prefs, std::shared_ptr<avitab::AviTabCore> core);
+    void start(std::shared_ptr<avitab::Settings> settings, std::shared_ptr<avitab::AviTabCore> core);
     void enable();
     void disable();
     void stop();
@@ -56,6 +56,7 @@ private:
 private:
     static constexpr const float ZOOM = 1.5f;
 
+    std::shared_ptr<avitab::Settings> settings;
     std::mutex driverMutex;
     GLFWwindow *window {};
     GLuint textureId{};

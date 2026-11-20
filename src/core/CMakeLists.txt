@@ -13,3 +13,5 @@ add_subdirectory(image)
 add_subdirectory(maps)
 add_subdirectory(nav)
 add_subdirectory(other)
+
+add_dependencies(avitab_core_lib avitab_svg_headers)

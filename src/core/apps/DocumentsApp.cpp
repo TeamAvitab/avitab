@@ -15,8 +15,10 @@
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 #include "DocumentsApp.h"
 #include "Logger.h"
+#include <cassert>
 
 namespace avitab {
 
@@ -29,15 +31,19 @@ DocumentsApp::DocumentsApp(FuncsPtr appFuncs, const std::string &title, const st
     std::filesystem::create_directories(dir);
     fsBrowser = std::make_unique<FilesystemBrowser>(dir);
     setFilterRegex(fileRegex);
+
+    overlayConfig = std::make_shared<maps::OverlayConfig>();
+    auto settings = api().getSettings();
+    appConfig.init(settings, "/" + group, [this] () { onAppConfigChanged(); });
+    generalConfig.init(settings, "/general", [this] () { onGeneralConfigChanged(); });
+    overlayConfig->init(settings, "/overlay", [this] () { onOverlayConfigChanged(); });
+    if (!generalConfig.showChartOverlays) {
+        overlayConfig->disable();
+    }
 }
 
 void DocumentsApp::Run() {
-    api().getSettings()->loadDocReadingConfig(configGroup, settings);
-    if (api().getSettings()->getGeneralSetting<bool>("show_overlays_in_charts_app")) {
-        overlays = api().getSettings()->getOverlayConfig();
-    } else {
-        overlays = std::make_shared<maps::OverlayConfig>();
-    }
+
     resetLayout();
     ChangeBrowseDirectory(fsBrowser->path());
 }
@@ -100,8 +106,7 @@ void DocumentsApp::onSettingsToggle(bool forceClose) {
     }
     bool show = forceClose ? false : !settingsContainer->isVisible();
     if (!show) {
-        api().getSettings()->saveDocReadingConfig(configGroup, settings);
-        api().getSettings()->saveAll();
+        appConfig.update();
     }
     settingsContainer->setVisible(show);
 }
@@ -212,9 +217,9 @@ void DocumentsApp::loadFile(PageInfo tab, const std::filesystem::path &docPath) 
     tab->stitcher = std::make_shared<img::Stitcher>(tab->rasterImage, tab->source);
     tab->stitcher->setCacheDirectory(api().getAvitabDataDir()/"MapTiles");
 
-    tab->map = std::make_shared<maps::OverlayedMap>(tab->stitcher, overlays);
-    tab->map->loadOverlayIcons();
+    tab->map = std::make_shared<maps::OverlayedMap>(tab->stitcher, overlayConfig);
     tab->map->setGetRouteCallback([this] () { return api().getRoute(); });
+    tab->map->setGetMagneticVariationsCallback([this] (std::vector<world::Location> &locs) { return api().getMagneticVariations(locs); });
 
     auto pixMap = tab->pixMap;
     tab->map->setRedrawCallback([pixMap] () { if (pixMap) pixMap->invalidate(); });
@@ -301,17 +306,39 @@ void DocumentsApp::onMinus() {
     }
 }
 
+// true if, moving from 'before' to 'after', we reached or passed 'target' on the axis that actually moved
+static bool crossedTarget(img::Point<double> before, img::Point<double> after, img::Point<double> target) {
+    auto crossed = [] (double from, double to, double target) {
+        if (to > from) return to >= target;
+        if (to < from) return to <= target;
+        return false;
+    };
+    return crossed(before.x, after.x, target.x) || crossed(before.y, after.y, target.y);
+}
+
 void DocumentsApp::onScrollUp() {
     auto tab = getActiveDocPage();
     if (tab && tab->map) {
+        auto topEdge = computeAlignedCenter(tab, VerticalPosition::Top, HorizontalPosition::Middle);
+        auto before = tab->stitcher->getCenter();
         tab->stitcher->pan(0, -100);
+        auto after = tab->stitcher->getCenter();
+        if (crossedTarget(before, after, topEdge)) {
+            onPrevPage();
+        }
     }
 }
 
 void DocumentsApp::onScrollDown() {
     auto tab = getActiveDocPage();
     if (tab && tab->map) {
+        auto bottomEdge = computeAlignedCenter(tab, VerticalPosition::Bottom, HorizontalPosition::Middle);
+        auto before = tab->stitcher->getCenter();
         tab->stitcher->pan(0, 100);
+        auto after = tab->stitcher->getCenter();
+        if (crossedTarget(before, after, bottomEdge)) {
+            onNextPage();
+        }
     }
 }
 
@@ -353,7 +380,7 @@ void DocumentsApp::onMouseWheel(int dir, int x, int y) {
                 onNextPage();
             }
         } else {
-            bool doScroll = settings.mouseWheelScrollsMultiPage && (tab->stitcher->getPageCount() > 1);
+            bool doScroll = appConfig.mouseWheelScrollsMultiPage && (tab->stitcher->getPageCount() > 1);
             if (dir > 0) {
                 if (doScroll) {
                     onScrollUp();
@@ -400,17 +427,9 @@ void DocumentsApp::showAppSettings() {
     settingsLabel->alignInTopLeft();
 
     mouseWheelScrollsCheckbox = std::make_shared<Checkbox>(settingsContainer, "Mouse wheel scrolls in multi-page docs");
-    mouseWheelScrollsCheckbox->setChecked(settings.mouseWheelScrollsMultiPage);
+    mouseWheelScrollsCheckbox->setChecked(appConfig.mouseWheelScrollsMultiPage);
     mouseWheelScrollsCheckbox->alignBelow(settingsLabel);
-    mouseWheelScrollsCheckbox->setCallback([this] (bool checked) { settings.mouseWheelScrollsMultiPage = checked; });
-
-    overlaysCheckbox = std::make_shared<Checkbox>(settingsContainer, "Show Map overlays");
-    overlaysCheckbox->alignBelow(mouseWheelScrollsCheckbox, 10);
-    overlaysCheckbox->setChecked(api().getSettings()->getGeneralSetting<bool>("show_overlays_in_charts_app"));
-    overlaysCheckbox->setCallback([this] (bool checked) {
-        api().getSettings()->setGeneralSetting<bool>("show_overlays_in_charts_app", checked);
-    });
-    overlaysCheckbox->alignBelow(mouseWheelScrollsCheckbox);
+    mouseWheelScrollsCheckbox->setCallback([this] (bool checked) { appConfig.mouseWheelScrollsMultiPage = checked; appConfig.update(); });
 };
 
 void DocumentsApp::positionPage(PageInfo tab, VerticalPosition vp, HorizontalPosition hp, ZoomAdjust za) {
@@ -423,11 +442,10 @@ void DocumentsApp::positionPage(PageInfo tab, VerticalPosition vp, HorizontalPos
         return;
     }
 
-    img::Point<int> aperturexy{tab->pixMap->getWidth(), tab->pixMap->getHeight()};
-    auto angle = tab->stitcher->getRotation();
-
     // set the required zoom
     if (za != ZoomAdjust::None) {
+        img::Point<int> aperturexy{tab->pixMap->getWidth(), tab->pixMap->getHeight()};
+        auto angle = tab->stitcher->getRotation();
         // start with maximal zoom, and then zoom out until all criteria are met
         int z  = doc->getMaxZoomLevel();
         while (z > doc->getMinZoomLevel()) {
@@ -443,9 +461,22 @@ void DocumentsApp::positionPage(PageInfo tab, VerticalPosition vp, HorizontalPos
     }
 
     // now adjust the tile centre to align as requested
+    auto center = computeAlignedCenter(tab, vp, hp);
+    tab->stitcher->setCenter(center.x, center.y);
+}
+
+img::Point<double> DocumentsApp::computeAlignedCenter(PageInfo tab, VerticalPosition vp, HorizontalPosition hp) {
+    auto doc = tab->stitcher->getTileSource();
+    img::Point<int> aperturexy{tab->pixMap->getWidth(), tab->pixMap->getHeight()};
+    auto angle = tab->stitcher->getRotation();
     auto zoomNow = tab->map->getZoomLevel();
     auto tilexy = doc->getTileDimensions(zoomNow);
     auto pagexy = doc->getPageDimensions(tab->stitcher->getCurrentPage(), zoomNow);
+
+    if (tilexy.x == 0 || tilexy.y == 0) {
+        return tab->stitcher->getCenter();
+    }
+
     float cx = 0.0, cy = 0.0;
     if (angle == 0) {
         cx = (hp == HorizontalPosition::Left) ? (aperturexy.x / 2) : ((hp == HorizontalPosition::Right) ? (pagexy.x - (aperturexy.x / 2)) : (pagexy.x / 2));
@@ -461,9 +492,41 @@ void DocumentsApp::positionPage(PageInfo tab, VerticalPosition vp, HorizontalPos
         cy = (hp == HorizontalPosition::Left) ? (aperturexy.x / 2) : ((hp == HorizontalPosition::Right) ? (pagexy.y - (aperturexy.x / 2)) : (pagexy.y / 2));
     }
 
-    if (tilexy.x != 0 && tilexy.y != 0) {
-        tab->stitcher->setCenter((float) cx / tilexy.x, (float) cy / tilexy.y);
+    return img::Point<double>{(double) cx / tilexy.x, (double) cy / tilexy.y};
+}
+
+void DocumentsApp::onAppConfigChanged() {
+    // this function should not be called since the app config is (currently) only changed by the app
+    assert(0);
+}
+
+void DocumentsApp::onGeneralConfigChanged() {
+    generalConfig.unpack();
+    if (generalConfig.showChartOverlays) {
+        overlayConfig->unpack();
+    } else {
+        overlayConfig->disable();
     }
+}
+
+void DocumentsApp::onOverlayConfigChanged() {
+    if (generalConfig.showChartOverlays) {
+        overlayConfig->unpack();
+    } else {
+        overlayConfig->disable();
+    }
+}
+
+void DocumentsAppConfig::unpack() {
+    try {
+        mouseWheelScrollsMultiPage = json.value("/docreading/mousewheelscroll"_json_pointer, false);
+    } catch (...) {
+        mouseWheelScrollsMultiPage = false;
+    }
+}
+
+void DocumentsAppConfig::pack() {
+    json["docreading"]["mousewheelscroll"] = mouseWheelScrollsMultiPage;
 }
 
 } /* namespace avitab */

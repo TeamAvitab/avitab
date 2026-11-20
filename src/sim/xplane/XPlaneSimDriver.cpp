@@ -309,15 +309,6 @@ void XPlaneSimDriver::destroyCommands() {
 
 void XPlaneSimDriver::resetWindowPosition() {
     uiDriver->resetWindowPosition();
-#if 0 // TODO
-    settings->saveWindowRect({});
-    if (uiDriver->hasNativeWindow()) {
-        uiDriver->pauseNativeWindow();
-    }
-    resetWindowRect = true;
-    toggleTablet();
-    resetWindowRect = false;
-#endif
 }
 
 std::filesystem::path XPlaneSimDriver::getAirplanePath() {

@@ -64,4 +64,12 @@ void PixMap::panDown() {
     }
 }
 
+bool PixMap::screenToLocal(int &x, int &y) {
+    lv_area_t coords;
+    lv_obj_get_coords(obj(), &coords);
+    x -= coords.x1;
+    y -= coords.y1;
+    return (x >= 0) && (y >= 0) && (x < getWidth()) && (y < getHeight());
+}
+
 } /* namespace avitab */

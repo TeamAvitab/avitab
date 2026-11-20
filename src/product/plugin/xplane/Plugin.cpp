@@ -134,6 +134,7 @@ PLUGIN_API void XPluginStop(void) {
         aviTab.reset();
         uiDriver.reset();
         simDriver.reset();
+        settings.reset();
 
         curl_global_cleanup();
     } catch (const std::exception &e) {

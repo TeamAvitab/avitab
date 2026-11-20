@@ -61,4 +61,12 @@ void RunwayModel::setNavaidILS(std::shared_ptr<NavFix> fix) {
     ils = fix;
 }
 
+void RunwayModel::addNavaidFPAP(std::shared_ptr<NavFix> fix) {
+    if (!fix->getFPAP()) {
+        throw std::runtime_error("Adding FPAP fix without FPAP data");
+    }
+
+    fpaps.push_back(fix);
+}
+
 } /* namespace navdb */

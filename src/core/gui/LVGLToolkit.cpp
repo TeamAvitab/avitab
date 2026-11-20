@@ -161,14 +161,6 @@ std::shared_ptr<Theme> &LVGLToolkit::theme() {
     return mainTheme;
 }
 
-void LVGLToolkit::setBrightness(float b) {
-    driver->setBrightness(b);
-}
-
-float LVGLToolkit::getBrightness() {
-    return driver->getBrightness();
-}
-
 void LVGLToolkit::handleKeyboard() {
     // check if the current widget hierarchy includes an active keyboard
     auto keyboard = searchActiveKeyboard(lv_screen_active());

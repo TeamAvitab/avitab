@@ -153,6 +153,19 @@ public:
     virtual bool isLocalizerOnly() const = 0;
 };
 
+// Flight Path Alignment Point of an SBAS/GBAS approach (LPV, LP, ...)
+class FPAP {
+public:
+    virtual int getChannel() const = 0;                     // WAAS/SBAS channel
+    virtual double getApproachCourse() const = 0;           // true degrees
+    virtual const std::string &getRunway() const = 0;
+    virtual const std::string &getApproachType() const = 0; // "LPV", "LP", "APV-II", "GLS"
+    virtual const world::Location *getThreshold() const = 0; // landing threshold point (LTP/FTP), nullptr if unknown
+    virtual double getGlidepathAngle() const = 0;           // degrees, NaN if unknown
+
+    virtual ~FPAP() = default;
+};
+
 class Fix : public Node {
 public:
     bool isFix() const override { return true; }
@@ -169,6 +182,7 @@ public:
     virtual const VOR *getVOR() const = 0;
     virtual const DME *getDME() const = 0;
     virtual const ILSLocalizer *getILSLocalizer() const = 0;
+    virtual const FPAP *getFPAP() const = 0;
 };
 
 class UserFix : public Fix {
@@ -192,6 +206,7 @@ public:
     virtual SurfaceMaterial getSurfaceType() const = 0;
     virtual const char *getSurfaceTypeDescription() const = 0;
     virtual std::shared_ptr<NavFix> getNavaidILS() const = 0;
+    virtual const std::vector<std::shared_ptr<NavFix>> &getNavaidFPAPs() const = 0;
 };
 
 class Heliport: public Node {

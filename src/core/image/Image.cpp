@@ -363,6 +363,26 @@ void Image::drawLineAA(float x0, float y0, float x1, float y1, uint32_t color) {
     }
 }
 
+// Anti-aliased dashed line, starting with a dash at x0/y0. Dash and gap lengths are in pixels.
+void Image::drawLineAADashed(float x0, float y0, float x1, float y1, uint32_t color, float dashLength, float gapLength) {
+    if (dashLength <= 0 || gapLength <= 0) {
+        drawLineAA(x0, y0, x1, y1, color);
+        return;
+    }
+
+    const float length = std::hypot(x1 - x0, y1 - y0);
+    if (length == 0) {
+        return;
+    }
+    const float ux = (x1 - x0) / length;
+    const float uy = (y1 - y0) / length;
+
+    for (float pos = 0; pos < length; pos += dashLength + gapLength) {
+        const float end = std::min(pos + dashLength, length);
+        drawLineAA(x0 + ux * pos, y0 + uy * pos, x0 + ux * end, y0 + uy * end, color);
+    }
+}
+
 void Image::drawCircle(int x_centre, int y_centre, int radius, uint32_t color) {
     // Anti-aliased, by considering all pixels in the enclosing square, but with several
     // short-cuts so that obvious transparent pixels don't take time.
@@ -790,6 +810,32 @@ void Image::rotate(Image& dst, int angle) {
     case 90:    rotate90(dst);  break;
     case 180:   rotate180(dst); break;
     case 270:   rotate270(dst); break;
+    }
+}
+
+void Image::rotateArbitrary(Image &dst, double angleDegrees, int centerOffsetY) {
+    dst.clear(0);
+
+    double theta = angleDegrees * world::DEG_TO_RAD;
+    double c = std::cos(theta);
+    double s = std::sin(theta);
+
+    const uint32_t *srcPtr = getPixels();
+    uint32_t *dstPtr = dst.getPixels();
+    double srcCx = width / 2.0;
+    double srcCy = height / 2.0;
+
+    // For every destination pixel find where it comes from in the source (inverse rotation)
+    for (int y = 0; y < dst.height; y++) {
+        double ry = y - (dst.height / 2.0 + centerOffsetY) + 0.5;
+        double fx = (0 - dst.width / 2.0 + 0.5) * c + ry * s + srcCx;
+        double fy = -(0 - dst.width / 2.0 + 0.5) * s + ry * c + srcCy;
+        for (int x = 0; x < dst.width; x++, fx += c, fy -= s) {
+            if (fx < 0 || fy < 0 || fx >= width || fy >= height) {
+                continue;
+            }
+            dstPtr[y * dst.width + x] = srcPtr[(int) fy * width + (int) fx];
+        }
     }
 }
 

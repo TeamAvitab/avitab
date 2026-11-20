@@ -64,21 +64,15 @@ void XPlaneBaseWindow::render() {
 
 bool XPlaneBaseWindow::updateWindowGeometry() {
     int l, t, r, b;
-    XPLMGetWindowGeometry(winHandle, &l, &t, &r, &b);
+    getWindowGeometry(l, t, r, b);
     if ((winLeft != l) || (winTop != t) || (winRight != r) || (winBottom != b)) {
-        auto popped = XPLMWindowIsPoppedOut(winHandle);
-        if (!popped) {
-            // only update the latest position if the window isn't popped out
-            winLeft = l; winTop = t; winRight = r; winBottom = b;
-        }
-#if 0 // TODO - we don't need this until window resize is needed
+        onWindowMoved(l, t, r, b);
         int w = r - l;
         int h = t - b;
         if ((w != winWidth) || (h != winHeight)) {
             winWidth = w; winHeight = h;
             return true;
         }
-#endif
     }
     return false;
 }
@@ -127,7 +121,7 @@ int XPlaneBaseWindow::onMouseWheel(int x, int y, int wheel, int clicks)
 {
     int guiX, guiY;
     if (boxelToPixel(x, y, guiX, guiY)) {
-        common.brightness = guiX;
+        common.mouseX = guiX;
         common.mouseY = guiY;
         common.wheelClicks = clicks;
         return 1;

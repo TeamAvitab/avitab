@@ -3,12 +3,18 @@
 target_sources(avitab_core_lib PRIVATE
     Downloader.cpp
     Downloader.h
+    OverlayConfig.cpp
+    OverlayConfig.h
+    AircraftIcons.cpp
+    AircraftIcons.h
     OverlayedAirport.cpp
     OverlayedAirport.h
     OverlayedDME.cpp
     OverlayedDME.h
     OverlayedFix.cpp
     OverlayedFix.h
+    OverlayedFPAP.cpp
+    OverlayedFPAP.h
     OverlayedILSLocalizer.cpp
     OverlayedILSLocalizer.h
     OverlayedMap.cpp

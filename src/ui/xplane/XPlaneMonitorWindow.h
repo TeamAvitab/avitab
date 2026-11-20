@@ -18,6 +18,7 @@
 #pragma once
 
 #include "XPlaneBaseWindow.h"
+#include <nlohmann/json.hpp>
 #include <utility>
 
 class XPlaneMonitorWindow : public XPlaneBaseWindow {
@@ -29,10 +30,16 @@ public:
     void destroy() override;
     void reposition() override;
 
+    void extract_config(nlohmann::json &cfg);
+    void update_config(nlohmann::json &cfg);
+
 protected:
     // these are the callbacks registered for the X-Plane window
     void onDraw();
     XPLMCursorStatus getCursor(int x, int y) { return onCursor(x, y); }
+
+    void getWindowGeometry(int &left, int &top, int &right, int &bottom) override;
+    void onWindowMoved(int left, int top, int right, int bottom) override;
 
 private:
     std::pair<int, int> screenCentre(int& l, int& t, int& r, int& b);
@@ -40,7 +47,9 @@ private:
 
 private:
     int winCreateLeft, winCreateTop;
+    bool winPopOutPending;
     bool winPoppedOut;
     int winCheckTimer;
-
+    // most recently observed popped-out window
+    int osWinLeft, osWinTop, osWinRight, osWinBottom;
 };
