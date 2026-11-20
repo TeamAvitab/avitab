@@ -304,16 +304,14 @@ void DocumentsApp::onMinus() {
     }
 }
 
-namespace {
 // true if, moving from 'before' to 'after', we reached or passed 'target' on the axis that actually moved
-bool crossedTarget(img::Point<double> before, img::Point<double> after, img::Point<double> target) {
-    auto crossed = [] (double b, double a, double t) {
-        if (a > b) return a >= t;
-        if (a < b) return a <= t;
+static bool crossedTarget(img::Point<double> before, img::Point<double> after, img::Point<double> target) {
+    auto crossed = [] (double from, double to, double target) {
+        if (to > from) return to >= target;
+        if (to < from) return to <= target;
         return false;
     };
     return crossed(before.x, after.x, target.x) || crossed(before.y, after.y, target.y);
-}
 }
 
 void DocumentsApp::onScrollUp() {
