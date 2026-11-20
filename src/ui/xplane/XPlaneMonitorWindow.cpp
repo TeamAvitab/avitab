@@ -78,9 +78,10 @@ void XPlaneMonitorWindow::create() {
 
     winHandle = XPLMCreateWindowEx(&cwp);
     XPLMSetWindowTitle(winHandle, "Aviator's Tablet " AVITAB_VERSION_STR);
+    // limit window resizing between half and double (for each dimension)
     XPLMSetWindowResizingLimits(winHandle,
-        avitab::UiDriverBase::INITIAL_WIDTH, avitab::UiDriverBase::INITIAL_HEIGHT,
-        avitab::UiDriverBase::INITIAL_WIDTH, avitab::UiDriverBase::INITIAL_HEIGHT); // essentially disable resizing
+        avitab::UiDriverBase::INITIAL_WIDTH / 2, avitab::UiDriverBase::INITIAL_HEIGHT / 2,
+        avitab::UiDriverBase::INITIAL_WIDTH * 2, avitab::UiDriverBase::INITIAL_HEIGHT * 2);
     if (!winPopOutPending) {
         XPLMSetWindowPositioningMode(winHandle, xplm_WindowPositionFree, -1);
     }
@@ -140,10 +141,33 @@ void XPlaneMonitorWindow::onDraw()
     if (++winCheckTimer > 30) {
         winCheckTimer = 0;
         auto sizeChanged = updateWindowGeometry();
-        // TODO - if/when we support change of window size then notify here
+
+        // maintain the aspect ratio (TODO - remove this when proper resizing is supported)
+        float xScale = (float)winWidth / avitab::UiDriverBase::INITIAL_WIDTH;
+        float yScale = (float)winHeight / avitab::UiDriverBase::INITIAL_HEIGHT;
+        float scale = (xScale + yScale) / 2;
+        int adjustedWidth = (int)(avitab::UiDriverBase::INITIAL_WIDTH * scale);
+        int adjustedHeight = (int)(avitab::UiDriverBase::INITIAL_HEIGHT * scale);
+        if (winPoppedOut) {
+            XPLMSetWindowGeometryOS(winHandle, osWinLeft, osWinTop, osWinLeft + adjustedWidth, osWinTop - adjustedHeight);
+        } else {
+            XPLMSetWindowGeometry(winHandle, winLeft, winTop, winLeft + adjustedWidth, winTop - adjustedHeight);
+        }
+
+        if (sizeChanged) {
+            // TODO - if/when we support change of window size then notify here
+        }
     }
 
     render();
+}
+
+void XPlaneMonitorWindow::getWindowGeometry(int &l, int &t, int &r, int &b) {
+    if (winPoppedOut) {
+        XPLMGetWindowGeometryOS(winHandle, &l, &t, &r, &b);
+    } else {
+        XPLMGetWindowGeometry(winHandle, &l, &t, &r, &b);
+    }
 }
 
 void XPlaneMonitorWindow::onWindowMoved(int l, int t, int r, int b) {

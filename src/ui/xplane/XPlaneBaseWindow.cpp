@@ -64,17 +64,15 @@ void XPlaneBaseWindow::render() {
 
 bool XPlaneBaseWindow::updateWindowGeometry() {
     int l, t, r, b;
-    XPLMGetWindowGeometry(winHandle, &l, &t, &r, &b);
+    getWindowGeometry(l, t, r, b);
     if ((winLeft != l) || (winTop != t) || (winRight != r) || (winBottom != b)) {
         onWindowMoved(l, t, r, b);
-#if 0 // TODO - we don't need this until window resize is supported
         int w = r - l;
         int h = t - b;
         if ((w != winWidth) || (h != winHeight)) {
             winWidth = w; winHeight = h;
             return true;
         }
-#endif
     }
     return false;
 }
