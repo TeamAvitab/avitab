@@ -86,6 +86,14 @@ void AirportModel::attachILSData(const std::string& rwyName, std::shared_ptr<Nav
     rwy->setNavaidILS(fix);
 }
 
+void AirportModel::attachFPAPData(const std::string& rwyName, std::shared_ptr<NavFix> fix) {
+    auto rwy = getClosestRunway(rwyName);
+    if (!rwy) {
+        throw std::runtime_error("Unknown runway " + rwyName + " for airport " + ident);
+    }
+    rwy->addNavaidFPAP(fix);
+}
+
 std::shared_ptr<RunwayModel> AirportModel::getClosestRunway(const std::string& name) {
     auto rwy = std::dynamic_pointer_cast<RunwayModel>(getRunwayByName(name));
     if (rwy) return rwy;

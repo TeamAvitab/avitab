@@ -98,6 +98,11 @@ struct NavaidData {
     double bearingMagnetic = std::numeric_limits<double>::quiet_NaN();
 
     /**
+     * For 15, 16:  Glidepath angle in degrees, from the bearing field
+     */
+    double glidepathAngle = std::numeric_limits<double>::quiet_NaN();
+
+    /**
      * For 2, 3:    Unique in ICAO region
      * For 4, 5, 6: Unique in airport terminal area
      * For 7, 8, 9: Associated approach identifier (4, 5)

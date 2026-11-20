@@ -21,6 +21,7 @@
 #include <tuple>
 #include <sstream>
 #include <iomanip>
+#include <cstdio>
 
 
 namespace maps {
@@ -59,10 +60,19 @@ void OverlayedFPAP::drawText(bool detailed)
 {
     if (!enabled) return;
 
-    std::string type = navFPAP->getApproachType().empty() ? "RNP" : "RNP/" + navFPAP->getApproachType();
+    const std::string &approachType = navFPAP->getApproachType();
+    std::string type = approachType.empty() ? "RNP" : (approachType == "GLS") ? "GLS" : "RNP/" + approachType;
     if (detailed) {
-        std::string channel = "";
-        std::string id = "   " + getID() + "   ";
+        // the glidepath angle in the frequency line, e.g. "GP 3.2" (3.20) or "GP 3.25"
+        std::string glidepath = "";
+        double gpa = navFPAP->getGlidepathAngle();
+        if (!std::isnan(gpa) && (gpa > 0)) { // LP approaches can have 0, no vertical guidance
+            char buf[16];
+            int hundredths = int(std::round(gpa * 100));
+            std::snprintf(buf, sizeof(buf), (hundredths % 10) ? "GP %.2f" : "GP %.1f", gpa);
+            glidepath = buf;
+        }
+        std::string id = getID();
         double course = navFPAP->getApproachCourse();
         std::ostringstream str;
         if (!std::isnan(course)) {
@@ -76,7 +86,7 @@ void OverlayedFPAP::drawText(bool detailed)
             }
         }
         // an FPAP transmits no ident, so no morse code
-        drawNavTextBox(type, id, channel, textLocationX, textLocationY,
+        drawNavTextBox(type, id, glidepath, textLocationX, textLocationY,
                        color, str.str(), false);
     } else {
         auto mapImage = overlayHelper->getMapImage();

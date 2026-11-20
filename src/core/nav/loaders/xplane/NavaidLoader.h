@@ -22,7 +22,9 @@
 #include <map>
 #include <string>
 #include <utility>
+#include <vector>
 #include "WorldGeometry.h"
+#include "nav/parsers/xplane/NavaidParser.h"
 
 namespace navdb {
 class InMemoryNavDb;
@@ -31,7 +33,6 @@ class FPAPModel;
 
 namespace xdata {
 
-class NavaidData;
 class XplaneNavDataLoader;
 
 class NavaidLoader {
@@ -40,6 +41,7 @@ public:
     void load(const std::filesystem::path &file);
 private:
     void onNavaidLoaded(const NavaidData &navaid);
+    void onGLSLoaded(const NavaidData &navaid);
     void onThresholdLoaded(const NavaidData &navaid);
 private:
     XplaneNavDataLoader * const loadMgr;
@@ -48,8 +50,17 @@ private:
     // FPAP (type 14) and LTP/FTP (type 16) of an approach share airport and procedure identifier
     using ApproachKey = std::pair<std::string, std::string>; // airport, procedure identifier
     std::map<ApproachKey, navdb::FPAPModel *> fpaps;           // owned by their fixes in the nav database
-    std::map<ApproachKey, world::Location> pendingThresholds; // LTP/FTP seen before its FPAP
+    struct Threshold {
+        world::Location location;
+        double glidepathAngle;
+    };
+    std::map<ApproachKey, Threshold> pendingThresholds; // LTP/FTP seen before its FPAP
+    // GLS ground stations (type 15), turned into approaches once all FPAPs are known
+    std::vector<NavaidData> pendingGLSs;
+    void addPendingGLSs();
     int skippedFPAPs = 0;
+    int loadedFPAPs = 0;
+    int loadedGLSs = 0;
 
 };
 
