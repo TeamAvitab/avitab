@@ -18,6 +18,7 @@
 #pragma once
 
 #include <memory>
+#include <limits>
 #include "Navigation.h"
 #include "WorldGeometry.h"
 
@@ -92,8 +93,10 @@ public:
     const std::string &getRunway() const override { return runway; }
     const std::string &getApproachType() const override { return approachType; }
     const world::Location *getThreshold() const override { return hasThreshold ? &threshold : nullptr; }
+    double getGlidepathAngle() const override { return glidepathAngle; }
 
     void setThreshold(const world::Location &loc) { threshold = loc; hasThreshold = true; }
+    void setGlidepathAngle(double angle) { glidepathAngle = angle; }
 private:
     int channel = 0;
     double approachCourse = 0;
@@ -101,6 +104,7 @@ private:
     std::string approachType;
     world::Location threshold;
     bool hasThreshold = false;
+    double glidepathAngle = std::numeric_limits<double>::quiet_NaN();
 };
 
 class NavFixModel : public NavFix

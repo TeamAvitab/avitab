@@ -118,6 +118,10 @@ private:
     std::string toHeliportInfo(std::shared_ptr<navdb::Airport> airport);
     std::string toWeatherInfo(std::shared_ptr<navdb::Airport> airport);
 
+    static int toMagneticHeading(double trueHeading, float magneticVariation);
+    static std::string toILSInfo(const navdb::NavFix &na, int rwHeading, float magneticVariation);
+    static std::string toFPAPInfo(const navdb::NavFix &na, int rwHeading, float magneticVariation);
+
     TabPage &findPage(std::shared_ptr<Page> page);
 
     void toggleCharts(std::shared_ptr<Page> page, std::shared_ptr<navdb::Airport> airport);

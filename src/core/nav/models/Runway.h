@@ -20,6 +20,7 @@
 #include <string>
 #include <memory>
 #include <limits>
+#include <vector>
 #include "Navigation.h"
 #include "WorldGeometry.h"
 
@@ -41,6 +42,7 @@ public:
     SurfaceMaterial getSurfaceType() const override { return surfaceType; }
     const char *getSurfaceTypeDescription() const override;
     std::shared_ptr<NavFix> getNavaidILS() const override { return ils; }
+    const std::vector<std::shared_ptr<NavFix>> &getNavaidFPAPs() const override { return fpaps; }
 
     void rename(const std::string &newName) { name = newName; }
     void setLocation(const world::Location &loc) { location = loc; }
@@ -50,6 +52,7 @@ public:
     void setElevation(float e) { elevation = e; }
     void setSurfaceType(SurfaceMaterial s) { surfaceType = s; }
     void setNavaidILS(std::shared_ptr<NavFix> fix);
+    void addNavaidFPAP(std::shared_ptr<NavFix> fix);
 
 private:
     std::string name;
@@ -60,6 +63,7 @@ private:
     float elevation = std::numeric_limits<float>::quiet_NaN(); // feet MSL
     SurfaceMaterial surfaceType;
     std::shared_ptr<NavFix> ils;
+    std::vector<std::shared_ptr<NavFix>> fpaps;
 };
 
 } /* namespace navdb */

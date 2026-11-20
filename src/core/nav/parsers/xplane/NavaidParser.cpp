@@ -70,6 +70,11 @@ void NavaidParser::parseLine() {
         if (parser.getVersion() >= 1150) {
             nav.bearingMagnetic = (bearings - nav.bearing) / 360;
         }
+    } else if (nav.type == NavaidData::Type::GLS || nav.type == NavaidData::Type::LTP_FTP) {
+        // approach course prefixed by glidepath angle * 100,000, e.g. 300089.653 -> GP 3.00°, course 089.653
+        double bearings = parser.parseDouble();
+        nav.bearing = std::fmod(bearings, 1000);
+        nav.glidepathAngle = std::round((bearings - nav.bearing) / 1000) / 100;
     } else if (nav.type == NavaidData::Type::ILS_GS) {
         // ILS_GS angle/bearing unused by Avitab, but at least get the bearing correct
         nav.bearing = std::fmod(parser.parseDouble(), 100);

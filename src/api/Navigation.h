@@ -161,6 +161,7 @@ public:
     virtual const std::string &getRunway() const = 0;
     virtual const std::string &getApproachType() const = 0; // "LPV", "LP", "APV-II", "GLS"
     virtual const world::Location *getThreshold() const = 0; // landing threshold point (LTP/FTP), nullptr if unknown
+    virtual double getGlidepathAngle() const = 0;           // degrees, NaN if unknown
 
     virtual ~FPAP() = default;
 };
@@ -205,6 +206,7 @@ public:
     virtual SurfaceMaterial getSurfaceType() const = 0;
     virtual const char *getSurfaceTypeDescription() const = 0;
     virtual std::shared_ptr<NavFix> getNavaidILS() const = 0;
+    virtual const std::vector<std::shared_ptr<NavFix>> &getNavaidFPAPs() const = 0;
 };
 
 class Heliport: public Node {

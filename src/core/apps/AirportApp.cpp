@@ -313,24 +313,18 @@ std::string AirportApp::toRunwayInfo(std::shared_ptr<navdb::Airport> airport) {
         str <<  ", " << rwyF->getSurfaceTypeDescription() << ")\n";
         for (auto rwy : {rwyF, rwyS} ) {
             str << "    " + rwy->getIdent();
-            int rwHeading = (int)(rwy->getHeading() + magneticVariation + 0.5 + 360.0) % 360;
+            int rwHeading = toMagneticHeading(rwy->getHeading(), magneticVariation);
             auto na = rwy->getNavaidILS();
             if (na) {
-                auto ils = na->getILSLocalizer();
-                int ilsHeading = (int)(ils->getRunwayHeading() + magneticVariation + 0.5 + 360.0) % 360;
-
-                str << " " << ils->getFrequency().getDescription();
-                str << " (ID " << na->getIdent();
-                str << " on " << ils->getFrequency().getFrequencyString();
-                if (ilsHeading != rwHeading) {
-                    str << ", CRS " << ilsHeading << "° M";
-                }
-                str << "),";
+                str << toILSInfo(*na, rwHeading, magneticVariation);
             }
             if (!std::isnan(rwHeading)) {
                 str << " CRS " << rwHeading << "° M";
             }
             str << "\n";
+            for (auto &fpapFix : rwy->getNavaidFPAPs()) {
+                str << "      " << toFPAPInfo(*fpapFix, rwHeading, magneticVariation) << "\n";
+            } 
         }
     });
     return str.str();
@@ -365,6 +359,52 @@ std::string AirportApp::toWeatherInfo(std::shared_ptr<navdb::Airport> airport) {
         }
     }
     return winfo;
+}
+
+std::string AirportApp::toILSInfo(const navdb::NavFix &na, int rwHeading, float magneticVariation) {
+    auto ils = na.getILSLocalizer();
+    if (!ils) return "";
+
+    int ilsHeading = toMagneticHeading(ils->getRunwayHeading(), magneticVariation);
+    std::stringstream str;
+    str << " " << ils->getFrequency().getDescription();
+    str << " (ID " << na.getIdent();
+    str << " on " << ils->getFrequency().getFrequencyString();
+    if (ilsHeading != rwHeading) {
+        str << ", CRS " << ilsHeading << "° M";
+    }
+    str << "),";
+    return str.str();
+}
+
+std::string AirportApp::toFPAPInfo(const navdb::NavFix &na, int rwHeading, float magneticVariation) {
+    auto fpap = na.getFPAP();
+    if (!fpap) return "";
+
+    int fpapCourse = toMagneticHeading(fpap->getApproachCourse(), magneticVariation);
+    std::stringstream str;
+    const std::string &approachType = fpap->getApproachType();
+    std::string type = approachType.empty() ? "RNP" : (approachType == "GLS") ? "GLS" : "RNP/" + approachType;
+
+    str << type;
+    str << " (ID " << na.getIdent();
+    int channel = fpap->getChannel();
+    str << ", CH " << channel / 1000 << "." << std::setw(3) << std::setfill('0') << channel % 1000;
+    if (fpapCourse != rwHeading) {
+        str << ", CRS " << fpapCourse << "° M";
+    }
+    double gpa = fpap->getGlidepathAngle();
+    if (!std::isnan(gpa) && (gpa > 0)) {
+        // one decimal unless the angle needs two, e.g. 3.25
+        int hundredths = (int) std::round(gpa * 100);
+        str << ", GP " << std::fixed << std::setprecision((hundredths % 10) ? 2 : 1) << gpa;
+    }
+    str << ")";
+    return str.str();
+}
+
+int AirportApp::toMagneticHeading(double trueHeading, float magneticVariation) {
+    return (int)(trueHeading + magneticVariation + 0.5 + 360.0) % 360;
 }
 
 AirportApp::TabPage &AirportApp::findPage(std::shared_ptr<Page> page) {
