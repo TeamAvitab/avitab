@@ -190,10 +190,7 @@ void AirportApp::clearSearch() {
 }
 
 void AirportApp::setActiveTab(int tabIndex) {
-    if ((tabIndex < 0) || (tabIndex >= pages.size())) return;
-    // set the nightmode button toggle status according to the tab's night mode flag
-    TabPage &tab = pages[tabIndex];
-    tab.nightModeButton->setToggleState(tab.map ? tab.nightMode : false);
+    if ((tabIndex < 0) || (tabIndex > pages.size())) return;   // tab 0 = Search, tabs 1..size = pages
     tabs->setActiveTab(tabIndex);
 }
 
