@@ -1,8 +1,118 @@
 # Avitab Release Notes
 
-## Avitab v1.2.0 (unreleased)
+## Avitab v1.2.0 (November 2026)
 
-This is an unreleased (development) build.
+This is a periodic update that consolidates contributed features and bug fixes.
+Many thanks to all contributors, especially [sfrsfrsfr](https://github.com/sfrsfrsfr)
+for many of the enhancements and bug fixes.
+
+### Enhancements
+
+#### Heading-up mode
+
+The Map application now supports a heading-up tracking mode.
+A new toolbar button (UP arrow) has been added and is used to toggle between
+regular (north up) and heading-up tracking modes.
+
+When heading-up tracking mode is active the user aircraft location is placed 
+near the bottom of the frame and the map is rotated so that the current track 
+of the aircraft is vertical.
+
+Map rotation is only supported when heading-up tracking is enabled. 
+If the map is moved (mouse drag) when in heading-up mode tracking will 
+be disabled and the map will revert to north-up display mode.
+
+#### RNP/GLS approaches
+
+RNP/GLS approaches have been added to the navigation database. They can be
+overlaid onto maps and georeferenced charts by enabling the RNP overlay
+filter (in the Map application).
+
+#### Download of georeference databases
+
+Chart georeference metadata can now be stored online and referenced in 
+the Avitab preferences file. Avitab will keep its local chart calibration 
+dataset up-to-date from this source.
+
+The initial default dataset is for the UK AIP charts and is hosted in the 
+TeamAvitab github project.
+
+For further information about creating calibration datasets 
+please contact the Avitab team.
+
+#### Night mode
+
+A global setting for night mode can now be toggled through the global settings 
+dialog (next to the FPS report in the header bar). This will affect Navigraph 
+map tile sources and the default display of Airport app charts. Charts in the 
+Airport app can be individually toggled between day and night mode irrespective 
+of the global setting.
+
+#### Other improvements
+
+- The Airport app will display the METAR string (if available), or a local weather
+report if not. (METAR and weather reports are only available with X-Plane v12.)
+
+- The current clock mode (real world clock, sim zulu time, sim local time, stopwatch)
+is now saved at close and restored on next launch.
+
+- When zooming the map with the mouse wheel and not in a tracking mode the focus of 
+the zoom will follow the location of the mouse pointer. If a tracking mode is active 
+the zoom will focus at the user aircraft location.
+
+- Other aircraft overlays now look like planes. (The size of the icon does not 
+represent the category of the aircraft!)
+
+- Clipboard text pasting into the Notes app is now supported on all platforms 
+(previously only on Windows).
+
+- The Esri World Topo tile server has been added to the default list created 
+when Avitab is first run. Existing installations will be unaffected, but if 
+this tile server is preferred then the existing `mapconfig.json` file can be 
+deleted and Avitab will create a new one when it is next started. (To merge 
+old and new settings, rename the old file and then merge required items from 
+it into the new one.)
+
+### Bug fixes
+
+- Mouse wheel scrolling in multi-page documents now changes pages when scrolling 
+beyond the bottom or top of the page.
+
+- Overlays shown in the Airport and Charts apps are filtered identically to the 
+Map app. There is no separate settings dialog, so filtering needs to be configured 
+in the Map app first.
+
+> There are hidden settings in the Avitab preferences file that allow overlays to 
+be permanently disabled for the Airport and Charts apps. Look for the keys 
+`show_overlays_in_airport_app` and `show_overlays_in_charts_app` and change their 
+values to false (default is true).
+
+### Removed features
+
+- X-Plane maps are no longer available as a Map tile source. The feature depended 
+on a 3rd-party library that is no longer maintained and was blocking other project 
+improvements.
+
+- METAR data for XP11 is no longer available. Continued support for this was 
+incompatible with other project improvements and the effort to maintain this was 
+not considered to be worthwhile.
+
+### Known issues
+
+The following issues are known, but were deferred for fixing in a future release.
+
+- In the Airport application, when displaying a document or chart without geo-referencing data, the tracking
+mode button will still be shown and enabled. To use focussed mouse wheel scrolling the track button
+needs to be toggled off first.
+
+- In the Map application, when tracking mode is enabled, clicking on an overlaid NAVaid highlights
+it (shows detailed information) but as the NAVaid is moved away from the click-point a different NAVaid
+will be highlighted when it becomes closer to the click-point.
+
+- The global nightmode UI control is only available through the header toolbar settings dialog. If this has been disabled by the current aircraft's panel integration configuration then it will not be possible to change the global nightmode setting. Workaround this by first selecting a basic aircraft without an integrated Avitab panel. Set the desired nightmode setting in the Avitab window, and then reconfigure the flight with the desired aircraft. The nightmode setting can also be modified in the Avitab preferences file before starting X-Plane.
+
+There are also a number of enhnacements requested or planned. 
+See the [Avitab issues](https://github.com/TeamAvitab/avitab/issues) for the latest full list of bugs and enhancements.
 
 ## Avitab v1.1.0 (June 2026)
 
