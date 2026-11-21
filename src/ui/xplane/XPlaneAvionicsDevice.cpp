@@ -88,8 +88,9 @@ void XPlaneAvionicsDevice::create() {
     };
     params.keyboardCallback = nullptr;
     // Tablet display is always-on: ignore the aircraft's rheostat/ambient/bus voltage
+    // Brightness is set by the Brightness Slider
     params.brightnessCallback = [] (float rheo, float ambient, float busVoltsRatio, void *ref) -> float {
-        return 1.0f;
+        return reinterpret_cast<XPlaneAvionicsDevice *>(ref)->common.brightness;
     };
     params.deviceID = deviceIdStr;
     params.deviceName = deviceNameStr;
@@ -130,8 +131,7 @@ void XPlaneAvionicsDevice::onDraw() {
     common.redrawTexture();
 
     XPLMSetGraphicsState(0, 1, 0, 0, 0, 0, 0);
-    float b = common.brightness;
-    glColor3f(b, b, b);
+    glColor3f(1, 1, 1);
     renderTexture(0, h, w, 0);
 }
 
