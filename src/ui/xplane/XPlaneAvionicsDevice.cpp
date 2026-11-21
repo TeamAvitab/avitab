@@ -157,19 +157,22 @@ bool XPlaneAvionicsDevice::onClick(int x, int y, XPLMMouseStatus status) {
     switch (status) {
     case xplm_MouseDown:
     case xplm_MouseDrag:
+        // the device reports screen coordinates with y=0 at the bottom, but AviTab's own
+        // buffer coordinates have y=0 at the top.
+        // Set the position before the pressed state, so the GUI thread never sees a
+        // press together with a stale position.
+        common.mouseX = x;
+        common.mouseY = common.frameBufferHeight - 1 - y;
         common.mousePressed = true;
         break;
     case xplm_MouseUp:
+        // X-Plane always reports (0,0) for MouseUp on avionics devices, so keep the last
+        // Down/Drag position: widgets like the dropdown list use the release position.
         common.mousePressed = false;
         break;
     default:
         return false;
     }
-
-    // the device reports screen coordinates with y=0 at the bottom, but AviTab's own
-    // buffer coordinates have y=0 at the top
-    common.mouseX = x;
-    common.mouseY = common.frameBufferHeight - 1 - y;
 
     return true;
 }
