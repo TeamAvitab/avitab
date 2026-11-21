@@ -88,13 +88,13 @@ public:
     void addHeliport(std::shared_ptr<HeliportModel> port);
     void addTerminalFix(std::shared_ptr<NavFixModel> fix);
     void attachILSData(const std::string& rwyName, std::shared_ptr<NavFix> fix);
+    void attachFPAPData(const std::string &rwyName, std::shared_ptr<NavFix> fix);
+    // the runway of that name, or the 'intended' one if the NAV data uses a newer name
+    std::shared_ptr<RunwayModel> getClosestRunway(const std::string &name);
 
     void addSID(std::shared_ptr<SIDModel> sid);
     void addSTAR(std::shared_ptr<STARModel> star);
     void addApproach(std::shared_ptr<ApproachModel> approach);
-
-private:
-    std::shared_ptr<RunwayModel> getClosestRunway(const std::string &name);
 
 private:
     std::string ident; // either ICAO code or X + fictional id

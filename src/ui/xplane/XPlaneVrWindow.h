@@ -17,13 +17,26 @@
  */
 #pragma once
 
-#include <string>
+#include "XPlaneBaseWindow.h"
 
-namespace avitab {
+class XPlaneVrWindow : public XPlaneBaseWindow {
+public:
+    XPlaneVrWindow(XPlaneUiSharedData & data);
+    ~XPlaneVrWindow() = default;
 
-struct AirportConfig {
-    bool doSort = true;
-    bool sortAscending = true;
+    void create() override;
+    void destroy() override;
+    void reposition() override;
+
+protected:
+    // these are the callbacks registered for the X-Plane window
+    void onDraw();
+    XPLMCursorStatus getCursor(int x, int y) { return xplm_CursorDefault; }
+
+    void getWindowGeometry(int &left, int &top, int &right, int &bottom) override;
+    void onWindowMoved(int left, int top, int right, int bottom) override;
+
+private:
+    int winCheckTimer;
+
 };
-
-} /* namespace avitab */

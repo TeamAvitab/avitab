@@ -37,10 +37,10 @@ public:
     MsfsAddonSimDriver();
     virtual ~MsfsAddonSimDriver();
     
-    void eventLoop();
-
     avitab::AircraftID getActiveAircraftCount() override;
     world::Position getAircraftPosition(avitab::AircraftID id) override;
+
+    void checkConnection();
 
 private:
     void resetLocations();
@@ -56,7 +56,7 @@ private:
     HANDLE                  hSimConnect;
     ULONGLONG               nextSimUpdate;
 
-    std::mutex              stateMutex;
+    std::mutex                      stateMutex;
     world::Position                userLocation;
     std::vector<world::Position>   otherLocations;
 

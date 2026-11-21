@@ -33,7 +33,6 @@ struct FlightPlanNodeData {
         UNNAMED,
         CYCLE,
         ADEP,
-        DEP,
         DEPRWY,
         SID,
         SIDTRANS,

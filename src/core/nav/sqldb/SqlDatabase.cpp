@@ -45,11 +45,11 @@ SqlDatabase::SqlDatabase(const std::filesystem::path &dbFilePath, bool readonly,
         }
     }
     int flags = readonly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
-    int r = sqlite3_open_v2(dbFilePath.u8string().c_str(), &dbHandle, flags, 0);
+    int r = sqlite3_open_v2(dbFilePath.string().c_str(), &dbHandle, flags, 0);
     if (r == SQLITE_OK) {
-        logger::info("Opened SQL database file %s for %s", dbFilePath.c_str(), readonly ? "reading" : "read/write");
+        logger::info("Opened SQL database file %s for %s", dbFilePath.string().c_str(), readonly ? "reading" : "read/write");
     } else {
-        logger::info("Failed (%d) to open SQL database file %s", r, dbFilePath.c_str());
+        logger::info("Failed (%d) to open SQL database file %s", r, dbFilePath.string().c_str());
         throw std::runtime_error("NAV world SQL database not found");
     }
     if (readonly) {

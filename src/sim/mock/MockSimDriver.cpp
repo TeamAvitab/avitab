@@ -24,17 +24,18 @@
 MockSimDriver::MockSimDriver() : ToolSimDriver() {
 }
 
-void MockSimDriver::eventLoop() {
-    while (driver->handleEvents()) {
-        runSimDriverCallbacks();
-        reportFrameDuration(driver->getLastDrawTime());
-    }
-    driver.reset();
+void MockSimDriver::start(std::shared_ptr<avitab::Settings> prefs, std::shared_ptr<avitab::AviTabCore> core) {
 }
 
-std::shared_ptr<avitab::UiDriverBase> MockSimDriver::createUiDriver() {
-    driver = std::make_shared<GlfwUiDriver>();
-    return driver;
+void MockSimDriver::enable() {
+    resumeSimDriverJobs();
+}
+
+void MockSimDriver::disable() {
+    pauseSimDriverJobs();
+}
+
+void MockSimDriver::stop() {
 }
 
 std::vector<float> MockSimDriver::getMagneticVariations(std::vector<world::Location> &locs) {

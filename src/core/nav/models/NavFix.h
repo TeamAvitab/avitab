@@ -18,6 +18,7 @@
 #pragma once
 
 #include <memory>
+#include <limits>
 #include "Navigation.h"
 #include "WorldGeometry.h"
 
@@ -82,6 +83,30 @@ private:
     bool localizerOnly = false;
 };
 
+class FPAPModel : public FPAP
+{
+public:
+    FPAPModel(int chan, double course, const std::string &rwy, const std::string &type) :
+        channel(chan), approachCourse(course), runway(rwy), approachType(type) { }
+    int getChannel() const override { return channel; }
+    double getApproachCourse() const override { return approachCourse; }
+    const std::string &getRunway() const override { return runway; }
+    const std::string &getApproachType() const override { return approachType; }
+    const world::Location *getThreshold() const override { return hasThreshold ? &threshold : nullptr; }
+    double getGlidepathAngle() const override { return glidepathAngle; }
+
+    void setThreshold(const world::Location &loc) { threshold = loc; hasThreshold = true; }
+    void setGlidepathAngle(double angle) { glidepathAngle = angle; }
+private:
+    int channel = 0;
+    double approachCourse = 0;
+    std::string runway;
+    std::string approachType;
+    world::Location threshold;
+    bool hasThreshold = false;
+    double glidepathAngle = std::numeric_limits<double>::quiet_NaN();
+};
+
 class NavFixModel : public NavFix
 {
 public:
@@ -96,11 +121,13 @@ public:
     const VOR *getVOR() const override { return vor.get(); }
     const DME *getDME() const override { return dme.get(); }
     const ILSLocalizer *getILSLocalizer() const override { return ilsLoc.get(); }
+    const FPAP *getFPAP() const override { return fpap.get(); }
 
     void attachNDB(std::unique_ptr<NDBModel> &ptr) { ndb = std::move(ptr); navaid = true; }
     void attachVOR(std::unique_ptr<VORModel> &ptr) { vor = std::move(ptr); navaid = true; }
     void attachDME(std::unique_ptr<DMEModel> &ptr) { dme = std::move(ptr); navaid = true; }
     void attachILSLocalizer(std::unique_ptr<ILSLocalizerModel> &ptr) { ilsLoc = std::move(ptr); navaid = true; }
+    void attachFPAP(std::unique_ptr<FPAPModel> &ptr) { fpap = std::move(ptr); navaid = true; }
 
 private:
     std::shared_ptr<Region> const region;
@@ -114,6 +141,7 @@ private:
     std::unique_ptr<VORModel> vor;
     std::unique_ptr<DMEModel> dme;
     std::unique_ptr<ILSLocalizerModel> ilsLoc;
+    std::unique_ptr<FPAPModel> fpap;
 };
 
 } /* namespace navdb */

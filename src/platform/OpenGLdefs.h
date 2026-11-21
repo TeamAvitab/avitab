@@ -15,34 +15,14 @@
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#pragma once
 
-#include <cstdint>
-#include <string>
-
-namespace maps {
-
-struct OverlayConfig {
-    bool drawMyAircraft = true;
-    bool drawOtherAircraft = true;
-    bool drawRoute = true;
-    uint32_t colorOtherAircraftBelow;
-    uint32_t colorOtherAircraftSame;
-    uint32_t colorOtherAircraftAbove;
-    bool drawAirports = false;
-    bool drawAirstrips = false;
-    bool drawHeliportsSeaports = false;
-    bool drawVORs = false;
-    bool drawNDBs = false;
-    bool drawILSs = false;
-    bool drawWaypoints = false;
-    bool drawPOIs = false;
-    bool drawVRPs = false;
-    bool drawMarkers = false;
-};
-
-struct MapConfig {
-    unsigned int onlineMapIndex;
-};
-
-} /* namespace maps */
+#ifdef __APPLE__
+# include <OpenGL/gl.h>
+#else
+# include <GL/gl.h>
+# ifndef _MSC_VER
+#  include <GL/glext.h>
+# else
+#  define GL_BGRA 0x80E1 // this is the only extension actually needed
+# endif
+#endif

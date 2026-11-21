@@ -40,6 +40,7 @@
 #include <cassert>
 #include "Platform.h"
 #include "Logger.h"
+#include "other/Clip.h"
 
 /*
  * The purpose of this module is to put all platform (as in Posix or Win32)
@@ -228,35 +229,13 @@ std::string getLocalTime(const std::string &format) {
     return buf;
 }
 
-#ifdef _WIN32
 std::string getClipboardContent() {
-    if (!OpenClipboard(nullptr)) {
-        return "No clipboard access";
-    }
-
-    std::string res;
-    HANDLE data = GetClipboardData(CF_UNICODETEXT);
-    if (data) {
-        WCHAR *text = (WCHAR *) GlobalLock(data);
-        if (text) {
-            size_t utf16len = wcslen(text);
-            size_t utf8len = WideCharToMultiByte(CP_UTF8, 0, text, utf16len, nullptr, 0, nullptr, nullptr);
-            res.reserve(utf8len + 1);
-            WideCharToMultiByte(CP_UTF8, 0, text, utf16len, &res[0], utf8len, nullptr, nullptr);
-            res[utf8len] = '\0';
-            GlobalUnlock(data);
-        }
-    }
-
-    CloseClipboard();
-
-    return res;
+    return clip::getClipboardContent();
 }
-#else
-std::string getClipboardContent() {
-    return "Not supported on your platform";
+
+void setClipboardContent(std::string &text) {
+    clip::set_text(text);
 }
-#endif
 
 std::string formatStringArgs(const std::string format, va_list list) {
     char buf[2048];

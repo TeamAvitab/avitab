@@ -15,18 +15,18 @@
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#pragma once
+#include "Clip.h"
 
-namespace avitab {
+namespace clip {
 
-// Abstract interface defining the services provided by the simulation,
-// and used by the AviTab core and the product wrappers.
+std::string getClipboardContent() {
+    std::string text;
+    clip::get_text(text);
+    return text;
+}
 
-class AviTabSimServices {
-public:
+void setClipboardContent(const std::string &text) {
+    clip::set_text(text);
+}
 
-
-    virtual ~AviTabSimServices() { }
-};
-
-} // namespace avitab
+}

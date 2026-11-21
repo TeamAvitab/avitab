@@ -31,6 +31,8 @@ public:
     void panRight();
     void panUp();
     void panDown();
+    // Converts screen coordinates to this widget's local ones; false if the point is outside the widget
+    bool screenToLocal(int &x, int &y);
 private:
     float PAN_FACTOR = 0.1f;
     lv_img_dsc_t image;

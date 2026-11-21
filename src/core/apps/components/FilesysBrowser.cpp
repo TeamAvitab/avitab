@@ -24,7 +24,7 @@ FilesystemBrowser::FilesystemBrowser(const std::filesystem::path & s) :
     start(s)
 {
     if (!std::filesystem::exists(start)) {
-        logger::error("File browser started in non-existent directory %s", start.u8string().c_str());
+        logger::error("File browser started in non-existent directory %s", start.string().c_str());
     }
     goTo(start);
 }
@@ -79,7 +79,7 @@ std::vector<platform::DirEntry> FilesystemBrowser::entries(bool applyFilter, boo
             sortEntries();
         }
     } catch (const std::exception &e) {
-        logger::error("Couldn't read directory %s: %s", cwd.c_str(), e.what());
+        logger::error("Couldn't read directory %s: %s", cwd.string().c_str(), e.what());
     }
 
     return items;

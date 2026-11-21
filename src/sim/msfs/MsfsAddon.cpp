@@ -19,6 +19,7 @@
 #include <thread>
 #include <iostream>
 #include "Logger.h"
+#include "Settings.h"
 #include "MsfsSimDriver.h"
 #include "AviTabCore.h"
 #include "platform/CrashHandler.h"
@@ -29,22 +30,45 @@ int main() {
     try {
         // Using the stack so we can debug destructors with log messages
         auto simDriver = std::make_shared<MsfsAddonSimDriver>();
-        simDriver->loadConfig();
-        logger::setStdOut(simDriver->getConfig()->getBool("/AviTab/logToStdOut"));
+
+        logger::setStdOut(true);
         logger::init(simDriver->getDataRootPath());
         logger::verbose("Main thread has id %d", std::this_thread::get_id());
-        simDriver->loadSettings();
 
-        auto uiDriver = simDriver->createUiDriver();
-        auto aviTab = avitab::AviTabCore::CreateAviTabCore(simDriver, uiDriver);
-        aviTab->startApp();
-        aviTab->toggleTablet();
+        auto fname(simDriver->getSettingsDir() / "avitab.prf");
+        auto settings = std::make_shared<avitab::Settings>(fname);
 
-        // pauses until window closed
-        simDriver->eventLoop();
+        auto uiDriver = std::make_shared<GlfwUiDriver>();
 
-        aviTab->stopApp();
+        auto aviTab = avitab::AviTabCore::CreateAviTabCore();
+
+        // emulate plugin state machine
+        simDriver->start(settings, aviTab);
+        uiDriver->start(settings, aviTab);
+        aviTab->start(settings, simDriver, uiDriver);
+
+        simDriver->enable();
+        uiDriver->enable();
+        aviTab->enable();
+
+        // loops until window closed
+        bool disableRequested;
+        while (uiDriver->handleEvents(disableRequested)) {
+            simDriver->runSimDriverCallbacks();
+            simDriver->notifyFrameDuration(uiDriver->getLastDrawTime());
+            simDriver->checkConnection();
+        }
+
+        aviTab->disable();
+        uiDriver->disable();
+        simDriver->disable();
+
+        aviTab->stop();
+        uiDriver->stop();
+        simDriver->stop();
+
         aviTab.reset();
+        uiDriver.reset();
         simDriver.reset();
     } catch (const std::exception &e) {
         logger::error("Exception: %s", e.what());

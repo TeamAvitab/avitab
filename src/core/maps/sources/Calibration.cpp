@@ -195,7 +195,7 @@ void Calibration::fromKmlString(const std::string& s) {
     double rotation = (getKmlTagData(s, "rotation") == "") ? 0 : stof(getKmlTagData(s, "rotation"));
     LOG_INFO(dbg, "N %4.6f, S %4.6f, E %4.6f, W %4.6f,  R %4.6f", north, south, east, west, rotation);
 
-    // Convert from GCS(lat/lon) to Mercator equirectangular
+    // Convert from GCS(lat/lon) to Mercator equirectangular - returns pair(lat, lon)
     auto nw = world::Location::fromGCS(north, west).toMercator();
     auto ne = world::Location::fromGCS(north, east).toMercator();
     auto se = world::Location::fromGCS(south, east).toMercator();
@@ -204,16 +204,15 @@ void Calibration::fromKmlString(const std::string& s) {
     auto cx = (nw.second + se.second) / 2; // Calculate centre (cx,cy)
     auto cy = (nw.first + se.first) / 2;
     auto nw0 = std::make_pair(nw.second - cx, nw.first - cy); // Translate so centre is (0,0)
-    auto ne0 = std::make_pair(ne.second - cx, ne.first - cy); // For these new pairs, x is 1st, y is 2nd
+    auto ne0 = std::make_pair(ne.second - cx, ne.first - cy); // For these new pairs, x/lon is first, y/lat is second
     auto se0 = std::make_pair(se.second - cx, se.first - cy);
     auto nwr = rotate(nw0.first, nw0.second, rotation); // Rotate about centre (0,0)
-    auto ner = rotate(ne0.first, ne0.second, rotation);
+    auto ner = rotate(ne0.first, ne0.second, rotation); // pair(x/lon, y/lat) -> pair(x/lon, y/lat)
     auto ser = rotate(se0.first, se0.second, rotation);
-
     // Convert back to GCS(lat/lon) from centre as (0,0)
-    auto nwRef = world::Location::fromMercator(nwr.first + cx, nwr.second + cy);
-    auto neRef = world::Location::fromMercator(ner.first + cx, ner.second + cy);
-    auto seRef = world::Location::fromMercator(ser.first + cx, ser.second + cy);
+    auto nwRef = world::Location::fromMercator(nwr.second + cy, nwr.first + cx); // fromMercator takes (y/lat, x/lon)
+    auto neRef = world::Location::fromMercator(ner.second + cy, ner.first + cx);
+    auto seRef = world::Location::fromMercator(ser.second + cy, ser.first + cx);
 
     LOG_INFO(dbg, "NW  %4.6f, %4.6f", nwRef.lonDegrees(), nwRef.latDegrees()); // nwRef x/lon 1st, y/lat 2nd
     LOG_INFO(dbg, "NE  %4.6f, %4.6f", neRef.lonDegrees(), neRef.latDegrees());

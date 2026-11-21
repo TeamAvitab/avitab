@@ -42,26 +42,6 @@ MsfsAddonSimDriver::~MsfsAddonSimDriver()
     }
 }
 
-void MsfsAddonSimDriver::eventLoop()
-{
-    while (driver->handleEvents()) {
-        runSimDriverCallbacks();
-        reportFrameDuration(driver->getLastDrawTime());
-
-        auto t = GetTickCount64();
-        if (t >= nextSimUpdate) {
-            if (hSimConnect == NULL) {
-                tryConnectToMsfsSim();
-                nextSimUpdate = t + 5000; // try again in 5s
-            } else {
-                retrieveMsfsObjectData();
-                nextSimUpdate = t + 1000; // next update in 1s
-            }
-        }
-    }
-    driver.reset();
-}
-
 avitab::AircraftID MsfsAddonSimDriver::getActiveAircraftCount()
 {
     std::lock_guard<std::mutex> lock(stateMutex);
@@ -83,6 +63,20 @@ void MsfsAddonSimDriver::resetLocations()
     std::lock_guard<std::mutex> lock(stateMutex);
     userLocation = world::Position::fromGCSft(0, 0, 0, 0);
     otherLocations.clear();
+}
+
+void MsfsAddonSimDriver::checkConnection()
+{
+    auto t = GetTickCount64();
+    if (t >= nextSimUpdate) {
+        if (hSimConnect == NULL) {
+            tryConnectToMsfsSim();
+            nextSimUpdate = t + 5000; // try again in 5s
+        } else {
+            retrieveMsfsObjectData();
+            nextSimUpdate = t + 1000; // next update in 1s
+        }
+    }
 }
 
 void MsfsAddonSimDriver::tryConnectToMsfsSim()

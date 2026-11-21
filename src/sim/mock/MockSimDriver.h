@@ -30,11 +30,11 @@ public:
     // Must be called from the simDriver thread - do not call from GUI thread!
     MockSimDriver();
 
-    // avitab::SimDriverBase overrides
-
-    std::shared_ptr<avitab::UiDriverBase> createUiDriver() override;
-
-    void eventLoop();
+    // The top-level state machine is start -> enable -> disable { -> enable -> disable } -> stop
+    void start(std::shared_ptr<avitab::Settings> prefs, std::shared_ptr<avitab::AviTabCore> core);
+    void enable();
+    void disable();
+    void stop();
 
     // Can be called from any thread
     std::string getMETARForAirport(const std::string &icao) override;
@@ -47,8 +47,5 @@ public:
     unsigned int getLocalTimeSeconds() override;
 
     virtual ~MockSimDriver();
-
-protected:
-    std::shared_ptr<GlfwUiDriver> driver;
 
 };

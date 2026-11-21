@@ -73,3 +73,5 @@ add_subdirectory(product)
 add_subdirectory(platform)
 add_subdirectory(sim)
 add_subdirectory(ui)
+
+add_subdirectory(tools)

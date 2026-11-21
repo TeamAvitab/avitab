@@ -23,23 +23,8 @@
 
 namespace avitab {
 
-void SimDriverBase::loadConfig() {
-    config = std::make_unique<JsonConfig>(getDataRootPath() / "config.json",
-                            R"({ "AviTab": { "logToStdOut": false, "loadNavData": true } })");
-}
-
-std::shared_ptr<JsonConfig> SimDriverBase::getConfig() {
-    return config;
-}
-
-void SimDriverBase::loadSettings() {
-    auto fname(getSettingsDir() / "avitab.prf");
-    logger::info("Settings file: %s", fname.string().c_str());
-    settings = std::make_unique<Settings>(fname);
-}
-
-std::shared_ptr<Settings> SimDriverBase::getSettings() {
-    return settings;
+SimDriverBase::SimDriverBase() {
+    
 }
 
 void SimDriverBase::resumeSimDriverJobs() {
@@ -86,7 +71,7 @@ unsigned int SimDriverBase::getFramesPerSecond() {
     return (RING_BUFFER_SIZE * 1000) / t;
 }
 
-void SimDriverBase::reportFrameDuration(unsigned int tMs) {
+void SimDriverBase::notifyFrameDuration(unsigned int tMs) {
     std::lock_guard<std::mutex> lock(lockMutex);
     frameDurations[nextSlot++] = tMs;
     nextSlot %= RING_BUFFER_SIZE;

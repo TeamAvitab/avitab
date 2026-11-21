@@ -31,29 +31,36 @@
 
 namespace maps {
 
+class AircraftIcons;
+
 class OverlayedMap : public IOverlayHelper {
 public:
     using OverlaysDrawnCallback = std::function<void(void)>;
     using GetRouteCallback = std::function<std::shared_ptr<navdb::Route>(void)>;
+    using GetMagneticVariationsCallback = std::function<std::vector<float>(std::vector<world::Location> &)>;
 
     OverlayedMap(std::shared_ptr<img::Stitcher> stitchedMap, std::shared_ptr<OverlayConfig> overlays);
-    void loadOverlayIcons(const std::filesystem::path &path);
     void setRedrawCallback(OverlaysDrawnCallback cb);
     void setGetRouteCallback(GetRouteCallback cb);
+    void setGetMagneticVariationsCallback(GetMagneticVariationsCallback cb);
     void setNavWorld(std::shared_ptr<navdb::NavDatabase> world);
 
-    bool mouse(int px, int py, bool down);
-    void pan(int dx, int dy, int relx = -1, int rely = -1);
+    void mouseClick(int px, int py);
+    void pan(int dx, int dy);
 
-    void centerOnLocation(const world::Location &loc); // was centerOnWorldPos
-    void centerOnPlane();
-    void setPlaneLocations(std::vector<world::Position> &locs);
+    bool centerOnLocation(const world::Location &loc); // was centerOnWorldPos
+    void setPlaneLocations(std::vector<world::Position> &locs, bool followPlane = false);
+    // true: rotate the map so the user's aircraft points up, false: north up
+    void setTrackUp(bool enable);
     world::Location getCenterLocation();
     float getVerticalRange() const;
 
     void updateImage();
     void zoomIn();
     void zoomOut();
+    // Zooms one level in/out keeping the map point under the pointer where it is
+    // dx, dy: pointer offset in pixels from the centre of the displayed (possibly rotated) map.
+    void zoomAt(bool in, int dx, int dy);
 
     bool isCalibrated() const;
     void beginCalibration();
@@ -78,6 +85,7 @@ public:
     void fastPolarToCartesian(float radius, int angleDegrees, double& x, double& y) const override;
     std::pair<int, int> locationToPixel(const world::Location&) const override;
     std::pair<int, int> locationToPixel(const world::Location&, int zoomLevel) const override;
+    float getMagneticVariation(const world::Location&) const override;
 
 private:
     // Highlighted nodes
@@ -89,6 +97,7 @@ private:
     std::shared_ptr<img::TileSource> tileSource;
     std::shared_ptr<img::Stitcher> stitcher;
     std::shared_ptr<OverlayConfig> overlayConfig;
+    AircraftIcons *planeIcons;
     img::TTFStamper copyrightStamp;
 
     // current map display attributes, updated on each frame
@@ -99,6 +108,7 @@ private:
     int maxNodeDensity;
 
     int lastClickX, lastClickY;
+    void invalidateLastClick() { lastClickX = lastClickY = -1; }
 
     OverlaysDrawnCallback onOverlaysDrawn;
 
@@ -108,18 +118,29 @@ private:
     std::unique_ptr<OverlayedRoute> overlayedRoute;
     GetRouteCallback getRoute;
 
+    // Getting the magnetic variation from X-Plane blocks until the next sim frame, so the values
+    // are fetched in one batch for the new nodes in view and cached for good. The cache is keyed
+    // by (lat, lon), so it is shared by all maps and survives a reload of the NAV database.
+    GetMagneticVariationsCallback getMagneticVariations;
+    static std::map<std::pair<double, double>, float> magneticVariationCache;
+    void fetchMagneticVariations(const NavNodeToOverlayMap &nodes);
+
     float sinTable[360];
     float cosTable[360];
 
     std::shared_ptr<navdb::NavDatabase> navWorld;
     std::vector<world::Position> planeLocations;
-    img::Image planeIcon;
-    enum RelativeHeight { below, same, above, total };
-    uint32_t otherAircraftColors[RelativeHeight::total];
+    bool trackUp = false;
 
     int calibrationStep = 0;
 
     void drawOverlays();
+    bool applyTrackUpRotation();
+    // In track-up mode the overlays are drawn after the map has been rotated, directly onto the
+    // target image, so that text and symbols stay upright. The overlay classes then get pixel
+    // positions and headings in that rotated frame, via the IOverlayHelper functions.
+    bool overlaysOnScreen() const;
+    std::shared_ptr<img::Image> overlayImage() const;
     void drawAircraftOverlay();
     void drawOtherAircraftOverlay();
     void drawNavWorldOverlays();

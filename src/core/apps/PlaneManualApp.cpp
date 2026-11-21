@@ -35,7 +35,7 @@ void PlaneManualApp::onPlaneLoad() {
     for (auto sd = subdirs.begin(); sd != subdirs.end(); ++sd) {
         if (std::filesystem::exists(aircraftPath / *sd)) {
             manualsPath = aircraftPath / *sd;
-            logger::info("Aircraft manuals path is %s", manualsPath.c_str());
+            logger::info("Aircraft manuals path is %s", manualsPath.string().c_str());
         }
     }
 

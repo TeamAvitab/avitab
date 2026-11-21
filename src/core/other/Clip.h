@@ -17,16 +17,11 @@
  */
 #pragma once
 
-namespace avitab {
+#include <clip.h>
 
-// Abstract interface to the UI services provided by the UI driver,
-// and used by the AviTab core and the product wrappers.
+namespace clip {
 
-class AviTabWinServices {
-public:
+    std::string getClipboardContent();
+    void setClipboardContent(const std::string &text);
 
-
-    virtual ~AviTabWinServices() { }
-};
-
-} // namespace avitab
+}

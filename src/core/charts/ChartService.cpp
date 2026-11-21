@@ -51,10 +51,10 @@ ChartService::ChartService(const std::filesystem::path &programPath, const std::
     auto calibrationPath = programPath / "MapTiles" / "Mercator" / "Calibration";
     for (const auto& remote_georefs_url : remote_georefs_urls) {
         try {
-	    loadTeamAvitabGeorefs(calibrationPath, remote_georefs_url);
+            loadTeamAvitabGeorefs(calibrationPath, remote_georefs_url);
         } catch (...) {
             logger::warn("Unable to download georefs from %s", remote_georefs_url.c_str());
-	}
+        }
     }
 
     if (std::filesystem::exists(calibrationPath)) {
@@ -373,7 +373,7 @@ std::string ChartService::getCalibrationMetadataForHash(std::string hash) const 
             std::string jsonStr((std::istreambuf_iterator<char>(hashedJsonFile)),
                                  std::istreambuf_iterator<char>());
             logger::info("Found hash-matched calibration file");
-            logger::info(" at '%s'", calibrationFilename.u8string().c_str());
+            logger::info(" at '%s'", calibrationFilename.string().c_str());
             logger::info(" with sha256 %s", hash.c_str());
             return jsonStr;
         }
