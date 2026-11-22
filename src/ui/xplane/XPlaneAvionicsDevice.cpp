@@ -150,7 +150,13 @@ void XPlaneAvionicsDevice::renderTexture(int left, int top, int right, int botto
 }
 
 bool XPlaneAvionicsDevice::onClick(int x, int y, XPLMMouseStatus status) {
-    if (!cockpitPanel.isEnabled()) {
+    if (!cockpitPanel.isEnabled() || !cockpitPanel.isPowered()) {
+        // A blank screen ignores input, like the cockpit panel. Still release a press
+        // that began before it was powered off, so AviTab isn't left with a held button.
+        if (status == xplm_MouseUp && common.mousePressed) {
+            common.mousePressed = false;
+            return true;
+        }
         return false;
     }
 
@@ -178,7 +184,7 @@ bool XPlaneAvionicsDevice::onClick(int x, int y, XPLMMouseStatus status) {
 }
 
 bool XPlaneAvionicsDevice::onWheel(int x, int y, int wheel, int clicks) {
-    if (!cockpitPanel.isEnabled()) {
+    if (!cockpitPanel.isEnabled() || !cockpitPanel.isPowered()) {
         return false;
     }
 
