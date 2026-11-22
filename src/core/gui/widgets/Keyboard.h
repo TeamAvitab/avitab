@@ -39,6 +39,7 @@ private:
     std::shared_ptr<TextArea> targetText;
     Callback onCancel;
     Callback onOk;
+    bool okAwaitingRelease;
 };
 
 } /* namespace avitab */
