@@ -290,7 +290,10 @@ void AviTab::onPlaneLoad(bool noHeader) {
 
 void AviTab::commandShowApp(const std::string &appName) {
     if (appName.empty()) {
-        showAppLauncher();
+        // called from simDriver thread
+        executeLater([this] () {
+            showAppLauncher();
+        });
     } else if (appName == "charts") {
         showApp(AppId::CHARTS);
     } else if (appName == "airports") {
