@@ -21,7 +21,8 @@ namespace avitab {
 
 Keyboard::Keyboard(WidgetPtr parent, std::shared_ptr<TextArea> target):
     Widget(parent),
-    targetText(target)
+    targetText(target),
+    okAwaitingRelease(false)
 {
     lv_obj_t *keys = lv_kb_create(parentObj(), nullptr);
     lv_kb_set_cursor_manage(keys, true);
@@ -32,7 +33,13 @@ Keyboard::Keyboard(WidgetPtr parent, std::shared_ptr<TextArea> target):
         Keyboard *us = reinterpret_cast<Keyboard *>(lv_obj_get_user_data(ref));
         if (ev == LV_EVENT_APPLY) {
             if (us) {
-                if (us->onOk) {
+                lv_indev_t *indev = lv_indev_get_act();
+                if (indev && indev->driver.type == LV_INDEV_TYPE_POINTER) {
+                    // wait until the mouse button is released before actioning the OK.
+                    // this is to avoid the ongoing button-down being subsequently
+                    // seen and handled by any UI changes provoked from the onOK callback.
+                    us->okAwaitingRelease = true;
+                } else if (us->onOk) {
                     us->onOk();
                 }
             }
@@ -42,6 +49,14 @@ Keyboard::Keyboard(WidgetPtr parent, std::shared_ptr<TextArea> target):
                     us->onCancel();
                 }
                 lv_kb_set_ta(ref, us->targetText->obj());
+            }
+        } else if (ev == LV_EVENT_RELEASED) {
+            if (us) {
+                if (us->okAwaitingRelease) {
+                    // it's safe to call the onOK callback now, since the mouse button has been released.
+                    us->onOk();
+                }
+                us->okAwaitingRelease = false;
             }
         } else if (ev == LV_EVENT_VALUE_CHANGED) {
             lv_kb_def_event_cb(ref, ev);
