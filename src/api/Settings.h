@@ -61,6 +61,7 @@ private:
 
 class ConfigBase {
 public:
+    virtual ~ConfigBase();
     using UpdateFunc = std::function<void()>;
     void init(std::shared_ptr<Settings> db, const std::string &key, UpdateFunc fn);
     void update();
