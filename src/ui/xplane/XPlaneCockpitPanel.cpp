@@ -173,8 +173,6 @@ void XPlaneCockpitPanel::destroy() {
 int XPlaneCockpitPanel::onDrawCallback(XPLMDrawingPhase phase, int isBefore, void *ref) {
     XPlaneCockpitPanel *us = reinterpret_cast<XPlaneCockpitPanel *>(ref);
     us->drawPanel();
-    us->updateAvitabXY();
-
     return 1;
 }
 
@@ -256,6 +254,8 @@ void XPlaneCockpitPanel::createCaptureWindow() {
         return reinterpret_cast<XPlaneCockpitPanel *>(ref)->onPanelClick(pressed);
     };
     cwp.handleCursorFunc = [] (XPLMWindowID id, int x, int y, void *ref) -> XPLMCursorStatus {
+        XPlaneCockpitPanel *us = reinterpret_cast<XPlaneCockpitPanel *>(ref);
+        us->updateAvitabXY();
         return xplm_CursorDefault;
     };
     cwp.handleMouseWheelFunc =  [] (XPLMWindowID id, int x, int y, int wheel, int clicks, void *ref) -> int {
