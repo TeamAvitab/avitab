@@ -137,8 +137,9 @@ void OverlayedMap::setPlaneLocations(std::vector<world::Position> &locs, bool fo
         return; // moving the centre has already redrawn the map
     }
     // a changed rotation redraws as well
-    if (rotated || movement) {
+    if (rotated || movement || redraw) {
         stitcher->updateImage();
+        redraw = false;
     }
 }
 
