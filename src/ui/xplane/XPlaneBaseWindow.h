@@ -31,7 +31,7 @@ public:
     // basic X-Plane window management
     virtual void create() = 0;
     virtual void destroy() = 0;
-    virtual void reposition() = 0;
+    virtual void reposition();
 
     bool isActive();
     void watchdog();
