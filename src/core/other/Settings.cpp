@@ -180,6 +180,10 @@ void Settings::saveAll() {
     }
 }
 
+ConfigBase::~ConfigBase() {
+    settings->unregisterChangeListener(listenerId);
+}
+
 void ConfigBase::init(std::shared_ptr<Settings> db, const std::string &k, UpdateFunc fn) {
     settings = db;
     key = k;
