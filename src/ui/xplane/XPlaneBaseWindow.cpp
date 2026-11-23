@@ -31,6 +31,11 @@ XPlaneBaseWindow::XPlaneBaseWindow(XPlaneUiSharedData &data)
 {
 }
 
+void XPlaneBaseWindow::reposition() {
+    winWidth = avitab::UiDriverBase::INITIAL_WIDTH;
+    winHeight = avitab::UiDriverBase::INITIAL_HEIGHT;
+}
+
 void XPlaneBaseWindow::render() {
     XPLMBindTexture2d(common.glTextureId, 0);
     common.redrawTexture();
