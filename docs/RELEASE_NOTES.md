@@ -1,5 +1,9 @@
 # Avitab Release Notes
 
+## Avitab v1.3.0 (unreleased)
+
+This is an unreleased (development) build.
+
 ## Avitab v1.2.0 (November 2026)
 
 This is a periodic update that consolidates contributed features and bug fixes.
