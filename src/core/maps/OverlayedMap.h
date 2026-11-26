@@ -55,6 +55,7 @@ public:
     world::Location getCenterLocation();
     float getVerticalRange() const;
 
+    void forceRedraw() { redraw = true; }
     void updateImage();
     void zoomIn();
     void zoomOut();
@@ -131,6 +132,8 @@ private:
     std::shared_ptr<navdb::NavDatabase> navWorld;
     std::vector<world::Position> planeLocations;
     bool trackUp = false;
+
+    bool redraw = false;
 
     int calibrationStep = 0;
 

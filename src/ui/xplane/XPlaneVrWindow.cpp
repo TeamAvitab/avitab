@@ -75,7 +75,6 @@ void XPlaneVrWindow::create() {
 }
 
 void XPlaneVrWindow::destroy() {
-    logger::warn("TESTING XPlaneVrWindow::destroy()");
     if (!winHandle) return;
 
     XPLMDestroyWindow(winHandle);
@@ -83,10 +82,10 @@ void XPlaneVrWindow::destroy() {
 }
 
 void XPlaneVrWindow::reposition() {
-    logger::warn("TESTING XPlaneVrWindow::reposition()");
     if (winHandle) {
         destroy();
     }
+    XPlaneBaseWindow::reposition();
     create();
 }
 

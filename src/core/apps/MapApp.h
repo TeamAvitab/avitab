@@ -59,6 +59,7 @@ private: // this group relates to the map app configuration
     void onGeneralConfigChanged();
     void onAppConfigChanged();
     void onOverlayConfigChanged();
+    void updateOverlayConfig();
     GeneralConfig generalConfig;
     MapAppConfig appConfig;
     std::shared_ptr<maps::OverlayConfig> overlayConfig;

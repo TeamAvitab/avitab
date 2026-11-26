@@ -26,6 +26,7 @@
 XPlaneMonitorWindow::XPlaneMonitorWindow(XPlaneUiSharedData &data)
 :   XPlaneBaseWindow(data),
     winPopOutPending(false),
+    winPoppedOut(false),
     winCheckTimer(0)
 {
     auto leftTop = defaultCreatePosition();
@@ -103,6 +104,7 @@ void XPlaneMonitorWindow::reposition() {
     if (winHandle) {
         destroy();
     }
+    XPlaneBaseWindow::reposition();
     auto leftTop = defaultCreatePosition();
     winCreateLeft = leftTop.first;
     winCreateTop = leftTop.second;
@@ -113,12 +115,13 @@ void XPlaneMonitorWindow::extract_config(nlohmann::json &cfg) {
     winCreateLeft = cfg.value("left", winCreateLeft);
     winCreateTop = cfg.value("top", winCreateTop);
     winPopOutPending = cfg.value("popped", false);
+    winPoppedOut = false;
 }
 
 void XPlaneMonitorWindow::update_config(nlohmann::json &cfg) {
     bool visible  = isActive();
-    cfg["left"] = visible ? (winPoppedOut ? osWinLeft : winLeft) : winCreateLeft;
-    cfg["top"] = visible ? (winPoppedOut ? osWinTop : winTop) : winCreateTop;
+    cfg["left"] = visible ? winLeft : winCreateLeft;
+    cfg["top"] = visible ? winTop : winCreateTop;
     cfg["popped"] = winPoppedOut;
 }
 
@@ -189,7 +192,7 @@ std::pair<int, int> XPlaneMonitorWindow::defaultCreatePosition() {
     int sLeft, sTop, sRight, sBottom;
     auto xy = screenCentre(sLeft, sTop, sRight, sBottom);
     std::pair<int, int> lt;
-    lt.first = xy.first - (winWidth / 2);
-    lt.second = xy.second + (winHeight / 2);
+    lt.first = xy.first - (avitab::UiDriverBase::INITIAL_WIDTH / 2);
+    lt.second = xy.second + (avitab::UiDriverBase::INITIAL_HEIGHT / 2);
     return lt;
 }
